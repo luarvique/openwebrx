@@ -2,7 +2,7 @@ from csdr.chain.demodulator import ServiceDemodulator, SecondaryDemodulator, Dia
 from owrx.audio.chopper import AudioChopper, AudioChopperParser
 from owrx.aprs.kiss import KissDeframer
 from owrx.aprs import Ax25Parser, AprsParser
-from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder
+from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder, CwDecoder
 from pycsdr.types import Format
 from owrx.aprs.module import DirewolfModule
 from digiham.modules import FskDemodulator, PocsagDecoder
@@ -89,3 +89,25 @@ class PskDemodulator(SecondaryDemodulator, SecondarySelectorChain):
         self.sampleRate = sampleRate
         secondary_samples_per_bits = int(round(self.sampleRate / self.baudRate)) & ~3
         self.replace(1, TimingRecovery(secondary_samples_per_bits, 0.5, 2, useQ=True))
+
+
+class CwDemodulator(SecondaryDemodulator, SecondarySelectorChain):
+    def __init__(self, baudRate: float):
+        self.baudRate = baudRate
+        # this is an assumption, we will adjust in setSampleRate
+        self.sampleRate = 12000
+        workers = [
+            Agc(Format.COMPLEX_FLOAT),
+            CwDecoder(self.sampleRate),
+        ]
+        super().__init__(workers)
+
+    def getBandwidth(self):
+        return self.baudRate
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.replace(1, CwDecoder(sampleRate))
+
