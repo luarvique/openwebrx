@@ -2,7 +2,7 @@ from csdr.chain.demodulator import ServiceDemodulator, SecondaryDemodulator, Dia
 from owrx.audio.chopper import AudioChopper, AudioChopperParser
 from owrx.aprs.kiss import KissDeframer
 from owrx.aprs import Ax25Parser, AprsParser
-from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder, CwDecoder
+from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder, CwDecoder, RealPart
 from pycsdr.types import Format
 from owrx.aprs.module import DirewolfModule
 from digiham.modules import FskDemodulator, PocsagDecoder
@@ -97,7 +97,8 @@ class CwDemodulator(SecondaryDemodulator, SecondarySelectorChain):
         # this is an assumption, we will adjust in setSampleRate
         self.sampleRate = 12000
         workers = [
-            Agc(Format.COMPLEX_FLOAT),
+            RealPart(),
+            Agc(Format.FLOAT),
             CwDecoder(self.sampleRate),
         ]
         super().__init__(workers)
