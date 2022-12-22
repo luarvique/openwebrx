@@ -138,7 +138,7 @@ class Modes(object):
             requirements=["pocsag"],
             squelch=False,
         ),
-        DigitalMode("cwdecoder", "CWDecoder", underlying=["usb"]),
+        DigitalMode("cwdecoder", "CWDecoder", underlying=["cw"]),
     ]
 
     @staticmethod
