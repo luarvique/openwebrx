@@ -53,7 +53,8 @@ rm ${JS8CALL_TGZ}
 
 WSJT_DIR=wsjtx-2.5.4
 WSJT_TGZ=${WSJT_DIR}.tgz
-wget http://physics.princeton.edu/pulsar/k1jt/${WSJT_TGZ}
+#wget http://physics.princeton.edu/pulsar/k1jt/${WSJT_TGZ}
+wget https://sourceforge.net/projects/wsjt/files/${WSJT_DIR}/${WSJT_TGZ}
 tar xfz ${WSJT_TGZ}
 patch -Np0 -d ${WSJT_DIR} < /wsjtx-hamlib.patch
 mv /wsjtx.patch ${WSJT_DIR}

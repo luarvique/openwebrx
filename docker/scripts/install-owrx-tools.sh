@@ -30,12 +30,12 @@ python3 setup.py install
 popd
 rm -rf js8py
 
-git clone https://github.com/jketterl/csdr.git
-cmakebuild csdr 0.18.1
+git clone https://github.com/luarvique/csdr.git
+cmakebuild csdr cw_decoder
 
-git clone https://github.com/jketterl/pycsdr.git
+git clone https://github.com/luarvique/pycsdr.git
 cd pycsdr
-git checkout 0.18.1
+git checkout cw_decoder
 ./setup.py install install_headers
 cd ..
 rm -rf pycsdr

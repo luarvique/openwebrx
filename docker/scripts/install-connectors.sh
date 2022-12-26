@@ -23,8 +23,8 @@ BUILD_PACKAGES="git cmake make gcc g++ libsamplerate-dev libfftw3-dev"
 apt-get update
 apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
-git clone https://github.com/jketterl/owrx_connector.git
-cmakebuild owrx_connector 0.6.0
+git clone https://github.com/luarvique/owrx_connector.git
+cmakebuild owrx_connector master
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
