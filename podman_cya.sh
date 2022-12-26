@@ -36,7 +36,7 @@ build () {
 }
 
 push () {
-  podman login -u jubamo -p 73375871Y docker.io/jubamo/openwebrx
+  podman login -u jubamo docker.io/jubamo/openwebrx
   podman push openwebrx:${ARCHTAG} docker.io/jubamo/openwebrx:${ARCHTAG}
 }
 
