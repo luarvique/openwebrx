@@ -58,6 +58,7 @@ class FeatureDetector(object):
         "rtl_tcp": ["rtl_tcp_connector"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "mirics": ["soapy_connector", "soapy_mirics"],
+        "dubok": ["soapy_connector", "soapy_dubok"],
         "hackrf": ["soapy_connector", "soapy_hackrf"],
         "perseussdr": ["perseustest", "nmux"],
         "airspy": ["soapy_connector", "soapy_airspy"],
@@ -357,6 +358,12 @@ class FeatureDetector(object):
         library.
         """
         return self._has_soapy_driver("soapyMiri")
+
+    def has_soapy_dubok(self):
+        """
+        The SoapySDR module for DubokSDR devices is required for interfacing with DubokSDR devices
+        """
+        return self._has_soapy_driver("dubok")
 
     def has_soapy_airspy(self):
         """
