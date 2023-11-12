@@ -132,6 +132,10 @@ body.has-theme .openwebrx-meta-user-image {
     filter: brightness(50%);
 }
 
+body.has-theme .openwebrx-meta-slot.active {
+    filter: brightness(300%);
+}
+
 body.has-theme #openwebrx-digimode-canvas-container {
     background-color: var(--theme-color1);
 }
