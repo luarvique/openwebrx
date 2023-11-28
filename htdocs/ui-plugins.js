@@ -1,8 +1,9 @@
 /*
  * OpenWebRx+ UI plugin loader
  *
- * You can load your plugins from here.
- * Check the "plugins/example" folder for example plugin.
+ * You should load your plugins in "ui-plugins/init.js"
+ * see the init.js.sample.
+ * and check the "plugins/example" folder for example plugin.
  *
  */
 
