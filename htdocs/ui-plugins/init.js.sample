@@ -1,2 +1,0 @@
-UIPlugins.load('example');
-UIPlugins.load('example_theme');
