@@ -1,0 +1,13 @@
+// Plugin loader.
+
+// First load the utils, needed for some plugins
+Plugins.load('utils').then(function () {
+
+  // load local plugins
+  Plugins.load('example');
+  Plugins.load('example_theme');
+  Plugins.load('sort_profiles');
+
+  // load remote plugins
+  Plugins.load('https://0xaf.github.io/openwebrxplus-plugins/receiver/keyboard_shortcuts/keyboard_shortcuts.js');
+});
