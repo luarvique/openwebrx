@@ -10,8 +10,7 @@
 // Wait for the page to load, then load the plugins.
 $(document).ready(function () {
   // detect which plugins to load
-  if ($('.openwebrx-waterfall-container').length) Plugins._type = "receiver";
-  if ($('.openwebrx-map').length) Plugins._type = "map";
+  Plugins._type = (typeof mapManager !== 'undefined') ? 'map' : 'receiver';
   Plugins.init();
 });
 
@@ -35,18 +34,12 @@ Plugins.load = async function (name) {
     remote = true;
   }
 
-  // ignore plugins with same name as our methods
-  if (name === "load" || name === "init" || name === "isLoaded") {
-    console.error('PLUGINS: Cannot load plugin named "load", "isLoaded" or "init".');
-    return;
-  }
-
   if (name in Plugins) {
     console.warn(`PLUGINS: '${name}' is already loaded from ${Plugins[name]._script_loaded}`);
     return;
   }
 
-  Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loading.`);
+  Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' loading.`);
 
   var script_src = path + name + ".js";
   var style_src = path + name + '.css';
@@ -79,18 +72,18 @@ Plugins.load = async function (name) {
         Plugins._load_style(style_src)
           .then(function () {
             Plugins[name]._style_loaded = style_src;
-            Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
+            Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
           }).catch(function () {
             console.warn(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' script loaded, but css not found.`);
           });
       } else {
         // plugin has no_css
-        Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
+        Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
       }
 
     }).catch(function () {
       // plugin cannot be loaded
-      Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' cannot be loaded (does not exist or has errors).`);
+      Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' cannot be loaded (does not exist or has errors).`);
     });
 }
 
@@ -103,12 +96,12 @@ Plugins.isLoaded = function (name, version = 0) {
 
 // Initialize plugin loading. We should load the init.js for the {type}. This init() is called onDomReady.
 Plugins.init = function () {
-  Plugins._debug("PLUGINS: Loading " + Plugins._type + " plugins.");
+  Plugins._debug("Loading " + Plugins._type + " plugins.");
   // load the init.js for the {type}... user should load their plugins there.
   Plugins._load_script('static/plugins/' + Plugins._type + "/init.js").then(function () {
     Plugins._initialized = true;
   }).catch(function () {
-    Plugins._debug('PLUGINS: no plugins to load.');
+    Plugins._debug('no plugins to load.');
   })
 }
 
@@ -136,6 +129,6 @@ Plugins._load_style = function (src) {
   });
 }
 Plugins._debug = function (msg) {
-  if (Plugins._enable_debug) console.debug(msg);
+  if (Plugins._enable_debug) console.debug('PLUGINS: ' + msg);
 }
 
