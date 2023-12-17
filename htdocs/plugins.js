@@ -35,11 +35,11 @@ Plugins.load = async function (name) {
   }
 
   if (name in Plugins) {
-    console.warn(`PLUGINS: '${name}' is already loaded from ${Plugins[name]._script_loaded}`);
+    console.warn(Plugins._get_banner(name) + 'is already loaded' + (Plugins[name]._script_loaded ? ' from ' + Plugins[name]._script_loaded : ''));
     return;
   }
 
-  Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' loading.`);
+  Plugins._debug(Plugins._get_banner(name) + 'loading.');
 
   var script_src = path + name + ".js";
   var style_src = path + name + '.css';
@@ -62,7 +62,7 @@ Plugins.load = async function (name) {
       // check if the plugin has init() method and execute it
       if (typeof Plugins[name].init === 'function') {
         if (!Plugins[name].init()) {
-          console.error(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' cannot initialize.`);
+          console.error(Plugins._get_banner(name) + 'cannot initialize.');
           return;
         }
       }
@@ -72,18 +72,18 @@ Plugins.load = async function (name) {
         Plugins._load_style(style_src)
           .then(function () {
             Plugins[name]._style_loaded = style_src;
-            Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
+            Plugins._debug(Plugins._get_banner(name) + 'loaded.');
           }).catch(function () {
-            console.warn(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' script loaded, but css not found.`);
+            console.warn(Plugins._get_banner(name) + 'script loaded, but css not found.');
           });
       } else {
         // plugin has no_css
-        Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
+        Plugins._debug(Plugins._get_banner(name) + 'loaded.');
       }
 
     }).catch(function () {
       // plugin cannot be loaded
-      Plugins._debug(`${remote ? '[remote]' : '[local]'} '${name}' cannot be loaded (does not exist or has errors).`);
+      Plugins._debug(Plugins._get_banner(name) + 'cannot be loaded (does not exist or has errors).');
     });
 }
 
@@ -129,6 +129,8 @@ Plugins._load_style = function (src) {
   });
 }
 Plugins._debug = function (msg) {
-  if (Plugins._enable_debug) console.debug('PLUGINS: ' + msg);
+  if (Plugins._enable_debug) console.debug(msg);
 }
-
+Plugins._get_banner = function (name) {
+  return 'PLUGINS: ' + (Plugins[name] && Plugins[name]._remote ? '[remote]' : '[local]') + ' "' + name + '" ';
+}
