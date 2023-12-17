@@ -1,4 +1,6 @@
-// This util plugin will provide events for the rest plugins
+// This is the utils plugin
+// It provides function wrapping method
+// and some events for the rest plugins
 
 // Disable CSS loading for this plugin
 Plugins.utils.no_css = true;
@@ -16,7 +18,7 @@ Plugins.utils._version = 0.1;
  *   - Before Callback:
  *     - Params:
  *       - orig: Original function (in case you want to call it, you have to return false to prevent second calling)
- *       - thisArg: i'm not sure what this is, but probably a local 'this'
+ *       - thisArg: local 'this' for the original function
  *       - args: arguments passed to the original function
  *     - Returns: Boolean. Return false to prevent execution of original function and the after callback.
  *   - After Callback:
@@ -30,7 +32,7 @@ Plugins.utils._version = 0.1;
  *     console.log(orig.name);
  *     if (something_bad)
  *       console.log('This profile is disabled by proxy function');
- *       return false;
+ *       return false; // return false to prevent the calling of the original function and the after_cb()
  *     }
  *     return true; // always return true, to call the original function
  *   },

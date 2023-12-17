@@ -22,7 +22,7 @@ Plugins.example.init = function () {
   });
 
   // Another events:
-  // event:owrx_initialized - called when OWRX is initialized (this event does not have :before/:after suffix)
+  // event:owrx_initialized - called when OWRX is initialized
 
   // Server events are triggered when server sends data over the WS
   // All server events have suffix ':before' or ':after', based on the original functoin call.
@@ -43,14 +43,13 @@ Plugins.example.init = function () {
     // function to wrap around
     'sdr_profile_changed',
 
-    // before callback, to be ran before the original function
+    // before callback, to be run before the original function
     // orig = original function
     // thisArg = thisArg for the original function
     // args = the arguments for the original function
-    // If you call the original function here (in the before), always return false,
+    // If you call the original function here (in the before_cb), always return false,
     // so the wrap_func() will not call it later again.
-    // example of calling the original function here:
-    // orig.apply(thisArg, args);
+    // example of calling the original function: orig.apply(thisArg, args);
     function (orig, thisArg, args) {
       console.log("Before callback for: " + orig.name);
 
@@ -70,7 +69,7 @@ Plugins.example.init = function () {
       return true;
     },
 
-    // after callback, to be ran after the original function,
+    // after callback, to be run after the original function,
     // but only if the before callback returns true
     // res = result of the original function, if any
     function (res) {

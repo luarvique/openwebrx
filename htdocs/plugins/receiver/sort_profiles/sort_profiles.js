@@ -37,6 +37,6 @@ Plugins.sort_profiles.init = function () {
     sel.val(selected);
   });
 
+  // return true to validate plugin load
   return true;
-
 }

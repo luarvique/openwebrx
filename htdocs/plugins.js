@@ -16,10 +16,11 @@ $(document).ready(function () {
 });
 
 // Initialize the Plugins class and some defaults
-function Plugins() {}
-Plugins._type;
+function Plugins () {}
 Plugins._initialized = false;
 Plugins._version = 0.1; // version of the plugin sub-system (keep it float)
+Plugins._enable_debug = false; // print debug to the console
+
 
 // Load plugin
 Plugins.load = async function (name) {
@@ -41,11 +42,14 @@ Plugins.load = async function (name) {
   }
 
   if (name in Plugins) {
-    console.warn(`PLUGINS: '${name}' is already loaded from ${Plugins[name]._location}`);
+    console.warn(`PLUGINS: '${name}' is already loaded from ${Plugins[name]._script_loaded}`);
     return;
   }
 
-  console.debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loading.`);
+  Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loading.`);
+
+  var script_src = path + name + ".js";
+  var style_src = path + name + '.css';
 
   // init plugin object with defaults
   Plugins[name] = {
@@ -53,18 +57,14 @@ Plugins.load = async function (name) {
     _script_loaded: false,
     _style_loaded: false,
     _remote: remote,
-    _location: path + name + ".js",
   };
-
-  var script_src = path + name + ".js";
-  var style_src = path + name + '.css';
 
 
   // try to load the plugin
   await Plugins._load_script(script_src)
     .then(function () {
       // plugin script loaded successfully
-      Plugins[name]._script_loaded = true;
+      Plugins[name]._script_loaded = script_src;
 
       // check if the plugin has init() method and execute it
       if (typeof Plugins[name].init === 'function') {
@@ -78,19 +78,19 @@ Plugins.load = async function (name) {
       if (!('no_css' in Plugins[name])) {
         Plugins._load_style(style_src)
           .then(function () {
-            Plugins[name]._style_loaded = true;
-            console.debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
+            Plugins[name]._style_loaded = style_src;
+            Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
           }).catch(function () {
             console.warn(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' script loaded, but css not found.`);
           });
       } else {
         // plugin has no_css
-        console.debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
+        Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' loaded.`);
       }
 
     }).catch(function () {
       // plugin cannot be loaded
-      console.debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' cannot be loaded (does not exist or has errors).`);
+      Plugins._debug(`PLUGINS: ${remote ? '[remote]' : '[local]'} '${name}' cannot be loaded (does not exist or has errors).`);
     });
 }
 
@@ -103,12 +103,12 @@ Plugins.isLoaded = function (name, version = 0) {
 
 // Initialize plugin loading. We should load the init.js for the {type}. This init() is called onDomReady.
 Plugins.init = function () {
-  console.debug("PLUGINS: Loading " + Plugins._type + " plugins.");
-  // load the init.js for the {type}... user should load his plugins there.
+  Plugins._debug("PLUGINS: Loading " + Plugins._type + " plugins.");
+  // load the init.js for the {type}... user should load their plugins there.
   Plugins._load_script('static/plugins/' + Plugins._type + "/init.js").then(function () {
     Plugins._initialized = true;
   }).catch(function () {
-    console.debug('PLUGINS: no plugins to load.');
+    Plugins._debug('PLUGINS: no plugins to load.');
   })
 }
 
@@ -135,3 +135,7 @@ Plugins._load_style = function (src) {
     document.head.appendChild(style);
   });
 }
+Plugins._debug = function (msg) {
+  if (Plugins._enable_debug) console.debug(msg);
+}
+

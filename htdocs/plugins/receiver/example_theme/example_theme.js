@@ -1,5 +1,5 @@
 /*
- * example UI plugin, creating a new theme for OpenWebRx+
+ * example plugin, creating a new theme for OpenWebRx+
  */
 
 // Add new entry in the Theme selectbox
