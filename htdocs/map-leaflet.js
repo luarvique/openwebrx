@@ -142,6 +142,13 @@ var mapExtraLayers = [
             attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'
         },
     },
+    {
+        name: 'Maidenhead-QTH',
+        createLayer: async function () {
+            await $.when($.getScript('https://ha8tks.github.io/Leaflet.Maidenhead/src/L.Maidenhead.js'));
+            return L.maidenhead({ color: 'rgba(255, 0, 0, 0.4)' });
+        }
+    },
 ];
 
 // reasonable default; will be overriden by server
@@ -348,11 +355,17 @@ MapManager.prototype.initializeMap = function(receiver_gps, api_key, weather_key
                 }
 
                 function addMapOverlay (name) {
-                    $.each(mapExtraLayers, function (idx, mel) {
+                    $.each(mapExtraLayers, async function (idx, mel) {
                         if (mel.name === name) {
                             if (!mel.layer) {
-                                mel.options.apikey = apiKeys[mel.depends];
-                                mel.layer = L.tileLayer(mel.url, mel.options);
+                                if (apiKeys[mel.depends]) mel.options.apikey = apiKeys[mel.depends];
+                                if (typeof mel.url !== 'undefined') {
+                                    mel.layer = L.tileLayer(mel.url, mel.options);
+                                } else if (typeof mel.createLayer === 'function') {
+                                    mel.layer = await mel.createLayer();
+                                } else {
+                                    console.error('Cannot create layer for ' + mel.name);
+                                }
                             }
                             if (map.hasLayer(mel.layer))
                                 map.removeLayer(mel.layer);
