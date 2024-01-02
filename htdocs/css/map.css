@@ -72,7 +72,7 @@ ul {
 .openwebrx-map-legend select {
     background-color: #FFF;
     border-color: #DDD;
-    padding: 5px;
+    padding: 0 5px;
 }
 
 .openwebrx-map-console {
@@ -94,4 +94,12 @@ ul {
     padding-right: 5px;
     text-align: center;
     white-space: nowrap;
+}
+
+.leaflet-control-layers {
+    line-height: 0.5 !important;
+}
+
+.leaflet-control-layers-expanded {
+    padding: 5px !important;
 }
