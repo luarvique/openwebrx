@@ -165,7 +165,8 @@ Marker.prototype.age = function(age) {
 // Remove visual marker element from its parent, if that element exists.
 Marker.prototype.remove = function() {
     if (this.div) {
-        this.div.parentNode.removeChild(this.div);
+        if (this.div.parentNode && this.div.parentNode.removeChild)
+            this.div.parentNode.removeChild(this.div);
         this.div = null;
     }
 };
