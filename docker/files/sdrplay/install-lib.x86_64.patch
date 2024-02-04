@@ -1,14 +1,12 @@
 diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
---- sdrplay-orig/install_lib.sh	2020-05-24 13:56:56.622000041 +0000
-+++ sdrplay/install_lib.sh	2020-05-24 13:58:51.837801559 +0000
-@@ -4,19 +4,6 @@
- MAJVERS="3"
+--- sdrplay-orig/install_lib.sh	2024-02-05 00:33:32.563433411 +0200
++++ sdrplay/install_lib.sh	2024-02-05 00:37:18.391679938 +0200
+@@ -17,18 +17,6 @@
+ echo "the system files."
+ echo " "
  
- echo "Installing SDRplay RSP API library ${VERS}..."
 -read -p "Press RETURN to view the license agreement" ret
--
--more sdrplay_license.txt
--
+-more -d sdrplay_license.txt
 -while true; do
 -    echo "Press y and RETURN to accept the license agreement and continue with"
 -    read -p "the installation, or press n and RETURN to exit the installer [y/n] " yn
@@ -18,22 +16,52 @@ diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
 -        * ) echo "Please answer y or n";;
 -    esac
 -done
+-
+ echo " "
+ echo "A copy of the license agreement can be found here: ${HOME}/sdrplay_license.txt"
+ cp sdrplay_license.txt ${HOME}/.
+@@ -255,43 +243,6 @@
+ echo " "
  
- ARCH=`uname -m`
- OSDIST="Unknown"
-@@ -157,15 +144,6 @@
- echo " "
- echo "SDRplay API ${VERS} Installation Finished"
- echo " "
+ #         0--------1---------2---------3---------4---------5---------6---------7---------8
 -while true; do
--    echo "Would you like to add SDRplay USB IDs to the local database for easier"
--    read -p "identification in applications such as lsusb? [y/n] " yn
+-    echo "To continue the installation with these defaults press y and RETURN"
+-    read -p "or press n and RETURN to change them [y/n] " yn
 -    case $yn in
--        [Yy]* ) break;;
--        [Nn]* ) exit;;
+-        [Yy]* ) change="n";break;;
+-        [Nn]* ) change="y";break;;
 -        * ) echo "Please answer y or n";;
 -    esac
 -done
- sudo cp scripts/sdrplay_usbids.sh ${INSTALLBINDIR}/.
- sudo chmod 755 ${INSTALLBINDIR}/sdrplay_usbids.sh
- sudo cp scripts/sdrplay_ids.txt ${INSTALLBINDIR}/.
+-
+-if [ "${change}" == "y" ]; then
+-    echo "Changing default locations..."
+-    read -p "API service location [${locservice}]: " newloc
+-    if [ "${newloc}" != "" ]; then
+-        locservice=${newloc}
+-    fi
+-    read -p "API header files location [${locheader}]: " newloc
+-    if [ "${newloc}" != "" ]; then
+-        locheader=${newloc}
+-    fi
+-    read -p "API shared library location [${loclib}]: " newloc
+-    if [ "${newloc}" != "" ]; then
+-        loclib=${newloc}
+-    fi
+-
+-    echo "API service : ${locservice}"
+-    echo "API header files : ${locheader}"
+-    echo "API shared library : ${loclib}"
+-    while true; do
+-        read -p "Please confirm these are correct [y/n] " yn
+-        case $yn in
+-            [Yy]* ) break;;
+-            [Nn]* ) echo "paths not confirmed. Exiting...";exit 1;;
+-            * ) echo "Please answer y or n";;
+-        esac
+-    done
+-fi
+ 
+ sudo mkdir -p -m 755 ${locservice} >> /dev/null 2>&1
+ sudo mkdir -p -m 755 ${locheader} >> /dev/null 2>&1
+Only in sdrplay: install_lib.sh.org
