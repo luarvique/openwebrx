@@ -28,13 +28,15 @@ if [[ -z ${1:-} ]]; then
 
   case $ARCH in
     x86_64)
-      BINARY=SDRplay_RSP_API-Linux-3.07.1.run
+      #BINARY=SDRplay_RSP_API-Linux-3.07.1.run
+      BINARY=SDRplay_RSP_API-Linux-3.14.0.run
       ;;
     armv*)
       BINARY=SDRplay_RSP_API-ARM32-3.07.2.run
       ;;
     aarch64)
-      BINARY=SDRplay_RSP_API-ARM64-3.07.1.run
+      #BINARY=SDRplay_RSP_API-ARM64-3.07.1.run
+      BINARY=SDRplay_RSP_API-Linux-3.14.0.run
       ;;
   esac
 

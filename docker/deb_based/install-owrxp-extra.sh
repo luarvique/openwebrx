@@ -22,13 +22,15 @@ function cmakebuild() {
 export MARCH=native
 case `uname -m` in
     arm*)
-        SDRPLAY_BINARY=SDRplay_RSP_API-ARM32-3.07.2.run
+        #SDRPLAY_BINARY=SDRplay_RSP_API-ARM32-3.07.2.run
+        SDRPLAY_BINARY=SDRplay_RSP_API-Linux-3.14.0.run
         ;;
     aarch64*)
-        SDRPLAY_BINARY=SDRplay_RSP_API-ARM64-3.07.1.run
+        #SDRPLAY_BINARY=SDRplay_RSP_API-ARM64-3.07.1.run
+        SDRPLAY_BINARY=SDRplay_RSP_API-Linux-3.14.0.run
         ;;
     x86_64*)
-        SDRPLAY_BINARY=SDRplay_RSP_API-Linux-3.07.1.run
+        SDRPLAY_BINARY=SDRplay_RSP_API-Linux-3.07.2.run
         export MARCH=x86-64
         ;;
 esac
