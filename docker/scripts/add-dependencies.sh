@@ -30,6 +30,8 @@ export MARCH=native
 case `uname -m` in
     arm*)
         PLATFORM=armhf
+	#echo Delaying ARMv7 build by 10min
+	#sleep 600 # delay armhf build, so the OOM wont kill the process
         ;;
     aarch64*)
         PLATFORM=aarch64

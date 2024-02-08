@@ -30,13 +30,16 @@ if [[ -z ${1:-} ]]; then
     x86_64)
       #BINARY=SDRplay_RSP_API-Linux-3.07.1.run
       BINARY=SDRplay_RSP_API-Linux-3.14.0.run
+      BRANCH=master
       ;;
     armv*)
       BINARY=SDRplay_RSP_API-ARM32-3.07.2.run
+      BRANCH=0.8.7
       ;;
     aarch64)
       #BINARY=SDRplay_RSP_API-ARM64-3.07.1.run
       BINARY=SDRplay_RSP_API-Linux-3.14.0.run
+      BRANCH=master
       ;;
   esac
 
@@ -49,12 +52,14 @@ if [[ -z ${1:-} ]]; then
   cd ..
   rm -rf sdrplay
   rm $BINARY
+  mkdir -p /usr/local/bin
+  mv /opt/sdrplay_api/sdrplay_apiService /usr/local/bin/ || true
 
   #git clone https://github.com/pothosware/SoapySDRPlay3.git
   # latest from master as of 2021-06-19 (reliability fixes)
   #cmakebuild SoapySDRPlay3 a869f25364a1f0d5b16169ff908aa21a2ace475d
   git clone https://github.com/luarvique/SoapySDRPlay3
-  cmakebuild SoapySDRPlay3
+  cmakebuild SoapySDRPlay3 $BRANCH
 fi
 
 if [[ -z ${FULL_BUILD:-} || ${1:-} == 'clean' ]]; then

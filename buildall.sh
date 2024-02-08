@@ -214,6 +214,9 @@ if [ "${BUILD_SOAPYSDRPLAY3:-}" == "y" ]; then
 	echo "##### Building SoapySDRPlay3 ... #####"
 	git clone -b master "$GIT_SOAPYSDRPLAY3"
 	pushd SoapySDRPlay3
+  case $(uname -m) in
+    arm*) git checkout 0.8.7 ;;
+  esac
 	# Debian Bullseye uses SoapySDR v0.7
 	HAVE_SOAPY=`apt-cache search libsoapysdr0.7`
 	if [ ! -z "${HAVE_SOAPY}" ] ; then

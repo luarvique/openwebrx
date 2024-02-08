@@ -1,6 +1,6 @@
 diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
---- sdrplay-orig/install_lib.sh	2024-02-05 00:33:32.563433411 +0200
-+++ sdrplay/install_lib.sh	2024-02-05 00:37:18.391679938 +0200
+--- sdrplay-orig/install_lib.sh	2024-01-25 16:42:20.000000000 +0200
++++ sdrplay/install_lib.sh	2024-02-06 01:26:08.497324616 +0200
 @@ -17,18 +17,6 @@
  echo "the system files."
  echo " "
@@ -20,7 +20,17 @@ diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
  echo " "
  echo "A copy of the license agreement can be found here: ${HOME}/sdrplay_license.txt"
  cp sdrplay_license.txt ${HOME}/.
-@@ -255,43 +243,6 @@
+@@ -36,7 +24,8 @@
+ echo " "
+ 
+ ARCH=$(uname -m|sed -e 's/x86_64/64/' -e 's/aarch64/64/' -e 's/arm64/64/' -e 's/i.86/32/')
+-INIT=$(file -L /sbin/init|sed -e 's/^.* \(32\|64\)-bit.*$/\1/')
++#INIT=$(file -L /sbin/init|sed -e 's/^.* \(32\|64\)-bit.*$/\1/')
++INIT=64
+ COMPILER=$(getconf LONG_BIT)
+ ARCHM=$(uname -m)
+ INSTALLARCH=$(uname -m)
+@@ -255,43 +244,6 @@
  echo " "
  
  #         0--------1---------2---------3---------4---------5---------6---------7---------8
@@ -64,4 +74,3 @@ diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
  
  sudo mkdir -p -m 755 ${locservice} >> /dev/null 2>&1
  sudo mkdir -p -m 755 ${locheader} >> /dev/null 2>&1
-Only in sdrplay: install_lib.sh.org
