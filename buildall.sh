@@ -17,6 +17,7 @@ GIT_PYDIGIHAM=https://github.com/jketterl/pydigiham.git
 GIT_CSDR_ETI=https://github.com/luarvique/csdr-eti.git
 GIT_PYCSDR_ETI=https://github.com/luarvique/pycsdr-eti.git
 GIT_JS8PY=https://github.com/jketterl/js8py.git
+GIT_REDSEA=https://github.com/luarvique/redsea.git
 GIT_SOAPYSDRPLAY3=https://github.com/luarvique/SoapySDRPlay3.git
 GIT_OPENWEBRX=https://github.com/luarvique/openwebrx.git
 
@@ -42,6 +43,8 @@ if [ "${1:-}" == "--ask" ]; then
 	[[ "$ret" == [Yy]* ]] && BUILD_PYCSDR_ETI=y || BUILD_PYCSDR_ETI=n
 	echo;read -n1 -p "Build js8py? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_JS8PY=y || BUILD_JS8PY=n
+	echo;read -n1 -p "Build Redsea? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_REDSEA=y || BUILD_REDSEA=n
 	echo;read -n1 -p "Build SoapySDRPlay3? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_SOAPYSDRPLAY3=y || BUILD_SOAPYSDRPLAY3=n
 	echo;read -n1 -p "Build OpenWebRX+? [Yn] " ret
@@ -61,6 +64,7 @@ else
 	BUILD_CSDR_ETI=y
 	BUILD_PYCSDR_ETI=y
 	BUILD_JS8PY=y
+	BUILD_REDSEA=y
 	CLEAN_OUTPUT=y
 fi
 
@@ -95,6 +99,7 @@ echo "pydigiham: $BUILD_PYDIGIHAM"
 echo "csdr-eti: $BUILD_CSDR_ETI"
 echo "pycsdr-eti: $BUILD_PYCSDR_ETI"
 echo "js8py: $BUILD_JS8PY"
+echo "redsea: $BUILD_REDSEA"
 echo "SoapySDRPlay3: $BUILD_SOAPYSDRPLAY3"
 echo "OpenWebRx: $BUILD_OWRX"
 echo "Clean OUTPUT folder: $CLEAN_OUTPUT"
@@ -208,6 +213,17 @@ if [ "${BUILD_JS8PY:-}" == "y" ]; then
 	# Not installing JS8Py here since there are no further
 	# build steps depending on it
 	#sudo dpkg -i *js8py*.deb
+fi
+
+if [ "${BUILD_REDSEA:-}" == "y" ]; then
+	echo "##### Building Redsea... #####"
+	git clone -b master "$GIT_REDSEA"
+	pushd redsea
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing Redsea here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *redsea*.deb
 fi
 
 if [ "${BUILD_SOAPYSDRPLAY3:-}" == "y" ]; then
