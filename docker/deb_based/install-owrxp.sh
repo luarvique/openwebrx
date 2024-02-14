@@ -33,4 +33,4 @@ echo "deb [signed-by=/usr/share/keyrings/openwebrx.gpg] https://repo.openwebrx.d
 apt update
 
 echo "+ Install OpenWebRX, Soapy modules and some libs..."
-DEBIAN_FRONTEND=noninteractive apt install -y openwebrx soapysdr-module-all libsoapysdr-dev libpulse0 libfaad2 libopus0 soapysdr-module-sdrplay3 airspyhf alsa-utils libpopt0 libiio0 libad9361-0 libhidapi-hidraw0 libhidapi-libusb0 dump1090-fa-minimal libliquid2d csdr-eti python3-csdr-eti
+DEBIAN_FRONTEND=noninteractive apt install -y openwebrx soapysdr-module-all libsoapysdr-dev libpulse0 libfaad2 libopus0 soapysdr-module-sdrplay3 airspyhf alsa-utils libpopt0 libiio0 libad9361-0 libhidapi-hidraw0 libhidapi-libusb0 dump1090-fa-minimal libliquid2d csdr-eti python3-csdr-eti dablin
