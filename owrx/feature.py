@@ -92,6 +92,7 @@ class FeatureDetector(object):
         "acars": ["acarsdec"],
         "page": ["multimon"],
         "selcall": ["multimon"],
+        "eas_same": ["multimon", "dsame3_simple"],
         "wxsat": ["satdump"],
         "png": ["imagemagick"],
         "rds": ["redsea"],
@@ -736,6 +737,12 @@ class FeatureDetector(object):
         distributions.
         """
         return self.command_is_runnable("multimon-ng --help")
+
+    def has_dsame3_simple(self):
+        """
+        dsame3_simple is used to decode EAS SAME messages to readable text.
+        """
+        return self.command_is_runnable("dsame3_simple --help")
 
     def has_satdump(self):
         """

@@ -2,7 +2,7 @@ from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.toolbox import Rtl433Module, MultimonModule, DumpHfdlModule, DumpVdl2Module, Dump1090Module, AcarsDecModule, RedseaModule, SatDumpModule
 from pycsdr.modules import FmDemod, AudioResampler, Convert, Agc, Squelch
 from pycsdr.types import Format
-from owrx.toolbox import TextParser, PageParser, SelCallParser, IsmParser, RdsParser
+from owrx.toolbox import TextParser, PageParser, SelCallParser, EasSameParser, IsmParser, RdsParser
 from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser
 
 from datetime import datetime
@@ -88,6 +88,15 @@ class SelCallDemodulator(MultimonDemodulator):
         super().__init__(
             ["DTMF", "EEA", "EIA", "CCIR"],
             SelCallParser(service=service),
+            withSquelch = True
+        )
+
+
+class EasSameDemodulator(MultimonDemodulator):
+    def __init__(self, service: bool = False):
+        super().__init__(
+            ["EAS"],
+            EasSameParser(service=service),
             withSquelch = True
         )
 

@@ -677,6 +677,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "selcall":
             from csdr.chain.toolbox import SelCallDemodulator
             return SelCallDemodulator()
+        elif mod == "eassame":
+            from csdr.chain.toolbox import EasSameDemodulator
+            return EasSameDemodulator()
         elif mod == "zvei":
             from csdr.chain.toolbox import ZveiDemodulator
             return ZveiDemodulator()
