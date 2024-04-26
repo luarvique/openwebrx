@@ -391,7 +391,7 @@ class EasSameParser(TextParser):
             if not dec:
                 continue
             for d in dec:
-                out += [s, '\n'.join(d['msg']), '']
+                out += [s, d['msg'], '']
                 spot = {
                     **d,
                     "mode":      "EAS_SAME",
