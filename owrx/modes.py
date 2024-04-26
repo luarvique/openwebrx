@@ -221,7 +221,8 @@ class Modes(object):
             "EAS SAME",
             underlying=["nfm"],
             requirements=["eas_same"],
-            squelch=True
+            service=True,
+            squelch=False
         ),
         DigitalMode(
             "zvei",

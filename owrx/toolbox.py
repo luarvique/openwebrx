@@ -374,15 +374,10 @@ class SelCallParser(TextParser):
 class EasSameParser(TextParser):
     def __init__(self, service: bool = False):
         self.reSplit = re.compile(r"(EAS: \S+)")
-        self.reMatch = re.compile(r"EAS")
-        self.mode = ""
         # Construct parent object
         super().__init__(filePrefix="EAS_SAME", service=service)
 
     def parse(self, msg: bytes):
-        # Do not parse in service mode
-        if self.service:
-            return None
         # Parse EAS SAME messages
         from dsame3_simple.dsame import same_decode_string
         msg = msg.decode('utf-8', 'replace')
@@ -390,11 +385,24 @@ class EasSameParser(TextParser):
 
         r = self.reSplit.split(msg)
         for s in r:
-            if not self.reMatch.match(s):
+            if not s.startswith('EAS: '):
                 continue
             dec = same_decode_string(s)
             if not dec:
                 continue
-            out += [s, '\n'.join(dec), '']
-        # Done
+            for d in dec:
+                out += [s, '\n'.join(d['msg']), '']
+                spot = {
+                    **d,
+                    "mode":      "EAS_SAME",
+                    "timestamp": self.getUtcTime(),
+                    "message":   d['msg'],
+                    "raw":       s
+                }
+                del spot['msg']
+                ReportingEngine.getSharedInstance().spot(spot)
+
+        if self.service:
+            return None
+
         return '\n'.join(out)
