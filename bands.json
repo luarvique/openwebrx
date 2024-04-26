@@ -450,5 +450,14 @@
     "frequencies": {
       "ais": [161975000, 162025000]
     }
+  },
+  {
+    "name": "NOAA Weather Radio",
+    "lower_bound": 162390000,
+    "upper_bound": 162560000,
+    "tags": ["service"],
+    "frequencies": {
+      "eassame": [162400000, 162425000, 162450000, 162475000, 162500000, 162525000, 162550000]
+    }
   }
 ]
