@@ -399,6 +399,8 @@ class EasSameParser(TextParser):
                     "message":   d['msg'],
                     "raw":       s
                 }
+                spot['start_time'] = spot['start_time'].astimezone(timezone.utc).isoformat()
+                spot['end_time'] = spot['end_time'].astimezone(timezone.utc).isoformat()
                 del spot['msg']
                 ReportingEngine.getSharedInstance().spot(spot)
 
