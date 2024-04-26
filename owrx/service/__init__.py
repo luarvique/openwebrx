@@ -335,6 +335,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "page":
             from csdr.chain.toolbox import PageDemodulator
             return PageDemodulator(service=True)
+        elif mod == "eassame":
+            from csdr.chain.toolbox import EasSameDemodulator
+            return EasSameDemodulator(service=True)
         elif mod == "ism":
             from csdr.chain.toolbox import IsmDemodulator
             return IsmDemodulator(service=True)
