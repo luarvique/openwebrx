@@ -393,11 +393,12 @@ class EasSameParser(TextParser):
             for d in dec:
                 out += [s, d['msg'], '']
                 spot = {
-                    **d,
                     "mode":      "EAS_SAME",
-                    "timestamp": self.getUtcTime(),
+                    "freq":      self.frequency,
+                    "timestamp": round(datetime.now().timestamp() * 1000),
                     "message":   d['msg'],
-                    "raw":       s
+                    "raw":       s,
+                    **d
                 }
                 spot['start_time'] = spot['start_time'].astimezone(timezone.utc).isoformat()
                 spot['end_time'] = spot['end_time'].astimezone(timezone.utc).isoformat()
