@@ -375,7 +375,7 @@ class EasSameParser(TextParser):
     def __init__(self, service: bool = False):
         self.reSplit = re.compile(r"(EAS: \S+)")
         # Construct parent object
-        super().__init__(filePrefix="EAS_SAME", service=service)
+        super().__init__(filePrefix="EASSAME", service=service)
 
     def parse(self, msg: bytes):
         # Parse EAS SAME messages
@@ -403,8 +403,5 @@ class EasSameParser(TextParser):
                 spot['end_time'] = spot['end_time'].astimezone(timezone.utc).isoformat()
                 del spot['msg']
                 ReportingEngine.getSharedInstance().spot(spot)
-
-        if self.service:
-            return None
 
         return '\n'.join(out)
