@@ -75,7 +75,10 @@ UI.setVolume = function(x) {
         this.volume = x;
         LS.save('volume', x);
         $('#openwebrx-panel-volume').val(x)
-        if (audioEngine) audioEngine.setVolume(x / 100);
+        //Map 0-150 to -60 to 0db gain
+        xdb = (x / 2.5)  - 60;
+        gain = Math.pow(10, xdb / 20);
+        if (audioEngine) audioEngine.setVolume(gain);
     }
 };
 
