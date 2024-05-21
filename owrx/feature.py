@@ -57,6 +57,7 @@ class FeatureDetector(object):
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
         "rtl_tcp": ["rtl_tcp_connector"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
+        "soapyMiri": ["soapy_connector", "soapy_soapyMiri"],
         "hackrf": ["soapy_connector", "soapy_hackrf"],
         "perseussdr": ["perseustest", "nmux"],
         "airspy": ["soapy_connector", "soapy_airspy"],
@@ -340,6 +341,14 @@ class FeatureDetector(object):
         from the manufacturer.
         """
         return self._has_soapy_driver("sdrplay")
+
+    def has_soapy_soapyMiri(self):
+        """
+        The [SoapySDR module for Miric](https://github.com/ericek111/SoapyMiri)
+        devices is required for interfacing with Miric-based hardware (MSi2500 etc).
+        You will also need to install the [libmirisdr-5](https://github.com/ericek111/libmirisdr-5) library.
+        """
+        return self._has_soapy_driver("soapyMiri")
 
     def has_soapy_airspy(self):
         """
