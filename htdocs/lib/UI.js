@@ -78,6 +78,9 @@ UI.setVolume = function(x) {
         //Map 0-150 to -60 to 0db gain
         xdb = (x / 2.5)  - 60;
         gain = Math.pow(10, xdb / 20);
+        if (x == 0) {
+            gain = 0;
+        }
         if (audioEngine) audioEngine.setVolume(gain);
     }
 };
