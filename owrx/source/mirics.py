@@ -37,7 +37,7 @@ class MiricsSource(SoapyConnectorSource):
         return mappings
 
     def getDriver(self):
-        return "mirics"
+        return "soapyMiri"
 
 class BuffLenOptions(DropdownEnum):
     BUFFLEN_15872 = "15872"
