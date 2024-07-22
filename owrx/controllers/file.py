@@ -38,7 +38,7 @@ class FilesController(WebpageController):
                 rows += '<tr>\n'
             # Show images as they are, show document icon for the rest
             if self.isimg.match(files[i]):
-                shot = "/files/" + files[i]
+                shot = "files/" + files[i]
             elif self.issnd.match(files[i]):
                 shot = "static/gfx/audio-file.png"
             else:
@@ -52,7 +52,7 @@ class FilesController(WebpageController):
                 buttons = ""
             # Print out individual tiles
             rows += ('<td class="file-tile">' +
-                ('<a href="/files/%s" download="%s">' % (files[i], files[i])) +
+                ('<a href="files/%s" download="%s">' % (files[i], files[i])) +
                 ('<img src="%s" download="%s">' % (shot, files[i])) +
                 ('<p class="file-title">%s</p>' % files[i]) +
                 ('</a>%s</td>\n' % buttons))
