@@ -72,13 +72,13 @@ class GeneralSettingsController(SettingsFormController):
                 AvatarInput(
                     "receiver_avatar",
                     "Receiver Avatar",
-                    infotext="Max file size 256KB. For performance reasons, images are cached. "
+                    infotext="Maximum file size is 256kB. For performance reasons, images are cached. "
                     + "It can take a few hours until they appear on the site.",
                 ),
                 TopPhotoInput(
                     "receiver_top_photo",
                     "Receiver Panorama",
-                    infotext="Max file size 2MB. For performance reasons, images are cached. "
+                    infotext="Maximum file size is 2MB. For performance reasons, images are cached. "
                     + "It can take a few hours until they appear on the site.",
                 ),
             ),
