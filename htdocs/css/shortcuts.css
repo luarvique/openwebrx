@@ -60,8 +60,13 @@
   /* flex-direction: row; */
 }
 
+.ks-item-txt {
+  color: silver;
+}
+
 .ks-item-kbd {
   text-wrap: nowrap;
+  color: silver;
 }
 
 a.kbc-button-xs, button.kbc-button-xs {

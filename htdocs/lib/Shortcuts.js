@@ -19,107 +19,107 @@ Shortcuts.init = function(target) {
     <div class="ks-content">
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
         <div class="ks-item-txt">tune frequency</div>
+        <div class="ks-item-kbd">${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('ArrowUp')}|${this.keycap('ArrowDown')}</div>
         <div class="ks-item-txt">zoom waterfall</div>
+        <div class="ks-item-kbd">${this.keycap('ArrowUp')}|${this.keycap('ArrowDown')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('0')}..${this.keycap('9')}</div>
         <div class="ks-item-txt">select modulation</div>
+        <div class="ks-item-kbd">(${this.keycap('Control')}+)${this.keycap('0')}..${this.keycap('9')}</div>
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('[')}|${this.keycap(']')}</div>
         <div class="ks-item-txt">change tuning step</div>
+        <div class="ks-item-kbd">${this.keycap('[')}|${this.keycap(']')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('Control')}+${this.keycap('ArrowUp')}|${this.keycap('ArrowDown')}</div>
         <div class="ks-item-txt">change volume</div>
+        <div class="ks-item-kbd">${this.keycap('Control')}+${this.keycap('ArrowUp')}|${this.keycap('ArrowDown')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('Space')}</div>
         <div class="ks-item-txt">mute/unumte sound</div>
+        <div class="ks-item-kbd">${this.keycap('Space')}</div>
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('A')}</div>
         <div class="ks-item-txt">auto-set squelch</div>
+        <div class="ks-item-kbd">${this.keycap('A')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('Control')}+${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
         <div class="ks-item-txt">change squelch level</div>
+        <div class="ks-item-kbd">${this.keycap('Control')}+${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('D')}</div>
         <div class="ks-item-txt">disable squelch</div>
+        <div class="ks-item-kbd">${this.keycap('D')}</div>
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('N')}</div>
         <div class="ks-item-txt">toggle noise reduction</div>
+        <div class="ks-item-kbd">${this.keycap('N')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('Shift')}+${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
         <div class="ks-item-txt">adjust bandpass offset</div>
+        <div class="ks-item-kbd">${this.keycap('Shift')}+${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('Shift')}+${this.keycap('ArrowUp')}|${this.keycap('ArrowDown')}</div>
         <div class="ks-item-txt">adjust bandpass width</div>
+        <div class="ks-item-kbd">${this.keycap('Shift')}+${this.keycap('ArrowUp')}|${this.keycap('ArrowDown')}</div>
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('S')}</div>
         <div class="ks-item-txt">toggle scanner</div>
+        <div class="ks-item-kbd">${this.keycap('S')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap(',')}|${this.keycap('.')}</div>
         <div class="ks-item-txt">adjust waterfall min level</div>
+        <div class="ks-item-kbd">${this.keycap(',')}|${this.keycap('.')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('<')}|${this.keycap('>')}</div>
         <div class="ks-item-txt">adjust waterfall max level</div>
+        <div class="ks-item-kbd">${this.keycap('<')}|${this.keycap('>')}</div>
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('Z')}</div>
         <div class="ks-item-txt">auto-set colors once</div>
+        <div class="ks-item-kbd">${this.keycap('Z')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('X')}</div>
         <div class="ks-item-txt">auto-set colors</div>
+        <div class="ks-item-kbd">${this.keycap('X')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('C')}</div>
         <div class="ks-item-txt">set default colors</div>
+        <div class="ks-item-kbd">${this.keycap('C')}</div>
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('R')}</div>
         <div class="ks-item-txt">toggle recorder</div>
+        <div class="ks-item-kbd">${this.keycap('R')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('V')}</div>
         <div class="ks-item-txt">toggle spectrum</div>
+        <div class="ks-item-kbd">${this.keycap('V')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('B')}</div>
         <div class="ks-item-txt">toggle bandplan</div>
+        <div class="ks-item-kbd">${this.keycap('B')}</div>
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('M')}</div>
         <div class="ks-item-txt">open map</div>
+        <div class="ks-item-kbd">${this.keycap('M')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('F')}</div>
         <div class="ks-item-txt">open files browser</div>
+        <div class="ks-item-kbd">${this.keycap('F')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-kbd">${this.keycap('H')}</div>
         <div class="ks-item-txt">open documentation</div>
+        <div class="ks-item-kbd">${this.keycap('H')}</div>
       </div>
     </div>
     `);
@@ -226,10 +226,11 @@ Shortcuts.handleKey = function(event) {
 
         case '1': case '2': case '3': case '4': case '5':
         case '6': case '7': case '8': case '9': case '0':
-            // 0-9: Select modulation
+            // 0-9, ctrl+0-9: Select modulation
             var $modes = $('.openwebrx-demodulator-button');
             var n = parseInt(event.key);
             n = n > 0? n - 1 : 9;
+            if (event.ctrlKey) n += 10;
             if (n < $modes.length) $modes[n].click();
             break;
 
@@ -250,11 +251,13 @@ Shortcuts.handleKey = function(event) {
 
         case 's':
             // S: Toggle scanner
+            if (event.ctrlKey) return; // leave it to the browser
             toggleScanner();
             break;
 
         case 'd':
             // D: Turn off squelch
+            if (event.ctrlKey) return; // leave it to the browser
             var $squelchControl = $('#openwebrx-panel-receiver .openwebrx-squelch-slider');
             if (!$squelchControl.prop('disabled')) {
                 $squelchControl.val($squelchControl.attr('min')).change();
@@ -293,11 +296,13 @@ Shortcuts.handleKey = function(event) {
 
         case 'n':
             // N: Toggle noise reduction
+            if (event.ctrlKey) return; // leave it to the browser
             UI.toggleNR();
             break;
 
         case 'r':
             // R: Toggle recorder
+            if (event.ctrlKey) return; // leave it to the browser
             UI.toggleRecording();
             break;
 
@@ -322,19 +327,21 @@ Shortcuts.handleKey = function(event) {
             break;
 
        case 'f':
-           // F: Open file browser
-           $('a.button[target="openwebrx-files"]')[0].click();
-           break;
+            // F: Open file browser
+            if (event.ctrlKey) return; // leave it to the browser
+            $('a.button[target="openwebrx-files"]')[0].click();
+            break;
 
        case 'h':
-           // H: Open documentation
-           $('a.button[target="openwebrx-help"]')[0].click();
-           break;
+            // H: Open documentation
+            if (event.ctrlKey) return; // leave it to the browser
+            $('a.button[target="openwebrx-help"]')[0].click();
+            break;
 
        case 'm':
-           // M: Open map
-           $('a.button[target="openwebrx-map"]')[0].click();
-           break;
+            // M: Open map
+            $('a.button[target="openwebrx-map"]')[0].click();
+            break;
 
         case '/': case '?':
             Shortcuts.overlay.slideToggle(100);
