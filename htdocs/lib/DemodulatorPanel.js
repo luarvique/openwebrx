@@ -52,7 +52,10 @@ function DemodulatorPanel(el) {
 DemodulatorPanel.prototype.render = function() {
     var available = Modes.getModes().filter(function(m){ return m.isAvailable(); });
     var normalModes = available.filter(function(m){ return m.type === 'analog'; });
-    var digiModes = available.filter(function(m){ return m.type === 'digimode'; });
+    
+    var digiModes = available
+        .filter(function(m){ return m.type === 'digimode'; })
+        .sort(function(a, b){ return a.name.localeCompare(b.name) });
 
     var html = []
 
