@@ -265,6 +265,10 @@ MapManager.prototype.initializeMap = function(receiver_gps, api_key, weather_key
                 // add zoom control
                 new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
 
+                // load geodesic and textpath plugins plugin
+                $.getScript('https://cdn.jsdelivr.net/npm/leaflet.geodesic');
+                $.getScript('https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js');
+
                 // add night overlay
                 $.getScript('https://unpkg.com/@joergdietrich/leaflet.terminator@1.0.0/L.Terminator.js').done(function () {
                     var pane = map.createPane('nite');

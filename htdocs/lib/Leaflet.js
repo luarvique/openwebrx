@@ -113,7 +113,9 @@ LLocator.prototype.addListener = function (e, f) {
 //
 
 function LCall() {
-    this._line = L.polyline([[0, 0], [0, 0]], {
+    // https://github.com/henrythasler/Leaflet.Geodesic
+    // inherits from leaflet's polyline
+    this._line = L.geodesic([[0, 0], [0, 0]], {
         dashArray  : [4, 4],
         dashOffset : 0,
         color      : '#000000',
@@ -130,6 +132,13 @@ LCall.prototype.setMap = function(map = null) {
 
 LCall.prototype.setEnds = function(lat1, lon1, lat2, lon2) {
     this._line.setLatLngs([[lat1, lon1], [lat2, lon2]]);
+    const totalDistance = (this._line.statistics.totalDistance !== undefined
+        ? (this._line.statistics.totalDistance > 10000)
+            ? (this._line.statistics.totalDistance / 1000).toFixed(0) + ' km'
+            : (this._line.statistics.totalDistance).toFixed(0) + ' m'
+        : 'invalid')
+    // options for setText(): https://github.com/makinacorpus/Leaflet.TextPath
+    this._line.setText(' ► ' + totalDistance, { offset: 10});
 };
 
 LCall.prototype.setColor = function(color) {
