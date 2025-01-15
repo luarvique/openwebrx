@@ -589,7 +589,7 @@ class FeatureDetector(object):
 
     def has_sddc_connector(self):
         """
-        The [SDCC Connector](https://github.com/jketterl/sddc_connector)
+        The [SDDC Connector](https://github.com/jketterl/sddc_connector)
         allows connectivity with SDR devices powered by the `libsddc`
         library, such as RX666, RX888, HF103, etc.
         """
