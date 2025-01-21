@@ -88,7 +88,7 @@ fi
 if [ "${BUILD_DIGIHAM:-}" == "y" ]; then
 	BUILD_CODECSERVER=y
 fi
-if [ "${BUILD_PYCSDR:-}" == "y" ] || [ "${BUILD_OWRXCONNECTOR:-}" == "y" ] || [ "${BUILD_CSDR_ETI:-}" == "y" ]; then
+if [ "${BUILD_PYCSDR:-}" == "y" ] || [ "${BUILD_OWRXCONNECTOR:-}" == "y" ] || [ "${BUILD_CSDR_ETI:-}" == "y" || [ "${BUILD_CWSKIMMER:-}" == "y" ] ]; then
 	BUILD_CSDR=y
 fi
 
