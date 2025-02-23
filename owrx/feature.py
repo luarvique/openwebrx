@@ -882,7 +882,6 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("rs41mod -h")
 
-<<<<<<< HEAD
     def has_lame(self):
         """
         OpenWebRX uses the [LAME](https://lame.sourceforge.io/) tool
