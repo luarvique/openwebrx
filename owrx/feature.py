@@ -109,6 +109,7 @@ class FeatureDetector(object):
         "skimmer": ["csdr_skimmer"],
         "sonde": ["sonde_rs"],
         "mp3": ["lame"],
+        "ale": ["linuxale"],
     }
 
     def feature_availability(self):
@@ -881,6 +882,7 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("rs41mod -h")
 
+<<<<<<< HEAD
     def has_lame(self):
         """
         OpenWebRX uses the [LAME](https://lame.sourceforge.io/) tool
@@ -896,3 +898,11 @@ class FeatureDetector(object):
         from the OpenWebRX repositories.
         """
         return os.path.isdir("/usr/share/aprs-symbols")
+
+    def has_linuxale(self):
+        """
+        OpenWebRX uses the [LinuxALE](https://github.com/DigitalHERMES/LinuxALE)
+        tool to decode Automatic Link Establishment protocol messages.
+        You will have to compile LinuxALE from the sources.
+        """
+        return self.command_is_runnable("LinuxALE")
