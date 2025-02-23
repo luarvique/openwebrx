@@ -761,6 +761,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             # this should only run as a service though
             from csdr.chain.toolbox import AudioRecorder
             return AudioRecorder()
+        elif mod == "ale":
+            from csdr.chain.toolbox import AleDemodulator
+            return AleDemodulator()
         elif mod == "noaa-apt-15":
             # this should only run as a service though
             from csdr.chain.toolbox import NoaaAptDemodulator

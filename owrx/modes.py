@@ -239,6 +239,13 @@ class Modes(object):
             squelch=True
         ),
         DigitalMode(
+            "ale",
+            "ALE",
+            underlying=["usb"],
+            requirements=["ale"],
+            squelch=True
+        ),
+        DigitalMode(
             "eas",
             "EAS",
             underlying=["nfm"],

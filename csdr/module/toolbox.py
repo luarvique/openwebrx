@@ -120,6 +120,18 @@ class AcarsDecModule(WavFileModule):
         return Format.CHAR
 
 
+class AleModule(WavFileModule):
+    def __init__(self):
+        self.sampleRate = 8000
+        super().__init__()
+
+    def getCommand(self):
+        return [ "LinuxALE", "-f", "/dev/stdin" ]
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+
 class CwSkimmerModule(ExecModule):
     def __init__(self, sampleRate: int = 48000, charCount: int = 4):
         cmd = ["csdr-cwskimmer", "-i", "-r", str(sampleRate), "-n", str(charCount)]
