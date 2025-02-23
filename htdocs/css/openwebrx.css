@@ -1640,6 +1640,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="selcall"] #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="zvei"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="eas"]     #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="ale"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="cwskimmer"] #openwebrx-digimode-select-channel
 {
     display: none;
