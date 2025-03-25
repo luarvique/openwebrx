@@ -11,6 +11,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 class FaxParser(ThreadModule):
+    // E N D - 0x45 0x4E 0x44 - 0100 0101 0100 1110 0100 0100
+    END_MARK = bytearray([
+        0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0x00,
+        0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF,
+        0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF
+    ])
+
     def __init__(self, service: bool = False):
         self.service   = service
         self.frequency = 0
@@ -115,6 +122,33 @@ class FaxParser(ThreadModule):
             k += n
         # Done
         return out
+
+    def finishFrame(self):
+        if self.file is not None:
+            # Update image height in the BMP file
+            if self.line != self.height:
+                try:
+                    # File size
+                    fileSize = self.file.tell()
+                    self.file.seek(2, 0)
+                    self.writeFile((fileSize).to_bytes(4, "little"))
+                    # File height
+                    self.file.seek(20, 0)
+                    self.writeFile((-line).to_bytes(4, "little"))
+                    # Back to the end
+                    self.file.seek(0, 2)
+                except Exception:
+                    pass
+            # Done with the file
+            self.closeFile()
+        # Done with the scan
+        self.width  = 0
+        self.height = 0
+        self.depth  = 0
+        self.line   = 0
+        self.ioc    = 0
+        self.lpm    = 0
+        self.colors = None
 
     def run(self):
         logger.debug("%s starting..." % self.myName())
@@ -242,15 +276,13 @@ class FaxParser(ThreadModule):
                     #logger.debug("%s got line %d of %d/%d pixels" % (
                     #    self.myName(), self.line, w, len(self.data)/b
                     #))
-                    # Advance scanline
-                    self.line = self.line + 1
+                    # Check for trailing lines
+                    frameEnded = self.data[0:len(END_MARK)] == END_MARK
                     # If running as a service...
                     if self.service:
                         # Write a scanline into open image file
-                        self.writeFile(self.data[0:l])
-                        # Close once the last scanline reached
-                        if self.line>=self.height:
-                            self.closeFile()
+                        if not frameEnded:
+                            self.writeFile(self.data[0:l])
                         # Empty result
                         out = {}
                     else:
@@ -258,22 +290,22 @@ class FaxParser(ThreadModule):
                         #rle = self.applyRLE(self.data[0:l])
                         out = {
                             "mode":   "Fax",
-                            "line":   self.line-1,
+                            "line":   self.line,
                             "width":  self.width,
                             "height": self.height,
                             "depth":  self.depth,
-                            "rle":    False,
-                            "pixels": base64.b64encode(self.data[0:l]).decode(),
+                            "rle":    False
                         }
+                        # Only send pixels if we still have a frame
+                        if not frameEnded:
+                            out["pixels"] = base64.b64encode(self.data[0:l]).decode()
+                    # Advance scanline
+                    if not frameEnded:
+                        self.line  = self.line + 1
+                        frameEnded = self.line >= self.height
                     # If we reached the end of frame, finish scan
-                    if self.line>=self.height:
-                        self.width  = 0
-                        self.height = 0
-                        self.depth  = 0
-                        self.line   = 0
-                        self.ioc    = 0
-                        self.lpm    = 0
-                        self.colors = None
+                    if frameEnded:
+                        self.finishFrame()
                     # Remove parsed data
                     del self.data[0:l]
 
