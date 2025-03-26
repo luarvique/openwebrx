@@ -178,14 +178,14 @@ class DataRecorder(object):
             # Update image height in the BMP file
             if newHeight != height:
                 try:
-                    logger.debug("Updating '%s' height to from %d to %d lines." % (filePath, height, newHeight))
-                    # File size
                     fileSize = self.file.tell()
+                    logger.debug("Updating '%s' height from %d to %d lines, %d bytes." % (filePath, height, newHeight, fileSize))
+                    # File size
                     self.file.seek(2, 0)
                     self.writeFile((fileSize).to_bytes(4, "little"))
                     # File height
-                    self.file.seek(20, 0)
-                    self.writeFile((-newHeight).to_bytes(4, "little"))
+                    self.file.seek(22, 0)
+                    self.writeFile((-newHeight & 0xFFFFFFFF).to_bytes(4, "little"))
                     # Back to the end
                     self.file.seek(0, 2)
                 except Exception as e:
