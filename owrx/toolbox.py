@@ -1,4 +1,4 @@
-from owrx.storage import Storage
+from owrx.storage import DataRecorder
 from owrx.config import Config
 from owrx.color import ColorCache
 from owrx.reporting import ReportingEngine
@@ -7,74 +7,12 @@ from pycsdr.types import Format
 from owrx.dsame3.dsame import same_decode_string
 from datetime import datetime, timezone
 import pickle
-import os
 import re
 import json
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class DataRecorder(object):
-    def __init__(self, filePrefix: str = None, fileExtension: str = "", maxBytes: int = 8 * 1024 * 1024):
-        self.frequency = 0
-        self.filePfx   = filePrefix
-        self.fileExt   = fileExtension
-        self.file      = None
-        self.maxBytes  = maxBytes
-        self.cntBytes  = 0
-
-    def __del__(self):
-        # Close currently open file, if any
-        self.closeFile()
-
-    def closeFile(self):
-        if self.file is not None:
-            try:
-                logger.info("Closing file '%s'." % self.file.name)
-                self.file.close()
-                self.file = None
-                # Delete excessive files from storage
-                logger.info("Performing storage cleanup...")
-                Storage.getSharedInstance().cleanStoredFiles()
-
-            except Exception as exptn:
-                logger.error("Exception closing file: %s" % str(exptn))
-                self.file = None
-
-    def newFile(self, fileName):
-        self.closeFile()
-        try:
-            logger.info("Opening file '%s'..." % fileName)
-            self.file = Storage.getSharedInstance().newFile(fileName, buffering = 0)
-            self.cntBytes = 0
-
-        except Exception as exptn:
-            logger.error("Exception opening file: %s" % str(exptn))
-            self.file = None
-
-    def writeFile(self, data):
-        # If no file open, create and open a new file
-        if self.file is None and self.filePfx is not None:
-            self.newFile(Storage.makeFileName(self.filePfx+"-{0}", self.frequency) + self.fileExt)
-        # If file open now...
-        if self.file is not None:
-            # Write new line into the file
-            try:
-                self.file.write(data)
-            except Exception as exptn:
-                logger.error("Exception writing file: %s" % str(exptn))
-            # No more than maxBytes per file
-            self.cntBytes = self.cntBytes + len(data)
-            if self.cntBytes >= self.maxBytes:
-                self.closeFile()
-
-    def setDialFrequency(self, frequency: int) -> None:
-        # Open a new file if frequency changes
-        if frequency != self.frequency:
-            self.frequency = frequency
-            self.closeFile()
 
 
 class Mp3Recorder(ThreadModule, DataRecorder):
@@ -97,6 +35,7 @@ class Mp3Recorder(ThreadModule, DataRecorder):
             else:
                 self.writeFile(data)
         self.closeFile()
+
 
 class TextParser(LineBasedModule, DataRecorder):
     def __init__(self, filePrefix: str = None, service: bool = False):

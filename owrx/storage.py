@@ -118,3 +118,86 @@ class Storage(object):
             os.unlink(inFile)
         except Exception as e:
             logger.debug("convertImage(): " + str(e))
+
+
+class DataRecorder(object):
+    def __init__(self, filePrefix: str = None, fileExtension: str = "", maxBytes: int = 8 * 1024 * 1024):
+        self.frequency = 0
+        self.filePfx   = filePrefix
+        self.fileExt   = fileExtension
+        self.file      = None
+        self.maxBytes  = maxBytes
+        self.cntBytes  = 0
+
+    def __del__(self):
+        # Close currently open file, if any
+        self.closeFile()
+
+    def closeFile(self):
+        if self.file is not None:
+            try:
+                logger.info("Closing file '%s'." % self.file.name)
+                self.file.close()
+                self.file = None
+                # Delete excessive files from storage
+                logger.info("Performing storage cleanup...")
+                Storage.getSharedInstance().cleanStoredFiles()
+            except Exception as e:
+                logger.error("Exception closing file: %s" % str(e))
+                self.file = None
+
+    def newFile(self, fileName):
+        self.closeFile()
+        try:
+            logger.info("Opening file '%s'..." % fileName)
+            self.file = Storage.getSharedInstance().newFile(fileName, buffering = 0)
+            self.cntBytes = 0
+        except Exception as e:
+            logger.error("Exception opening file: %s" % str(e))
+            self.file = None
+
+    def writeFile(self, data):
+        # If no file open, create and open a new file
+        if self.file is None and self.filePfx is not None:
+            self.newFile(Storage.makeFileName(self.filePfx+"-{0}", self.frequency) + self.fileExt)
+        # If file open now...
+        if self.file is not None:
+            # Write new line into the file
+            try:
+                self.file.write(data)
+            except Exception as e:
+                logger.error("Exception writing file: %s" % str(e))
+            # No more than maxBytes per file
+            self.cntBytes = self.cntBytes + len(data)
+            if self.cntBytes >= self.maxBytes:
+                self.closeFile()
+
+    def closeImage(self, newHeight: int, height: int):
+        if self.file is not None:
+            filePath = self.file.name
+            # Update image height in the BMP file
+            if newHeight != height:
+                try:
+                    logger.debug("Updating '%s' height to from %d to %d lines." % (filePath, height, newHeight))
+                    # File size
+                    fileSize = self.file.tell()
+                    self.file.seek(2, 0)
+                    self.writeFile((fileSize).to_bytes(4, "little"))
+                    # File height
+                    self.file.seek(20, 0)
+                    self.writeFile((-newHeight).to_bytes(4, "little"))
+                    # Back to the end
+                    self.file.seek(0, 2)
+                except Exception as e:
+                    logger.debug("Exception updating image height: " + str(e))
+            # Close file
+            self.closeFile()
+            # Convert image from BMP to PNG
+            logger.debug("Converting '%s' to PNG..." % filePath)
+            Storage.convertImage(filePath)
+
+    def setDialFrequency(self, frequency: int) -> None:
+        # Open a new file if frequency changes
+        if frequency != self.frequency:
+            self.frequency = frequency
+            self.closeFile()
