@@ -172,7 +172,7 @@ class DataRecorder(object):
             if self.cntBytes >= self.maxBytes:
                 self.closeFile()
 
-    def closeImage(self, newHeight: int, height: int):
+    def closeImage(self, newHeight: int, height: int, minHeight: int = 64):
         if self.file is not None:
             filePath = self.file.name
             # Update image height in the BMP file
@@ -192,9 +192,14 @@ class DataRecorder(object):
                     logger.debug("Exception updating image height: " + str(e))
             # Close file
             self.closeFile()
-            # Convert image from BMP to PNG
-            logger.debug("Converting '%s' to PNG..." % filePath)
-            Storage.convertImage(filePath)
+            if newHeight < minHeight:
+                # Delete images that are too short
+                logger.debug("Deleting '%s', shorter than %d lines..." % (filePath, minHeight))
+                os.unlink(filePath)
+            else:
+                # Convert image from BMP to PNG
+                logger.debug("Converting '%s' to PNG..." % filePath)
+                Storage.convertImage(filePath)
 
     def setDialFrequency(self, frequency: int) -> None:
         # Open a new file if frequency changes

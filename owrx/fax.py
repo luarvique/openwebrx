@@ -71,7 +71,7 @@ class FaxParser(DataRecorder, ThreadModule):
 
     def finishFrame(self):
         # Done with the image file
-        self.closeImage(self.line, self.height)
+        self.closeImage(self.line, self.height, self.height // 10)
         # Done with the scan
         self.width  = 0
         self.height = 0
@@ -231,11 +231,10 @@ class FaxParser(DataRecorder, ThreadModule):
                             "width":  self.width,
                             "height": self.height,
                             "depth":  self.depth,
-                            "rle":    False
+                            "rle":    False,
+                            "ended":  frameEnded,
+                            "pixels": base64.b64encode(self.data[0:l]).decode()
                         }
-                        # Only send pixels if we still have a frame
-                        if not frameEnded:
-                            out["pixels"] = base64.b64encode(self.data[0:l]).decode()
                     # Advance scanline
                     if not frameEnded:
                         self.line  = self.line + 1
