@@ -106,7 +106,7 @@ class SstvParser(DataRecorder, ThreadModule):
                 out = self.process()
         # We are done
         logger.debug("%s exiting..." % self.myName())
-        self.closeImage(self.line, self.height)
+        self.closeImage(self.line, self.height, self.height // 2)
 
     def process(self):
         # No result yet
