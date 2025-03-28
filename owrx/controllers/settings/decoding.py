@@ -126,8 +126,14 @@ class DecodingSettingsController(SettingsFormController):
                     append="lpm",
                 ),
                 NumberInput(
-                    "fax_length",
-                    "Page length limit",
+                    "fax_min_length",
+                    "Minimum page length",
+                    validator=RangeValidator(50, 450),
+                    append="lines",
+                ),
+                NumberInput(
+                    "fax_max_length",
+                    "Maximum page length",
                     validator=RangeValidator(500, 3000),
                     append="lines",
                 ),

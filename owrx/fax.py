@@ -1,4 +1,5 @@
 from owrx.storage import Storage, DataRecorder
+from owrx.config import Config
 from csdr.module import ThreadModule
 from pycsdr.types import Format
 from datetime import datetime
@@ -71,7 +72,8 @@ class FaxParser(DataRecorder, ThreadModule):
 
     def finishFrame(self):
         # Done with the image file
-        self.closeImage(self.line, self.height, self.height // 10)
+        pm = Config.get()
+        self.closeImage(self.line, self.height, pm["fax_min_length"])
         # Done with the scan
         self.width  = 0
         self.height = 0
