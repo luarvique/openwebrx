@@ -142,6 +142,52 @@ class DecodingSettingsController(SettingsFormController):
                 CheckboxInput("fax_am", "Use amplitude modulation"),
             ),
             Section(
+                "Image Compression",
+                CheckboxInput("image_compress", "Compress final images to reduce space."),
+                DropdownInput(
+                    "image_compress_level",
+                    "PNG compression level",
+                    options=[
+                        Option("0", "(0) No compression - fastest processing, largest file size."),
+                        Option("1", "(1) Minimal compression - very fast, slightly smaller file."),
+                        Option("2", "(2) Low compression - fast, some size reduction."),
+                        Option("3", "(3) Moderate compression - decent balance between speed and size."),
+                        Option("4", "(4) Medium compression - starts to noticeably reduce file size."),
+                        Option("5", "(5) Balanced compression - reasonable file size and performance."),
+                        Option("6", "(6) Good compression - slower than default, better file size."),
+                        Option("7", "(7) High compression - much smaller files, slower to encode."),
+                        Option("8", "(8) Very high compression - slow, excellent file reduction."),
+                        Option("9", "(9) Maximum compression - smallest file size, slowest processing.")
+                    ]
+                ),
+                DropdownInput(
+                    "image_compress_filter",
+                    "PNG compression filter",
+                    options=[
+                        Option("0", "(0) None - no filtering, best for images with low entropy."),
+                        Option("1", "(1) Sub - filters based on differences with the left pixel."),
+                        Option("2", "(2) Up - filters based on differences with the pixel above."),
+                        Option("3", "(3) Average - average of left and above pixels, good general-purpose."),
+                        Option("4", "(4) Paeth - predicts using a linear function of surrounding pixels."),
+                        Option("5", "(5) Adaptive - automatically chooses best filter per row (default in many tools).")
+                    ]
+                ),
+                CheckboxInput("image_quantize", "Quantize final PNG images to reduce space."),
+                DropdownInput(
+                    "image_quantize_colors",
+                    "Palette colors",
+                    options=[
+                        Option("256", "(256) High fidelity - minimal loss, large file, best for preserving detail."),
+                        Option("128", "(128) Good quality - near-original appearance, moderate file size."),
+                        Option("64",  "(64) Balanced - visually similar to original, noticeable size savings."),
+                        Option("32",  "(32) Compact - some loss of gradients, still decent quality."),
+                        Option("16",  "(16) Low color - significant artifacts, big file reduction."),
+                        Option("8",   "(8) Very low - posterized look, very small file size."),
+                        Option("4",   "(4) Stylized - extreme quantization, strong visible artifacts.")
+                    ]
+                )
+            ),
+            Section(
                 "WSJT decoders",
                 NumberInput("decoding_queue_workers", "Number of decoding workers"),
                 NumberInput("decoding_queue_length", "Maximum length of decoding job queue"),

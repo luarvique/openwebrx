@@ -103,6 +103,13 @@ class Storage(object):
     # Convert given file from BMP to PNG format using ImageMagick
     @staticmethod
     def convertImage(inFile: str):
+        pm    = Config.get()
+        compress = pm["image_compress"] # boolean. Do compression?
+        compress_level = pm["image_compress_level"] # int 0-9. compression-level in magick
+        compress_filter = pm["image_compress_filter"] # int 0-5. compression-filter in magick
+        quantize = pm["image_quantize"] # boolean. Do quantization?
+        quantize_colors = pm["image_quantize_colors"] # int. Number of colors in palette.
+        
         # Adds storage path
         if not inFile.startswith('/'):
             inFile = self.getFilePath(inFile)
@@ -112,7 +119,22 @@ class Storage(object):
             return
         try:
             # Use ImageMagick to convert file
-            params = ['convert', inFile, outFile]
+            params = ['convert', inFile]
+
+            # Apply quantization if enabled
+            if quantize:
+                params.extend(["-colors", quantize_colors])
+
+            # Apply compression options if enabled
+            if compress:
+                params.extend([
+                    "-define", f"png:compression-level={compress_level}",
+                    "-define", f"png:compression-filter={compress_filter}"
+                ])
+
+            # Final output file
+            params.append(outFile)
+            logger.debug("Converting image %s->%s: %s", inFile, outFile, ' '.join(params))
             subprocess.check_call(params)
             # If conversion was successful, delete original file
             os.unlink(inFile)
