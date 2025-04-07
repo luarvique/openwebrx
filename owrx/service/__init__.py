@@ -295,6 +295,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif demod == "am":
             from csdr.chain.analog import Am
             return Am()
+        elif demod == "sam":
+            from csdr.chain.analog import SAm
+            return SAm()
         elif demod in ["usb", "lsb", "cw"]:
             from csdr.chain.analog import Ssb
             return Ssb()
@@ -353,6 +356,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "adsb":
             from csdr.chain.toolbox import AdsbDemodulator
             return AdsbDemodulator(service=True)
+        elif mod == "audio":
+            from csdr.chain.toolbox import AudioRecorder
+            return AudioRecorder(service=True)
         elif mod == "noaa-apt-15":
             from csdr.chain.toolbox import NoaaAptDemodulator
             return NoaaAptDemodulator(satellite=15, service=True)

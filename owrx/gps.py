@@ -70,7 +70,7 @@ class GpsUpdater(object):
     def startThread(self):
         if self.thread is None:
             self.event.clear()
-            self.thread = threading.Thread(target=self._refreshThread)
+            self.thread = threading.Thread(target=self._refreshThread, name=type(self).__name__)
             self.thread.start()
 
     # Stop the main thread

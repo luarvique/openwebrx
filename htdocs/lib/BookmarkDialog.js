@@ -2,9 +2,7 @@ $.fn.bookmarkDialog = function() {
     var $el = this;
     return {
         setModes: function(modes) {
-            $el.find('#modulation').html(modes.filter(function(m) {
-                return m.isAvailable();
-            }).map(function(m) {
+            $el.find('#modulation').html(modes.map(function(m) {
                 return '<option value="' + m.modulation + '">' + m.name + '</option>';
             }).join(''));
             return this;
@@ -12,7 +10,7 @@ $.fn.bookmarkDialog = function() {
         setUnderlying: function(modes) {
             $el.find('#underlying').html('<option value="">None</option>' +
             modes.filter(function(m) {
-                return m.isAvailable() && !m.underlying && m.type === 'analog';
+                return !m.underlying && m.type === 'analog';
             }).map(function(m) {
                 return '<option value="' + m.modulation + '">' + m.name + '</option>';
             }).join(''));

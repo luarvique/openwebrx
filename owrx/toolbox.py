@@ -1,13 +1,12 @@
-from owrx.storage import Storage
+from owrx.storage import DataRecorder
 from owrx.config import Config
 from owrx.color import ColorCache
 from owrx.reporting import ReportingEngine
-from csdr.module import LineBasedModule
+from csdr.module import ThreadModule, LineBasedModule
 from pycsdr.types import Format
 from owrx.dsame3.dsame import same_decode_string
 from datetime import datetime, timezone
 import pickle
-import os
 import re
 import json
 
@@ -15,61 +14,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class TextParser(LineBasedModule):
-    def __init__(self, filePrefix: str = None, service: bool = False):
-        self.service   = service
-        self.frequency = 0
-        self.data      = bytearray(b"")
-        self.filePfx   = filePrefix
-        self.file      = None
-        self.maxLines  = 10000
-        self.cntLines  = 0
-        super().__init__()
 
-    def __del__(self):
-        # Close currently open file, if any
-        self.closeFile()
-
-    def closeFile(self):
-        if self.file is not None:
-            try:
-                logger.info("Closing log file '%s'." % self.file.name)
-                self.file.close()
-                self.file = None
-                # Delete excessive files from storage
-                logger.info("Performing storage cleanup...")
-                Storage.getSharedInstance().cleanStoredFiles()
-
-            except Exception as exptn:
-                logger.error("Exception closing file: %s" % str(exptn))
-                self.file = None
-
-    def newFile(self, fileName):
-        self.closeFile()
-        try:
-            logger.info("Opening log file '%s'..." % fileName)
-            self.file = Storage.getSharedInstance().newFile(fileName, buffering = 0)
-            self.cntLines = 0
-
-        except Exception as exptn:
-            logger.error("Exception opening file: %s" % str(exptn))
-            self.file = None
-
-    def writeFile(self, data):
-        # If no file open, create and open a new file
-        if self.file is None and self.filePfx is not None:
-            self.newFile(Storage.makeFileName(self.filePfx+"-{0}", self.frequency) + ".txt")
-        # If file open now...
-        if self.file is not None:
-            # Write new line into the file
-            try:
-                self.file.write(data)
-            except Exception as exptn:
-                logger.error("Exception writing file: %s" % str(exptn))
-            # No more than maxLines per file
-            self.cntLines = self.cntLines + 1
-            if self.cntLines >= self.maxLines:
-                self.closeFile()
+class Mp3Recorder(ThreadModule, DataRecorder):
+    def __init__(self, service: bool = False):
+        self.service = service
+        DataRecorder.__init__(self, "REC", ".mp3")
+        ThreadModule.__init__(self)
 
     def getInputFormat(self) -> Format:
         return Format.CHAR
@@ -77,8 +27,21 @@ class TextParser(LineBasedModule):
     def getOutputFormat(self) -> Format:
         return Format.CHAR
 
-    def setDialFrequency(self, frequency: int) -> None:
-        self.frequency = frequency
+    def run(self):
+        while self.doRun:
+            data = self.reader.read()
+            if data is None:
+                self.doRun = False
+            else:
+                self.writeFile(data)
+        self.closeFile()
+
+
+class TextParser(LineBasedModule, DataRecorder):
+    def __init__(self, filePrefix: str = None, service: bool = False):
+        self.service = service
+        DataRecorder.__init__(self, filePrefix, ".txt")
+        LineBasedModule.__init__(self)
 
     # Compose name of this decoder, made of client/service and frequency
     def myName(self):
@@ -88,10 +51,6 @@ class TextParser(LineBasedModule):
             " at %dkHz" % (self.frequency // 1000) if self.frequency>0 else ""
         )
 
-    # Get current UTC time in a standardized format
-    def getUtcTime(self) -> str:
-        return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-
     # By default, do not parse
     def parse(self, msg: bytes):
         return None
@@ -100,6 +59,7 @@ class TextParser(LineBasedModule):
         logger.info("%s starting..." % self.myName())
         super().run()
         logger.info("%s exiting..." % self.myName())
+        self.closeFile()
 
     def process(self, line: bytes) -> any:
         # No result yet
@@ -113,12 +73,10 @@ class TextParser(LineBasedModule):
             if self.service and self.filePfx is not None:
                 if out:
                     # If parser returned output, write it into log file
-                    self.writeFile(str(out).encode("utf-8"))
-                    self.writeFile(b"\n")
+                    self.writeFile(str(out).encode("utf-8") + b"\n")
                 elif out is None and len(line)>0:
                     # Write input into log file, including end-of-line
-                    self.writeFile(line)
-                    self.writeFile(b"\n")
+                    self.writeFile(line + b"\n")
 
         except Exception as exptn:
             logger.error("%s: Exception parsing: %s" % (self.myName(), str(exptn)))

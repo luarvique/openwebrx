@@ -38,7 +38,6 @@ var Mode = function(json){
     this.modulation = json.modulation;
     this.name = json.name;
     this.type = json.type;
-    this.requirements = json.requirements;
     this.squelch = json.squelch;
     if (json.bandpass) {
         this.bandpass = json.bandpass;
@@ -50,12 +49,4 @@ var Mode = function(json){
         this.underlying = json.underlying;
         this.secondaryFft = json.secondaryFft;
     }
-};
-
-Mode.prototype.isAvailable = function(){
-    return this.requirements.map(function(r){
-        return Modes.features[r];
-    }).reduce(function(a, b){
-        return a && b;
-    }, true);
 };

@@ -179,7 +179,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         features = FeatureDetector().feature_availability()
         self.write_features(features)
 
-        modes = Modes.getModes()
+        modes = Modes.getAvailableClientModes()
         self.write_modes(modes)
 
         self.configSubs.append(SdrService.getActiveSources().wire(self._onSdrDeviceChanges))

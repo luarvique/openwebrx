@@ -149,7 +149,7 @@ class AircraftManager(object):
         self.colors = ColorCache()
         self.aircraft = {}
         # Start periodic cleanup task
-        self.thread = threading.Thread(target=self._cleanupThread)
+        self.thread = threading.Thread(target=self._cleanupThread, name=type(self).__name__ + ".Cleanup")
         self.thread.start()
 
     # Perform periodic cleanup
@@ -559,7 +559,7 @@ class AdsbParser(AircraftParser):
         self.checkPeriod = 1
         self.lastParse = 0
         # Start periodic JSON file check
-        self.thread = threading.Thread(target=self._refreshThread)
+        self.thread = threading.Thread(target=self._refreshThread, name=type(self).__name__ + ".Refresh")
         self.thread.start()
 
     # Not parsing STDOUT

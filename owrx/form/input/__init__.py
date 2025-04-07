@@ -273,7 +273,9 @@ class MultiCheckboxInput(Input):
 
 class ServicesCheckboxInput(MultiCheckboxInput):
     def __init__(self, id, label, infotext=None):
-        services = [Option(s.modulation, s.name) for s in Modes.getAvailableServices()]
+        services = Modes.getAvailableServices()
+        services.sort(key = lambda x: x.name.lower())
+        services = [Option(s.modulation, s.name) for s in services]
         super().__init__(id, label, services, infotext)
 
 
@@ -333,7 +335,7 @@ class DropdownEnum(Enum):
 
 class ModesInput(DropdownInput):
     def __init__(self, id, label):
-        options = [Option(m.modulation, m.name) for m in Modes.getAvailableModes()]
+        options = [Option(m.modulation, m.name) for m in Modes.getAvailableClientModes()]
         super().__init__(id, label, options)
 
 

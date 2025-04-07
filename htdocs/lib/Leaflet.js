@@ -122,6 +122,19 @@ function LCall() {
         opacity    : 0.5,
         weight     : 1
     });
+    // Ok, so textpath plugin is deleting its node and creates it again.
+    // So we loose our settings (color, opacity) on each refresh
+    // like when zooming in/out or dragging the map.
+    // We need to replace its refresh function and apply our settings again.
+    this._line._orgUpdatePath = this._line._updatePath;
+    this._line._updatePath = () => {
+        this._line._orgUpdatePath.call(this._line);
+        if (typeof this._line._last_color !== 'undefined' && this._line._textNode)
+            this._line._textNode.style.color = this._line._last_color;
+        if (typeof this._line._last_opacity !== 'undefined' && this._line._textNode) {
+            this._line._textNode.style.opacity = this._line._last_opacity;
+        }
+    }
 }
 
 LCall.prototype = new Call();
@@ -147,6 +160,7 @@ LCall.prototype.setColor = function(color) {
     // just passes it to Leaflet's polyline. Thus, we need to update
     // the textNode to reflect changes.
     if (this._line._textNode) this._line._textNode.style.color = color;
+    this._line._last_color = color;
 };
 
 LCall.prototype.setOpacity = function(opacity) {
@@ -155,6 +169,7 @@ LCall.prototype.setOpacity = function(opacity) {
     // just passes it to Leaflet's polyline. Thus, we need to update
     // the textNode to reflect changes.
     if (this._line._textNode) this._line._textNode.style.opacity = opacity;
+    this._line._last_opacity = opacity;
 };
 
 //

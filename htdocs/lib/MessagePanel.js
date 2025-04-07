@@ -838,6 +838,13 @@ FaxMessagePanel.prototype.pushMessage = function(msg) {
         this.width  = msg.width;
         this.height = msg.height;
     }
+    else if(msg.width>0 && msg.height>0 && msg.line>=0 && msg.ended) {
+        const canvas  = $(this.el).find('canvas').get(-1);
+        const image   = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
+        canvas.height = msg.line;
+        this.height   = msg.line;
+        this.ctx.putImageData(image, 0, 0);
+    }
     else if(msg.width>0 && msg.height>0 && msg.line>=0 && msg.hasOwnProperty('pixels')) {
         // Will copy pixels to img
         var img = this.ctx.createImageData(msg.width, 1);

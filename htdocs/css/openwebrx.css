@@ -173,7 +173,7 @@ input[type=range]:disabled {
 #openwebrx-frequency-container {
 	background-image: url("../gfx/openwebrx-scale-background.png");
 	background-repeat: repeat-x;
-	background-size: auto 125px;
+	background-size: auto 140px;
     background-color: #444;
     z-index: 1001;
 }

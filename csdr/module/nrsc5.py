@@ -29,6 +29,14 @@ class EventType(enum.Enum):
     PACKET = 13
 
 
+AUDIO_FRAME_SAMPLES = 2048
+
+SAMPLE_RATE_CU8 = 1488375
+SAMPLE_RATE_CS16_FM = 744187.5
+SAMPLE_RATE_CS16_AM = 46511.71875
+SAMPLE_RATE_AUDIO = 44100
+
+
 class ServiceType(enum.Enum):
     AUDIO = 0
     DATA = 1
@@ -55,6 +63,9 @@ class MIMEType(enum.Enum):
     TTN_TPEG_3 = 0x52103469
     TTN_STM_TRAFFIC = 0xFF8422D7
     TTN_STM_WEATHER = 0xEF042E96
+    UNKNOWN_00000000 = 0x00000000
+    UNKNOWN_B81FFAA8 = 0xB81FFAA8
+    UNKNOWN_FFFFFFFF = 0xFFFFFFFF
 
 
 class Access(enum.Enum):
@@ -501,12 +512,13 @@ class NRSC5:
             evt = SIS(self._decode(sis.country_code), sis.fcc_facility_id, self._decode(sis.name),
                       self._decode(sis.slogan), self._decode(sis.message), self._decode(sis.alert),
                       latitude, longitude, altitude, audio_services, data_services)
-        self.callback(evt_type, evt)
+        self.callback(evt_type, evt, *self.callback_args)
 
-    def __init__(self, callback):
+    def __init__(self, callback, callback_args=()):
         self._load_library()
         self.radio = ctypes.c_void_p()
         self.callback = callback
+        self.callback_args = callback_args
 
     @staticmethod
     def get_version():
@@ -544,55 +556,72 @@ class NRSC5:
         if result != 0:
             raise NRSC5Error("Failed to open rtl_tcp.")
         self._set_callback()
+    
+    def _check_session(self):
+        if not self.radio:
+            raise NRSC5Error("No session opened. Call open(), open_pipe(), or open_rtltcp() first.")
 
     def close(self):
+        self._check_session()
         NRSC5.libnrsc5.nrsc5_close(self.radio)
+        self.radio = ctypes.c_void_p()
 
     def start(self):
+        self._check_session()
         NRSC5.libnrsc5.nrsc5_start(self.radio)
 
     def stop(self):
+        self._check_session()
         NRSC5.libnrsc5.nrsc5_stop(self.radio)
 
     def set_mode(self, mode):
+        self._check_session()
         NRSC5.libnrsc5.nrsc5_set_mode(self.radio, mode.value)
 
     def set_bias_tee(self, on):
+        self._check_session()
         result = NRSC5.libnrsc5.nrsc5_set_bias_tee(self.radio, on)
         if result != 0:
             raise NRSC5Error("Failed to set bias-T.")
 
     def set_direct_sampling(self, on):
+        self._check_session()
         result = NRSC5.libnrsc5.nrsc5_set_direct_sampling(self.radio, on)
         if result != 0:
             raise NRSC5Error("Failed to set direct sampling.")
 
     def set_freq_correction(self, ppm_error):
+        self._check_session()
         result = NRSC5.libnrsc5.nrsc5_set_freq_correction(self.radio, ppm_error)
         if result != 0:
             raise NRSC5Error("Failed to set frequency correction.")
 
     def get_frequency(self):
+        self._check_session()
         frequency = ctypes.c_float()
         NRSC5.libnrsc5.nrsc5_get_frequency(self.radio, ctypes.byref(frequency))
         return frequency.value
 
     def set_frequency(self, freq):
+        self._check_session()
         result = NRSC5.libnrsc5.nrsc5_set_frequency(self.radio, ctypes.c_float(freq))
         if result != 0:
             raise NRSC5Error("Failed to set frequency.")
 
     def get_gain(self):
+        self._check_session()
         gain = ctypes.c_float()
         NRSC5.libnrsc5.nrsc5_get_gain(self.radio, ctypes.byref(gain))
         return gain.value
 
     def set_gain(self, gain):
+        self._check_session()
         result = NRSC5.libnrsc5.nrsc5_set_gain(self.radio, ctypes.c_float(gain))
         if result != 0:
             raise NRSC5Error("Failed to set gain.")
 
     def set_auto_gain(self, enabled):
+        self._check_session()
         NRSC5.libnrsc5.nrsc5_set_auto_gain(self.radio, int(enabled))
 
     def _set_callback(self):
@@ -603,15 +632,13 @@ class NRSC5:
         NRSC5.libnrsc5.nrsc5_set_callback(self.radio, self.callback_func, None)
 
     def pipe_samples_cu8(self, samples):
-        if len(samples) % 4 != 0:
-            raise NRSC5Error("len(samples) must be a multiple of 4.")
         result = NRSC5.libnrsc5.nrsc5_pipe_samples_cu8(self.radio, samples, len(samples))
         if result != 0:
             raise NRSC5Error("Failed to pipe samples.")
 
     def pipe_samples_cs16(self, samples):
-        if len(samples) % 4 != 0:
-            raise NRSC5Error("len(samples) must be a multiple of 4.")
+        if len(samples) % 2 != 0:
+            raise NRSC5Error("len(samples) must be a multiple of 2.")
         result = NRSC5.libnrsc5.nrsc5_pipe_samples_cs16(self.radio, samples, len(samples) // 2)
         if result != 0:
             raise NRSC5Error("Failed to pipe samples.")

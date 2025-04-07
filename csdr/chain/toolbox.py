@@ -1,11 +1,12 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.toolbox import Rtl433Module, MultimonModule, DumpHfdlModule, DumpVdl2Module, Dump1090Module, AcarsDecModule, RedseaModule, SatDumpModule, CwSkimmerModule
+from csdr.module.toolbox import Rtl433Module, MultimonModule, DumpHfdlModule, DumpVdl2Module, Dump1090Module, AcarsDecModule, RedseaModule, SatDumpModule, CwSkimmerModule, LameModule
 from pycsdr.modules import FmDemod, AudioResampler, Convert, Agc, Squelch, RealPart
 from pycsdr.types import Format
-from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, CwSkimmerParser
+from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, CwSkimmerParser, Mp3Recorder
 from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser
 
 from datetime import datetime
+import math
 import os
 
 class IsmDemodulator(ServiceDemodulator, DialFrequencyReceiver):
@@ -245,6 +246,31 @@ class CwSkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 
     def setDialFrequency(self, frequency: int) -> None:
         self.parser.setDialFrequency(frequency)
+
+
+class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, sampleRate: int = 24000, service: bool = False):
+        self.sampleRate = sampleRate
+        self.frequency = 0
+        self.recorder = Mp3Recorder(service)
+        workers = [
+            Convert(Format.FLOAT, Format.SHORT),
+            LameModule(sampleRate),
+            self.recorder,
+        ]
+        # Connect all the workers
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def supportsSquelch(self) -> bool:
+        return True
+
+    def setDialFrequency(self, frequency: int) -> None:
+        # Not restarting LAME, it is ok to continue on a new file
+        #self.replace(1, LameModule(self.sampleRate))
+        self.recorder.setDialFrequency(frequency)
 
 
 class NoaaAptDemodulator(ServiceDemodulator):

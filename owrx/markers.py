@@ -15,8 +15,6 @@ import logging
 import json
 import re
 import os
-import time
-import random
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +57,16 @@ class Markers(object):
     @staticmethod
     def start():
         Markers.getSharedInstance().startThread()
+        Receivers.start()
+        Repeaters.start()
+        EIBI.start()
 
     @staticmethod
     def stop():
         Markers.getSharedInstance().stopThread()
+        Receivers.stop()
+        Repeaters.stop()
+        EIBI.stop()
 
     @staticmethod
     def _getCachedMarkersFile():
@@ -70,7 +74,6 @@ class Markers(object):
         return "{data_directory}/markers.json".format(data_directory=coreConfig.get_data_directory())
 
     def __init__(self):
-        self.refreshPeriod = 60*60*24
         self.event = threading.Event()
         self.fmarkers = {}
         self.wmarkers = {}
@@ -94,7 +97,7 @@ class Markers(object):
     def startThread(self):
         if self.thread is None:
             self.event.clear()
-            self.thread = threading.Thread(target=self._refreshThread)
+            self.thread = threading.Thread(target=self._refreshThread, name=type(self).__name__)
             self.thread.start()
 
     # Stop the main thread
@@ -103,6 +106,7 @@ class Markers(object):
             logger.info("Stopping marker database thread.")
             self.event.set()
             self.thread.join()
+            self.thread = None
 
     # This is the actual thread function
     def _refreshThread(self):
@@ -135,10 +139,6 @@ class Markers(object):
         self.updateMap(self.txmarkers)
         self.updateMap(self.remarkers)
 
-        # Random times to refresh receivers and repeaters data
-        receiversHour = random.randint(0, 1)
-        refreshMinute = random.randint(10, 49)
-
         #
         # Main Loop
         #
@@ -156,29 +156,17 @@ class Markers(object):
                 logger.info("Refreshing transmitters schedule...")
                 self.applyUpdate(self.txmarkers, data)
 
-            # This is the current hour and minute
-            currentHour   = datetime.utcnow().hour & 1
-            currentMinute = datetime.utcnow().minute
-            # Wait until the prescribed minute
-            if refreshMinute > currentMinute:
-                self.event.wait((refreshMinute - currentMinute) * 60)
-            # Check if we need to exit
-            if self.event.is_set():
-                break
+            # Update receivers data as necessary
+            data = self.loadReceivers(onlyNew=True)
+            if data is not None:
+                logger.info("Refreshing receiver markers...")
+                self.applyUpdate(self.rxmarkers, data)
 
-            # If it is time to check on the receivers...
-            if currentHour == receiversHour:
-                # Update receivers data as necessary
-                data = self.loadReceivers(onlyNew=True)
-                if data is not None:
-                    logger.info("Refreshing receiver markers...")
-                    self.applyUpdate(self.rxmarkers, data)
-            else:
-                # Update repeaters data as necessary
-                data = self.loadRepeaters(onlyNew=True)
-                if data is not None:
-                    logger.info("Refreshing repeater markers...")
-                    self.applyUpdate(self.remarkers, data)
+            # Update repeaters data as necessary
+            data = self.loadRepeaters(onlyNew=True)
+            if data is not None:
+                logger.info("Refreshing repeater markers...")
+                self.applyUpdate(self.remarkers, data)
 
             # Check if we need to exit
             if self.event.is_set():
@@ -187,16 +175,6 @@ class Markers(object):
         # Done with the thread
         logger.info("Stopped marker database thread.")
         self.thread = None
-
-    # Save markers to a given file
-    def saveMarkers(self, file: str, markers):
-        logger.info("Saving {0} markers to '{1}'...".format(len(markers), file))
-        try:
-            with open(file, "w") as f:
-                json.dump(markers, f, cls=MyJSONEncoder, indent=2)
-                f.close()
-        except Exception as e:
-            logger.error("saveMarkers() exception: {0}".format(e))
 
     # Load markers from a given file
     def loadMarkers(self, file: str):
@@ -209,13 +187,11 @@ class Markers(object):
         except Exception as e:
             logger.error("loadMarkers() exception: {0}".format(e))
             return {}
-
         # Process markers list
         result = {}
         for key in db.keys():
             attrs = db[key]
             result[key] = MarkerLocation(attrs)
-
         # Done
         logger.info("Loaded {0} markers from '{1}'.".format(len(result), file))
         return result
@@ -253,12 +229,12 @@ class Markers(object):
     # by scraping online databases as necessary.
     def loadReceivers(self, onlyNew: bool = False):
         # Refresh / load receivers database, as needed
-        logger.info("Refreshing receivers database...")
-        if not Receivers.getSharedInstance().refresh() and onlyNew:
+        if not Receivers.getSharedInstance().hasFreshData() and onlyNew:
             return None
         # No result yet
         result = {}
         # Create markers from the current receivers database
+        logger.info("Refreshing receivers database...")
         for entry in Receivers.getSharedInstance().getAll():
             rl = MarkerLocation(entry)
             result[rl.getId()] = rl
@@ -270,12 +246,12 @@ class Markers(object):
     # for updated list of repeaters and cache it as necessary.
     def loadRepeaters(self, rangeKm: int = 200, onlyNew: bool = False):
         # Refresh / load repeaters database, as needed
-        logger.info("Refreshing repeaters database...")
-        if not Repeaters.getSharedInstance().refresh() and onlyNew:
+        if not Repeaters.getSharedInstance().hasFreshData() and onlyNew:
             return None
         # No result yet
         result = {}
         # Load repeater sites from the cached database
+        logger.info("Refreshing repeaters database...")
         for entry in Repeaters.getSharedInstance().getAllInRange(rangeKm):
             rl = MarkerLocation({
                 "type"    : "latlon",
@@ -300,9 +276,6 @@ class Markers(object):
         #url = "https://www.short-wave.info/index.php?txsite="
         url = "https://www.google.com/search?q="
         result = {}
-
-        # Refresh / load EIBI database, as needed
-        EIBI.getSharedInstance().refresh()
 
         # Load transmitter sites from EIBI database
         for entry in EIBI.getSharedInstance().currentTransmitters().values():

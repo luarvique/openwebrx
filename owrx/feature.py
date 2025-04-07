@@ -102,6 +102,7 @@ class FeatureDetector(object):
         "hdradio": ["nrsc5"],
         "rigcontrol": ["hamlib"],
         "cwskimmer": ["csdr_cwskimmer"],
+        "mp3": ["lame"],
     }
 
     def feature_availability(self):
@@ -784,3 +785,11 @@ class FeatureDetector(object):
         `csdr-cwskimmer` package from the OpenWebRX+ repositories.
         """
         return self.command_is_runnable("csdr-cwskimmer -h")
+
+    def has_lame(self):
+        """
+        OpenWebRX uses the [LAME](https://lame.sourceforge.io/) tool
+        to compress recorded audio into MP3 format. The `lame` package
+        is available in most Linux distributions.
+        """
+        return self.command_is_runnable("lame --help")

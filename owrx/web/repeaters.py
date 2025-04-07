@@ -1,6 +1,7 @@
 from owrx.config import Config
 from owrx.bookmarks import Bookmark
-from owrx.web import WebScraper
+from owrx.web import WebAgent
+from owrx.version import openwebrx_version
 
 import urllib
 import threading
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 #
 MAX_DISTANCE = 200
 
-class Repeaters(WebScraper):
+class Repeaters(WebAgent):
     sharedInstance = None
     creationLock = threading.Lock()
 
@@ -26,6 +27,14 @@ class Repeaters(WebScraper):
             if Repeaters.sharedInstance is None:
                 Repeaters.sharedInstance = Repeaters("repeaters.json")
         return Repeaters.sharedInstance
+
+    @staticmethod
+    def start():
+        Repeaters.getSharedInstance().startThread()
+
+    @staticmethod
+    def stop():
+        Repeaters.getSharedInstance().stopThread()
 
     # Compute distance, in kilometers, between two latlons.
     @staticmethod
@@ -114,7 +123,7 @@ class Repeaters(WebScraper):
             pm   = Config.get()
             lat  = pm["receiver_gps"]["lat"]
             lon  = pm["receiver_gps"]["lon"]
-            hdrs = { "User-Agent": "(OpenWebRX+, luarvique@gmail.com)" }
+            hdrs = { "User-Agent": "(OpenWebRX+ " + openwebrx_version + ", luarvique@gmail.com)" }
             # Start with US/Canada database for north-wester quartersphere
             if lat > 0 and lon < 0:
                 scps = ["export.php", "exportROW.php"]

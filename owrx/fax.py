@@ -1,4 +1,5 @@
-from owrx.storage import Storage
+from owrx.storage import Storage, DataRecorder
+from owrx.config import Config
 from csdr.module import ThreadModule
 from pycsdr.types import Format
 from datetime import datetime
@@ -10,72 +11,25 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class FaxParser(ThreadModule):
+class FaxParser(DataRecorder, ThreadModule):
     def __init__(self, service: bool = False):
-        self.service   = service
-        self.frequency = 0
-        self.file      = None
-        self.data      = bytearray(b'')
-        self.width     = 0
-        self.height    = 0
-        self.depth     = 0
-        self.line      = 0
-        self.ioc       = 0
-        self.lpm       = 0
-        self.colors    = None
-        super().__init__()
-
-    def __del__(self):
-        # Close currently open file, if any
-        self.closeFile()
-
-    def closeFile(self):
-        if self.file is not None:
-            try:
-                filePath = self.file.name
-                logger.debug("Closing bitmap file '%s'." % filePath)
-                self.file.close()
-                self.file = None
-                if self.height==0 or self.line<self.height:
-                    logger.debug("Deleting short bitmap file '%s'." % filePath)
-                    os.unlink(filePath)
-                else:
-                    # Convert file from BMP to PNG
-                    logger.debug("Converting '%s' to PNG..." % filePath)
-                    Storage.convertImage(filePath)
-                    # Delete excessive files from storage
-                    logger.debug("Performing storage cleanup...")
-                    Storage.getSharedInstance().cleanStoredFiles()
-
-            except Exception as e:
-                logger.debug("Exception closing file: %s" % str(e))
-                self.file = None
-
-    def newFile(self, fileName):
-        self.closeFile()
-        try:
-            logger.debug("Opening bitmap file '%s'..." % fileName)
-            self.file = Storage.getSharedInstance().newFile(fileName)
-
-        except Exception as e:
-            logger.debug("Exception opening file: %s" % str(e))
-            self.file = None
-
-    def writeFile(self, data):
-        if self.file is not None:
-            try:
-                self.file.write(data)
-            except Exception:
-                pass
+        self.service = service
+        self.data    = bytearray(b'')
+        self.width   = 0
+        self.height  = 0
+        self.depth   = 0
+        self.line    = 0
+        self.ioc     = 0
+        self.lpm     = 0
+        self.colors  = None
+        DataRecorder.__init__(self, "FAX", ".bmp", maxBytes = 16 * 1024 * 1024)
+        ThreadModule.__init__(self)
 
     def getInputFormat(self) -> Format:
         return Format.CHAR
 
     def getOutputFormat(self) -> Format:
         return Format.CHAR
-
-    def setDialFrequency(self, frequency: int) -> None:
-        self.frequency = frequency
 
     def myName(self) -> str:
         return "%s%s" % (
@@ -116,6 +70,19 @@ class FaxParser(ThreadModule):
         # Done
         return out
 
+    def finishFrame(self):
+        # Done with the image file
+        pm = Config.get()
+        self.closeImage(self.line, self.height, pm["fax_min_length"])
+        # Done with the scan
+        self.width  = 0
+        self.height = 0
+        self.depth  = 0
+        self.line   = 0
+        self.ioc    = 0
+        self.lpm    = 0
+        self.colors = None
+
     def run(self):
         logger.debug("%s starting..." % self.myName())
         # Run while there is input data
@@ -124,7 +91,6 @@ class FaxParser(ThreadModule):
             inp = self.reader.read()
             # Terminate if no input data
             if inp is None:
-                logger.debug("%s exiting..." % self.myName())
                 self.doRun = False
                 break
             # Add read data to the buffer
@@ -136,6 +102,9 @@ class FaxParser(ThreadModule):
                 if len(out)>0:
                     self.writer.write(pickle.dumps(out))
                 out = self.process()
+        # Done with whatever we are decoding
+        logger.debug("%s exiting..." % self.myName())
+        self.finishFrame()
 
     def process(self):
         # No result yet
@@ -242,15 +211,17 @@ class FaxParser(ThreadModule):
                     #logger.debug("%s got line %d of %d/%d pixels" % (
                     #    self.myName(), self.line, w, len(self.data)/b
                     #))
-                    # Advance scanline
-                    self.line = self.line + 1
+                    # Check for trailing lines that are going to be all white
+                    frameEnded = True
+                    for j in [0, l]:
+                        if self.data[j] != 0xFF:
+                            frameEnded = False
+                            break
                     # If running as a service...
                     if self.service:
                         # Write a scanline into open image file
-                        self.writeFile(self.data[0:l])
-                        # Close once the last scanline reached
-                        if self.line>=self.height:
-                            self.closeFile()
+                        if not frameEnded:
+                            self.writeFile(self.data[0:l])
                         # Empty result
                         out = {}
                     else:
@@ -258,22 +229,21 @@ class FaxParser(ThreadModule):
                         #rle = self.applyRLE(self.data[0:l])
                         out = {
                             "mode":   "Fax",
-                            "line":   self.line-1,
+                            "line":   self.line,
                             "width":  self.width,
                             "height": self.height,
                             "depth":  self.depth,
                             "rle":    False,
-                            "pixels": base64.b64encode(self.data[0:l]).decode(),
+                            "ended":  frameEnded,
+                            "pixels": base64.b64encode(self.data[0:l]).decode()
                         }
+                    # Advance scanline
+                    if not frameEnded:
+                        self.line  = self.line + 1
+                        frameEnded = self.line >= self.height
                     # If we reached the end of frame, finish scan
-                    if self.line>=self.height:
-                        self.width  = 0
-                        self.height = 0
-                        self.depth  = 0
-                        self.line   = 0
-                        self.ioc    = 0
-                        self.lpm    = 0
-                        self.colors = None
+                    if frameEnded:
+                        self.finishFrame()
                     # Remove parsed data
                     del self.data[0:l]
 

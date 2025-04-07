@@ -151,6 +151,15 @@ class DablinModule(ExecModule):
         self.restart()
 
 
+class LameModule(ExecModule):
+    def __init__(self, sampleRate: int = 24000):
+        cmd = [
+            "lame", "-r", "-m", "m", "--signed", "--bitwidth", "16",
+            "-s", str(sampleRate / 1000), "-", "-"
+        ]
+        super().__init__(Format.SHORT, Format.CHAR, cmd)
+
+
 class SatDumpModule(ExecModule):
     def __init__(self, mode: str = "noaa_apt", sampleRate: int = 50000, frequency: int = 137100000, outFolder: str = "/tmp/satdump", options = None):
         # Make sure we have output folder

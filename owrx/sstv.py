@@ -1,4 +1,4 @@
-from owrx.storage import Storage
+from owrx.storage import Storage, DataRecorder
 from csdr.module import ThreadModule
 from pycsdr.types import Format
 from datetime import datetime
@@ -62,69 +62,22 @@ modeNames = {
     115: "Pasokon P7",
 }
 
-class SstvParser(ThreadModule):
+class SstvParser(DataRecorder, ThreadModule):
     def __init__(self, service: bool = False):
-        self.service   = service
-        self.frequency = 0
-        self.file      = None
-        self.data      = bytearray(b'')
-        self.width     = 0
-        self.height    = 0
-        self.line      = 0
-        self.mode      = 0
-        super().__init__()
-
-    def __del__(self):
-        # Close currently open file, if any
-        self.closeFile()
-
-    def closeFile(self):
-        if self.file is not None:
-            try:
-                filePath = self.file.name
-                logger.debug("Closing bitmap file '%s'." % filePath)
-                self.file.close()
-                self.file = None
-                if self.height==0 or self.line<self.height:
-                    logger.debug("Deleting short bitmap file '%s'." % filePath)
-                    os.unlink(filePath)
-                else:
-                    # Convert file from BMP to PNG
-                    logger.debug("Converting '%s' to PNG..." % filePath)
-                    Storage.convertImage(filePath)
-                    # Delete excessive files from storage
-                    logger.debug("Performing storage cleanup...")
-                    Storage.getSharedInstance().cleanStoredFiles()
-
-            except Exception as exptn:
-                logger.debug("Exception closing file: %s" % str(exptn))
-                self.file = None
-
-    def newFile(self, fileName):
-        self.closeFile()
-        try:
-            logger.debug("Opening bitmap file '%s'..." % fileName)
-            self.file = Storage.getSharedInstance().newFile(fileName)
-
-        except Exception as exptn:
-            logger.debug("Exception opening file: %s" % str(exptn))
-            self.file = None
-
-    def writeFile(self, data):
-        if self.file is not None:
-            try:
-                self.file.write(data)
-            except Exception:
-                pass
+        self.service = service
+        self.data    = bytearray(b'')
+        self.width   = 0
+        self.height  = 0
+        self.line    = 0
+        self.mode    = 0
+        DataRecorder.__init__(self, "SSTV", ".bmp")
+        ThreadModule.__init__(self)
 
     def getInputFormat(self) -> Format:
         return Format.CHAR
 
     def getOutputFormat(self) -> Format:
         return Format.CHAR
-
-    def setDialFrequency(self, frequency: int) -> None:
-        self.frequency = frequency
 
     def myName(self):
         return "%s%s" % (
@@ -140,7 +93,6 @@ class SstvParser(ThreadModule):
             inp = self.reader.read()
             # Terminate if no input data
             if inp is None:
-                logger.debug("%s exiting..." % self.myName())
                 self.doRun = False
                 break
             # Add read data to the buffer
@@ -152,6 +104,9 @@ class SstvParser(ThreadModule):
                 if len(out)>0:
                     self.writer.write(pickle.dumps(out))
                 out = self.process()
+        # We are done
+        logger.debug("%s exiting..." % self.myName())
+        self.closeImage(self.line, self.height, self.height // 2)
 
     def process(self):
         # No result yet
@@ -170,7 +125,7 @@ class SstvParser(ThreadModule):
                         self.writeFile(self.data[0:w])
                         # Close once the last scanline reached
                         if self.line>=self.height:
-                            self.closeFile()
+                            self.closeImage(self.line, self.height)
                         # Empty result
                         out = {}
                     else:

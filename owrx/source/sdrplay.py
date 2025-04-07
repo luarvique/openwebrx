@@ -72,7 +72,7 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
             NumberInput(
                 "rfgain_sel",
                 "RF gain reduction",
-                validator=RangeValidator(0, 32),
+                validator=RangeValidator(0, 27),
             ),
             NumberInput(
                 "agc_setpoint",

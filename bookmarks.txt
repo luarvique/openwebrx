@@ -347,10 +347,10 @@ RBW48|Murmansk|Russia|10130|FAX
 DDH3|Hamburg|Germany|3855|FAX
 DDK3|Hamburg|Germany|7880|FAX
 DDK6|Hamburg|Germany|13882.5|FAX
-GYA|Nothwood|UK|2618.5|FAX
-GYA|Nothwood|UK|4610|FAX
-GYA|Nothwood|UK|8040|FAX
-GYA|Nothwood|UK|11086.5|FAX
+GYA|Northwood|UK|2618.5|FAX
+GYA|Northwood|UK|4610|FAX
+GYA|Northwood|UK|8040|FAX
+GYA|Northwood|UK|11086.5|FAX
 
 #
 # CB channels

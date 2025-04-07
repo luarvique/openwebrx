@@ -1,4 +1,4 @@
-from owrx.web import WebScraper
+from owrx.web import WebAgent
 
 import threading
 import logging
@@ -7,7 +7,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
-class Receivers(WebScraper):
+class Receivers(WebAgent):
     sharedInstance = None
     creationLock = threading.Lock()
 
@@ -17,6 +17,14 @@ class Receivers(WebScraper):
             if Receivers.sharedInstance is None:
                 Receivers.sharedInstance = Receivers("receivers.json")
         return Receivers.sharedInstance
+
+    @staticmethod
+    def start():
+        Receivers.getSharedInstance().startThread()
+
+    @staticmethod
+    def stop():
+        Receivers.getSharedInstance().stopThread()
 
     def __init__(self, dataName: str):
         super().__init__(dataName)

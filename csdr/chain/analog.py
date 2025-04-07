@@ -18,7 +18,6 @@ class Am(BaseDemodulatorChain):
             DcBlock(),
             agc,
         ]
-
         super().__init__(workers)
 
 

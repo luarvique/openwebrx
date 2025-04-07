@@ -48,7 +48,7 @@ class BookmarksController(AuthorizationMixin, BreadcrumbMixin, WebpageController
                 "name"       : m.name,
                 "analog"     : isinstance(m, AnalogMode),
                 "underlying" : m.underlying if hasattr(m, "underlying") else []
-            } for m in Modes.getAvailableModes()}),
+            } for m in Modes.getAvailableClientModes() })
         )
 
     def render_bookmark(self, bookmark: Bookmark):

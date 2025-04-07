@@ -420,22 +420,22 @@
         "modulation" : "fax"
     },
     {
-        "name" : "GYA - Nothwood",
+        "name" : "GYA - Northwood",
         "frequency" : 2616600,
         "modulation" : "fax"
     },
     {
-        "name" : "GYA - Nothwood",
+        "name" : "GYA - Northwood",
         "frequency" : 4608100,
         "modulation" : "fax"
     },
     {
-        "name" : "GYA - Nothwood",
+        "name" : "GYA - Northwood",
         "frequency" : 8038100,
         "modulation" : "fax"
     },
     {
-        "name" : "GYA - Nothwood",
+        "name" : "GYA - Northwood",
         "frequency" : 11084600,
         "modulation" : "fax"
     }

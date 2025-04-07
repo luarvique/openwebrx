@@ -4,7 +4,7 @@ var mapSources = [
         url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         options: {
             maxZoom: 19,
-            noWrap: true,
+            noWrap: false,
             attribution: '© OpenStreetMap'
         },
     },
@@ -247,7 +247,7 @@ MapManager.prototype.removeReceiver = function() {
     if (receiverMarker) receiverMarker.setMap();
 }
 
-MapManager.prototype.initializeMap = function(receiver_gps, api_key, weather_key) {
+MapManager.prototype.initializeMap = async function(receiver_gps, api_key, weather_key) {
     if (map) {
         receiverMarker.setLatLng(receiver_gps.lat, receiver_gps.lon);
         receiverMarker.setMarkerOptions(this.config);
@@ -256,177 +256,173 @@ MapManager.prototype.initializeMap = function(receiver_gps, api_key, weather_key
         var self = this;
 
         // load Leaflet CSS first
-        fetchStyleSheet('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css').done(function () {
-            // now load Leaflet JS
-            $.getScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js').done(function () {
-                // create map
-                map = L.map('openwebrx-map', { zoomControl: false }).setView([receiver_gps.lat, receiver_gps.lon], 5);
+        await fetchStyleSheet('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+        // now load Leaflet JS
+        await $.getScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+        // load geodesic and textpath plugins
+        await $.getScript('https://cdn.jsdelivr.net/npm/leaflet.geodesic');
+        await $.getScript('https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js');
 
-                // add zoom control
-                new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
+        // create map
+        map = L.map('openwebrx-map', { zoomControl: false, worldCopyJump: true }).setView([receiver_gps.lat, receiver_gps.lon], 5);
 
-                // load geodesic and textpath plugins plugin
-                $.getScript('https://cdn.jsdelivr.net/npm/leaflet.geodesic');
-                $.getScript('https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js');
+        // add zoom control
+        new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
 
-                // add night overlay
-                $.getScript('https://unpkg.com/@joergdietrich/leaflet.terminator@1.0.0/L.Terminator.js').done(function () {
-                    var pane = map.createPane('nite');
-                    pane.style.zIndex = 201;
-                    pane.style.pointerEvents = 'none !important';
-                    pane.style.cursor = 'grab !important';
-                    var t = L.terminator({ fillOpacity: 0.2, interactive: false, pane });
-                    t.addTo(map);
-                    setInterval(function () { t.setTime(); }, 10000); // refresh every 10 secs
+        // add night overlay
+        $.getScript('https://unpkg.com/@joergdietrich/leaflet.terminator@1.1.0/L.Terminator.js').done(function () {
+            var pane = map.createPane('nite');
+            pane.style.zIndex = 201;
+            pane.style.pointerEvents = 'none !important';
+            pane.style.cursor = 'grab !important';
+            var t = L.terminator({ fillOpacity: 0.2, interactive: false, pane });
+            t.addTo(map);
+            setInterval(function () { t.setTime(); }, 60000); // refresh every 60 secs
+            map.addEventListener('zoomstart movestart popupopen', function (e) { t.setTime(); }); // refresh on zoom and move
+        });
+
+        // create layerControl and add more maps
+        if (!layerControl) {
+            // used to open or collapse the layerControl by default
+            // function isMobile () {
+            //     try { document.createEvent("TouchEvent"); return true; }
+            //     catch (e) { return false; }
+            // }
+
+            layerControl = L.control.layers({}, null, {
+                collapsed: false, //isMobile(), // we have collapsing already made in the utc clock
+                hideSingleBase: true,
+                position: 'bottomleft'
+            }).addTo(map);
+
+            // move legend div to our layerControl
+            layerControl.legend = $('.openwebrx-map-legend')
+                .css({'padding': '0', 'margin': '0'})
+                .insertAfter(layerControl._overlaysList);
+        } // layerControl
+
+        // Load and initialize OWRX-specific map item managers
+        $.getScript('static/lib/Leaflet.js').done(function() {
+            // Process any accumulated updates
+            self.processUpdates(updateQueue);
+            updateQueue = [];
+
+            if (!receiverMarker) {
+                receiverMarker = new LSimpleMarker();
+                receiverMarker.setMarkerPosition(self.config['receiver_name'], receiver_gps.lat, receiver_gps.lon);
+                receiverMarker.addListener('click', function () {
+                    L.popup(receiverMarker.getPos(), {
+                        content: '<h3>' + self.config['receiver_name'] + '</h3>' +
+                            '<div>Receiver location</div>'
+                    }).openOn(map);
                 });
+                receiverMarker.setMarkerOptions(this.config);
+                receiverMarker.setMap(map);
+            }
+        });
 
-                // create layerControl and add more maps
-                if (!layerControl) {
-                    // used to open or collapse the layerControl by default
-                    // function isMobile () {
-                    //     try { document.createEvent("TouchEvent"); return true; }
-                    //     catch (e) { return false; }
-                    // }
+        var map_idx = LS.loadInt('leaflet_map_idx'); // should return 0 if not found
+        $.each(mapSources, function (idx, ms) {
+            $('#openwebrx-map-source').append(
+                $('<option></option>')
+                    .attr('selected', idx == map_idx ? true : false)
+                    .attr('value', idx)
+                    .attr('title', ms.info)
+                    .text(ms.name)
+            );
+            ms.layer = L.tileLayer(ms.url, ms.options);
+            if (idx == map_idx) ms.layer.addTo(map);
+        });
 
-                    layerControl = L.control.layers({
-                    }, null, {
-                        collapsed: false, //isMobile(), // we have collapsing already made in the utc clock
-                        hideSingleBase: true,
-                        position: 'bottomleft'
-                    }
-                    ).addTo(map);
+        var apiKeys = {};
+        if (weather_key) {
+            apiKeys['weather_key'] = weather_key;
+        }
 
-                    // move legend div to our layerControl
-                    layerControl.legend = $('.openwebrx-map-legend')
-                        .css({'padding': '0', 'margin': '0'})
-                        .insertAfter(layerControl._overlaysList);
-                } // layerControl
+        function isMapEligible (m) {
+            if (!m) return false;
+            if (!m.depends || !m.depends.length) return true; // if no depends -> true
+            var looking = m.depends;
+            var invert = false;
+            if (looking.charAt(0) === '!') {
+                invert = true;
+                looking = looking.slice(1);
+            }
+            var eligible = false; // we have deps, so default is false until we find the dep keys
+            Object.keys(apiKeys).forEach(function (k) {
+                if (looking === k) eligible = true; // if we have the key and depend on it -> true
+            });
+            return invert ? !eligible : eligible;
+        }
 
-                // Load and initialize OWRX-specific map item managers
-                $.getScript('static/lib/Leaflet.js').done(function() {
-                    // Process any accumulated updates
-                    self.processUpdates(updateQueue);
-                    updateQueue = [];
-
-                    if (!receiverMarker) {
-                        receiverMarker = new LSimpleMarker();
-                        receiverMarker.setMarkerPosition(self.config['receiver_name'], receiver_gps.lat, receiver_gps.lon);
-                        receiverMarker.addListener('click', function () {
-                            L.popup(receiverMarker.getPos(), {
-                                content: '<h3>' + self.config['receiver_name'] + '</h3>' +
-                                    '<div>Receiver location</div>'
-                            }).openOn(map);
-                        });
-                        receiverMarker.setMarkerOptions(this.config);
-                        receiverMarker.setMap(map);
-                    }
-                });
-
-                var map_idx = LS.loadInt('leaflet_map_idx'); // should return 0 if not found
-                $.each(mapSources, function (idx, ms) {
-                    $('#openwebrx-map-source').append(
-                        $('<option></option>')
-                            .attr('selected', idx == map_idx ? true : false)
-                            .attr('value', idx)
-                            .attr('title', ms.info)
-                            .text(ms.name)
-                    );
-                    ms.layer = L.tileLayer(ms.url, ms.options);
-                    if (idx == map_idx) ms.layer.addTo(map);
-                });
-
-                var apiKeys = {};
-                if (weather_key) {
-                    apiKeys['weather_key'] = weather_key;
-                }
-
-                function isMapEligible (m) {
-                    if (!m) return false;
-                    if (!m.depends || !m.depends.length) return true; // if no depends -> true
-                    var looking = m.depends;
-                    var invert = false;
-                    if (looking.charAt(0) === '!') {
-                        invert = true;
-                        looking = looking.slice(1);
-                    }
-                    var eligible = false; // we have deps, so default is false until we find the dep keys
-                    Object.keys(apiKeys).forEach(function (k) {
-                        if (looking === k) eligible = true; // if we have the key and depend on it -> true
-                    });
-                    return invert ? !eligible : eligible;
-                }
-
-                function addMapOverlay (name) {
-                    $.each(mapExtraLayers, async function (idx, mel) {
-                        if (mel.name === name) {
-                            if (!mel.layer) {
-                                if (apiKeys[mel.depends]) mel.options.apikey = apiKeys[mel.depends];
-                                if (typeof mel.url !== 'undefined') {
-                                    mel.layer = L.tileLayer(mel.url, mel.options);
-                                } else if (typeof mel.createLayer === 'function') {
-                                    mel.layer = await mel.createLayer();
-                                } else {
-                                    console.error('Cannot create layer for ' + mel.name);
-                                }
-                            }
-                            if (map.hasLayer(mel.layer))
-                                map.removeLayer(mel.layer);
-                            map.addLayer(mel.layer);
+        function addMapOverlay (name) {
+            $.each(mapExtraLayers, async function (idx, mel) {
+                if (mel.name === name) {
+                    if (!mel.layer) {
+                        if (apiKeys[mel.depends]) mel.options.apikey = apiKeys[mel.depends];
+                        if (typeof mel.url !== 'undefined') {
+                            mel.layer = L.tileLayer(mel.url, mel.options);
+                        } else if (typeof mel.createLayer === 'function') {
+                            mel.layer = await mel.createLayer();
+                        } else {
+                            console.error('Cannot create layer for ' + mel.name);
                         }
-                    });
+                    }
+                    if (map.hasLayer(mel.layer))
+                        map.removeLayer(mel.layer);
+                    map.addLayer(mel.layer);
                 }
-                function removeMapOverlay (name) {
-                    $.each(mapExtraLayers, function (idx, mel) {
-                        if (mel.name === name) {
-                            if (map.hasLayer(mel.layer))
-                                map.removeLayer(mel.layer);
-                        }
-                    });
+            });
+        }
+        function removeMapOverlay (name) {
+            $.each(mapExtraLayers, function (idx, mel) {
+                if (mel.name === name) {
+                    if (map.hasLayer(mel.layer))
+                        map.removeLayer(mel.layer);
                 }
-                $('#openwebrx-map-source').on('change', function (e) {
-                    var id = this.value;
-                    var m = mapSources[id];
-                    $.each(mapSources, function (idx, ms) {
-                        if (map.hasLayer(ms.layer))
-                            map.removeLayer(ms.layer);
-                    });
-                    map.addLayer(m.layer);
-                    LS.save('leaflet_map_idx', id);
-                    $('#openwebrx-map-extralayers').find('input').each(function (idx, inp) {
-                        if ($(inp).is(':checked')) {
-                            addMapOverlay($(inp).attr('name'));
-                        }
-                    });
-                });
-                $.each(mapExtraLayers, function (idx, mel) {
-                    if (!isMapEligible(mel)) return;
-                    if ($('#openwebrx-map-layer-' + mel.name).length)
-                        return; // checkbox with that name exists already
-                    var enabled = LS.loadBool('leaflet-layer-' + mel.name); // should return false if not found
-                    if (enabled) addMapOverlay(mel.name);
-                    $('#openwebrx-map-extralayers').append(
-                        $('<label><input type="checkbox" ' +
-                            'name="' + mel.name + '" ' +
-                            'idx="' + idx + '" ' +
-                            'id="openwebrx-map-layer-' + mel.name + '"' +
-                            (enabled ? ' checked ' : '') +
-                            '>' + mel.name + '</label>'
-                        ).on('change', function (e) {
-                            LS.save('leaflet-layer-' + mel.name, e.target.checked);
-                            if (e.target.checked) {
-                                addMapOverlay(mel.name);
-                            } else {
-                                removeMapOverlay(mel.name);
-                            }
-                        })
-                    );
-               });
+            });
+        }
+        $('#openwebrx-map-source').on('change', function (e) {
+            var id = this.value;
+            var m = mapSources[id];
+            $.each(mapSources, function (idx, ms) {
+                if (map.hasLayer(ms.layer))
+                    map.removeLayer(ms.layer);
+            });
+            map.addLayer(m.layer);
+            LS.save('leaflet_map_idx', id);
+            $('#openwebrx-map-extralayers').find('input').each(function (idx, inp) {
+                if ($(inp).is(':checked')) {
+                    addMapOverlay($(inp).attr('name'));
+                }
+            });
+        });
+        $.each(mapExtraLayers, function (idx, mel) {
+            if (!isMapEligible(mel)) return;
+            if ($('#openwebrx-map-layer-' + mel.name).length)
+                return; // checkbox with that name exists already
+            var enabled = LS.loadBool('leaflet-layer-' + mel.name); // should return false if not found
+            if (enabled) addMapOverlay(mel.name);
+            $('#openwebrx-map-extralayers').append(
+                $('<label><input type="checkbox" ' +
+                    'name="' + mel.name + '" ' +
+                    'idx="' + idx + '" ' +
+                    'id="openwebrx-map-layer-' + mel.name + '"' +
+                    (enabled ? ' checked ' : '') +
+                    '>' + mel.name + '</label>'
+                ).on('change', function (e) {
+                    LS.save('leaflet-layer-' + mel.name, e.target.checked);
+                    if (e.target.checked) {
+                        addMapOverlay(mel.name);
+                    } else {
+                        removeMapOverlay(mel.name);
+                    }
+                })
+            );
+        });
 
-                // Create map legend selectors
-                self.setupLegendFilters(layerControl.legend);
-
-            }); // leaflet.js
-        }); // leaflet.css
+        // Create map legend selectors
+        self.setupLegendFilters(layerControl.legend);
     }
 };
 

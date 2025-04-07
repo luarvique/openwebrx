@@ -396,7 +396,7 @@ class RigControl():
         os.set_blocking(self.rigctl.stdout.fileno(), False)
         os.set_blocking(self.rigctl.stderr.fileno(), False)
         # Create and start thread
-        self.thread = threading.Thread(target=self._rigThread)
+        self.thread = threading.Thread(target=self._rigThread, name=type(self).__name__)
         self.thread.start()
         # Clear current frequency and modulation
         self.mod     = None
