@@ -568,6 +568,8 @@ class MicEParser(object):
                         return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D72"}
                     if comment[-1] == "^":
                         return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D74"}
+                    if comment[-1] == "&":
+                        return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D75"}
                 return comment[1:], {"manufacturer": "Kenwood", "device": "TH-D7A"}
             if comment[0] == "]":
                 if len(comment) > 1 and comment[-1] == "=":
