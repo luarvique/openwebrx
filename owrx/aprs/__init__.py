@@ -587,7 +587,7 @@ class MicEParser(object):
                         "$": "FT1D",
                         "(": "FT2D",
                         "0": "FT3D",
-                        "1": "FT5D",
+                        "3": "FT5D",
                     }
                     return comment[1:-2], {"manufacturer": "Yaesu", "device": devices.get(comment[-1], "Unknown")}
                 if comment[-2:] == " X":
