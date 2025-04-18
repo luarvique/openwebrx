@@ -50,6 +50,13 @@ class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
     def getGainStages(self):
         return ["LNA", "MIX", "VGA"]
 
+    def getGainStageDescriptions(self):
+        return {
+            "LNA": "LNA Gain",
+            "MIX": "Mixer Gain",
+            "VGA": "IF Gain",
+        }
+
     def getSampleRateRanges(self) -> List[Range]:
         # Airspy R2 does 2.5 or 10 MS/s
         # Airspy mini does 3 or 6 MS/s

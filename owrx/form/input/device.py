@@ -5,10 +5,14 @@ from owrx.soapy import SoapySettings
 
 
 class GainInput(Input):
-    def __init__(self, id, label, has_agc, gain_stages=None):
+    def __init__(self, id, label, has_agc, gain_stages=None, gain_stage_descriptions=None):
         super().__init__(id, label)
         self.has_agc = has_agc
         self.gain_stages = gain_stages
+        self.gain_stage_descriptions = gain_stage_descriptions
+
+        if self.gain_stages is not None and self.gain_stage_descriptions is None:
+            self.gain_stage_descriptions = {s: s for s in self.gain_stages}
 
     def render_input(self, value, errors):
         try:
@@ -93,13 +97,14 @@ class GainInput(Input):
             inputs="".join(
                 """
                     <div class="row">
-                        <label class="col-form-label col-form-label-sm col-3">{stage}</label>
+                        <label class="col-form-label col-form-label-sm col-3">{stagedesc}</label>
                         <input type="number" id="{id}-{stage}" name="{id}-{stage}" value="{value}"
                         class="col-9 {classes}" placeholder="{stage}" step="any" {disabled}>
                     </div>
                 """.format(
                     id=self.id,
                     stage=stage,
+                    stagedesc=self.gain_stage_descriptions[stage],
                     value=value_dict[stage] if stage in value_dict else "",
                     classes=self.input_classes(errors),
                     disabled="disabled" if self.disabled else "",
@@ -214,7 +219,7 @@ class SchedulerInput(Input):
         return """
             <select class="{extra_classes} {classes}" id="{id}" name="{id}" {disabled}>
                 {options}
-            </select> 
+            </select>
         """.format(
             id="{}-{}".format(self.id, stage),
             classes=self.input_classes(errors),

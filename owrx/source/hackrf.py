@@ -34,7 +34,14 @@ class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
         return super().getProfileOptionalKeys() + ["bias_tee"]
 
     def getGainStages(self):
-        return ["LNA", "AMP", "VGA"]
+        return ["AMP","LNA","VGA"]
+
+    def getGainStageDescriptions(self):
+        return {
+            "AMP": "R.F. AMP (0 or 11db)",
+            "LNA": "I.F. LNA (0-40db/8db)",
+            "VGA": "B.B. VGA (0-62db/2db)"
+        }
 
     def getSampleRateRanges(self) -> List[Range]:
         return [Range(500000, 28000000)]
