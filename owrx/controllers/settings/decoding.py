@@ -43,6 +43,13 @@ class DecodingSettingsController(SettingsFormController):
                     "wfm_rds_rbds",
                     "Decode USA-specific RBDS information from WFM broadcasts",
                 ),
+                NumberInput(
+                    "nfm_default_deviation",
+                    "NFM default deviation",
+                    infotext="Default demodulation bandwidth for NFM",
+                    validator=RangeValidator(2000, 25000),
+                    append="Hz"
+                ),
                 CheckboxInput(
                     "cw_showcw",
                     "Show CW codes (dits / dahs) when decoding CW",
