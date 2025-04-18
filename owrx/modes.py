@@ -1,3 +1,4 @@
+from owrx.config import Config
 from owrx.feature import FeatureDetector
 from owrx.audio import ProfileSource
 from functools import reduce
@@ -359,6 +360,8 @@ class Modes(object):
 
     @staticmethod
     def getModes():
+        nfm_deviation = Config.get()["nfm_default_deviation"] /2 if "nfm_default_deviation" in Config.get() else 4000
+        Modes.mappings[0] = AnalogMode("nfm", "FM", bandpass=Bandpass(-int(nfm_deviation), int(nfm_deviation)))
         return Modes.mappings
 
     @staticmethod
