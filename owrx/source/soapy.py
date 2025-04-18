@@ -103,6 +103,7 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                 "Device Gain",
                 gain_stages=self.getGainStages(),
                 has_agc=self.hasAgc(),
+                gain_stage_descriptions=self.getGainStageDescriptions(),
             ),
             TextInput("antenna", "Antenna"),
         ]
@@ -130,4 +131,7 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
         return super().getProfileOptionalKeys() + ["antenna"]
 
     def getGainStages(self):
+        return None
+
+    def getGainStageDescriptions(self):
         return None
