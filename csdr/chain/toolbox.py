@@ -46,10 +46,14 @@ class MultimonDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         ]
         # If using squelch, insert Squelch() at the start
         if withSquelch:
-            # s-meter readings are available every 1024 samples
-            # the reporting interval is measured in those 1024-sample blocks
+            self.measurementsPerSec = 16
             self.readingsPerSec = 4
-            self.squelch = Squelch(Format.COMPLEX_FLOAT, 5, int(self.sampleRate / (self.readingsPerSec * 1024)))
+            self.squelch = Squelch(
+                Format.COMPLEX_FLOAT,
+                int(self.sampleRate / self.measurementsPerSec),
+                5,
+                int(self.measurementsPerSec / self.readingsPerSec)
+            )
             workers.insert(0, self.squelch)
 
         # Connect all the workers
@@ -252,9 +256,15 @@ class CwSkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 24000, service: bool = False):
         self.sampleRate = sampleRate
+        self.measurementsPerSec = 16
         self.readingsPerSec = 4
         self.recorder = Mp3Recorder(service)
-        self.squelch = Squelch(Format.FLOAT, 5, int(sampleRate / (self.readingsPerSec * 1024)))
+        self.squelch = Squelch(
+            Format.FLOAT,
+            int(self.sampleRate / self.measurementsPerSec),
+            5,
+            int(self.measurementsPerSec / self.readingsPerSec)
+        )
         # Set recording squelch level
         pm = Config.get()
         self.setSquelchLevel(pm["rec_squelch"])
