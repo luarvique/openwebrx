@@ -105,7 +105,7 @@ class Selector(Chain):
         if withSquelch:
             # s-meter readings are available every 1024 samples
             # the reporting interval is measured in those 1024-sample blocks
-            self.squelch = Squelch(5, int(outputRate / (self.readings_per_second * 1024)))
+            self.squelch = Squelch(Format.COMPLEX_FLOAT, 5, int(outputRate / (self.readings_per_second * 1024)))
             workers += [self.squelch]
         else:
             self.squelch = None

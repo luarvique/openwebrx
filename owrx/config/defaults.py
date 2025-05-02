@@ -429,5 +429,6 @@ defaultConfig = PropertyLayer(
     rig_enabled=False,
     rig_model=2,
     rig_device="127.0.0.1:4533",
-    rig_address=0
+    rig_address=0,
+    rec_squelch=-150
 ).readonly()

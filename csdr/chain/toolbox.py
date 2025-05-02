@@ -4,6 +4,7 @@ from pycsdr.modules import FmDemod, AudioResampler, Convert, Agc, Squelch, RealP
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, CwSkimmerParser, Mp3Recorder
 from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser
+from owrx.config import Config
 
 from datetime import datetime
 import math
@@ -48,7 +49,7 @@ class MultimonDemodulator(ServiceDemodulator, DialFrequencyReceiver):
             # s-meter readings are available every 1024 samples
             # the reporting interval is measured in those 1024-sample blocks
             self.readingsPerSec = 4
-            self.squelch = Squelch(5, int(self.sampleRate / (self.readingsPerSec * 1024)))
+            self.squelch = Squelch(Format.COMPLEX_FLOAT, 5, int(self.sampleRate / (self.readingsPerSec * 1024)))
             workers.insert(0, self.squelch)
 
         # Connect all the workers
@@ -251,15 +252,26 @@ class CwSkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 24000, service: bool = False):
         self.sampleRate = sampleRate
-        self.frequency = 0
+        self.readingsPerSec = 4
         self.recorder = Mp3Recorder(service)
+        self.squelch = Squelch(Format.FLOAT, 5, int(sampleRate / (self.readingsPerSec * 1024)))
+        # Set recording squelch level
+        pm = Config.get()
+        self.setSquelchLevel(pm["rec_squelch"])
         workers = [
+            self.squelch,
             Convert(Format.FLOAT, Format.SHORT),
             LameModule(sampleRate),
             self.recorder,
         ]
         # Connect all the workers
         super().__init__(workers)
+
+    def _convertToLinear(self, db: float) -> float:
+        return float(math.pow(10, db / 10))
+
+    def setSquelchLevel(self, level: float) -> None:
+        self.squelch.setSquelchLevel(self._convertToLinear(level))
 
     def getFixedAudioRate(self) -> int:
         return self.sampleRate
@@ -269,7 +281,6 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
 
     def setDialFrequency(self, frequency: int) -> None:
         # Not restarting LAME, it is ok to continue on a new file
-        #self.replace(1, LameModule(self.sampleRate))
         self.recorder.setDialFrequency(frequency)
 
 

@@ -73,6 +73,15 @@ class DecodingSettingsController(SettingsFormController):
                 ),
             ),
             Section(
+                "Background audio recording",
+                NumberInput(
+                    "rec_squelch",
+                    "Recording squelch level",
+                    validator=RangeValidator(-150, 50),
+                    append="dB",
+                ),
+            ),
+            Section(
                 "Aircraft messages",
                 NumberInput(
                     "adsb_ttl",
