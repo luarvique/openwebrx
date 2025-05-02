@@ -101,14 +101,12 @@ class Selector(Chain):
 
         workers = [self.shift, self.decimation]
 
-        self.measurements_per_second = 16
-        self.readings_per_second = 4
+        self.measurementsPerSec = 16
+        self.readingsPerSec = 4
         if withSquelch:
-            self.squelch = Squelch(Format.COMPLEX_FLOAT,
-                int(outputRate / self.measurements_per_second),
-                5,
-                int(self.measurements_per_second / self.readings_per_second)
-            )
+            blockLength  = int(self.outputRate / self.measurementsPerSec)
+            reportPeriod = int(self.measurementsPerSec / self.readingsPerSec)
+            self.squelch = Squelch(Format.COMPLEX_FLOAT, blockLength, 5, 5 * blockLength, reportPeriod)
             workers += [self.squelch]
         else:
             self.squelch = None
@@ -171,10 +169,7 @@ class Selector(Chain):
         if outputRate == self.outputRate:
             return
         self.outputRate = outputRate
-
         self.decimation.setOutputRate(outputRate)
-        if self.squelch is not None:
-            self.squelch.setReportInterval(int(outputRate / (self.readings_per_second * 1024)))
         index = self.indexOf(lambda x: isinstance(x, Bandpass))
         self.bandpass = self._buildBandpass()
         self.setBandpass(*self.bandpassCutoffs)
