@@ -170,10 +170,10 @@ class Selector(Chain):
             return
         if self.squelch is not None:
             self.squelch.setReportInterval(int(
-                self.outputRate *
+                outputRate *
                 self.measurementsPerSec /
                 self.readingsPerSec /
-                outputRate
+                self.outputRate
             ))
         self.outputRate = outputRate
         self.decimation.setOutputRate(outputRate)
