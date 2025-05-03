@@ -168,6 +168,13 @@ class Selector(Chain):
     def setOutputRate(self, outputRate: int) -> None:
         if outputRate == self.outputRate:
             return
+        if self.squelch is not None:
+            self.squelch.setReportInterval(int(
+                self.outputRate *
+                self.measurementsPerSec /
+                self.readingsPerSec /
+                outputRate
+            ))
         self.outputRate = outputRate
         self.decimation.setOutputRate(outputRate)
         index = self.indexOf(lambda x: isinstance(x, Bandpass))
