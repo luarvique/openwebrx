@@ -1,6 +1,6 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.toolbox import Rtl433Module, MultimonModule, DumpHfdlModule, DumpVdl2Module, Dump1090Module, AcarsDecModule, RedseaModule, SatDumpModule, CwSkimmerModule, LameModule
-from pycsdr.modules import FmDemod, AudioResampler, Convert, Agc, Squelch, RealPart
+from pycsdr.modules import FmDemod, AudioResampler, Convert, Agc, Squelch, RealPart, SnrSquelch
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, CwSkimmerParser, Mp3Recorder
 from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser
@@ -9,6 +9,10 @@ from owrx.config import Config
 from datetime import datetime
 import math
 import os
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class IsmDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, service: bool = False):
@@ -259,7 +263,7 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 24000, service: bool = False):
         self.sampleRate = sampleRate
         self.recorder = Mp3Recorder(service)
-        self.squelch = Squelch(Format.FLOAT, sampleRate, 10, sampleRate, 0, 1)
+        self.squelch = SnrSquelch(Format.FLOAT, int(sampleRate / 4), 512, sampleRate, 0, 1)
         # Set recording squelch level
         pm = Config.get()
         self.setSquelchLevel(pm["rec_squelch"])
