@@ -12,6 +12,10 @@ class DubokSource(SoapyConnectorSource):
                 "audioDevice" : "audioDevice",
                 "i2cDevice"   : "i2cDevice",
                 "i2cAddress"  : "i2cAddress",
+                "biasT"       : "biasT",
+                "highZ"       : "highZ",
+                "lna"         : "lna",
+                "attenuator"  : "attenuator"
             }
         )
         return mappings
@@ -42,7 +46,24 @@ class DubokDeviceDescription(SoapyConnectorDeviceDescription):
                 infotext="I2C device address",
                 validator=RangeValidator(0, 255),
             ),
+            CheckboxInput(
+                "biasT",
+                "External antenna power output (Bias-T)",
+            ),
+            CheckboxInput(
+                "highZ",
+                "High-impedance antenna input",
+            ),
+            CheckboxInput(
+                "lna",
+                "Low-noise amplifier (LNA)",
+            ),
+            NumberInput(
+                "attenuator",
+                "Attenuation level",
+                validator=RangeValidator(0, 30),
+            ),
         ]
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["audioDevice", "i2cDevice", "i2cAddress"]
+        return super().getDeviceOptionalKeys() + ["audioDevice", "i2cDevice", "i2cAddress", "biasT", "highZ", "lna", "attenuator"]
