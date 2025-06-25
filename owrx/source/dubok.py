@@ -1,5 +1,5 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form.input import Input, TextInput, NumberInput
+from owrx.form.input import Input, TextInput, CheckboxInput, NumberInput
 from owrx.form.input.validator import RangeValidator
 from typing import List
 
