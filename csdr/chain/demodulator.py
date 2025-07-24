@@ -26,6 +26,11 @@ class HdAudio:
     pass
 
 
+# marker interface
+class HdStereo(HdAudio):
+    pass
+
+
 class MetaProvider(ABC):
     @abstractmethod
     def setMetaWriter(self, writer: Writer) -> None:
