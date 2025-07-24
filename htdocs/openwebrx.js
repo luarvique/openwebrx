@@ -1153,6 +1153,10 @@ function on_ws_recv(evt) {
                 // hd audio data
                 audioEngine.pushHdAudio(data);
                 break;
+            case 6:
+                // hd stereo data
+                audioEngine.pushHdStereo(data);
+                break;
             default:
                 console.warn('unknown type of binary message: ' + type)
         }

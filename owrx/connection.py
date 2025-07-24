@@ -477,6 +477,9 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_hd_audio(self, data):
         self.send(bytes([0x04]) + data)
 
+    def write_hd_stereo(self, data):
+        self.send(bytes([0x06]) + data)
+
     def write_s_meter_level(self, level):
         # may contain more than one sample, so only take the last 4 bytes = 1 float
         level, = struct.unpack('f', level[-4:])
