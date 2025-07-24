@@ -105,7 +105,7 @@ AudioEngine.prototype._start = function() {
             me.audioNode = new AudioWorkletNode(me.audioContext, 'openwebrx-audio-processor', {
                 numberOfInputs: 0,
                 numberOfOutputs: 1,
-                outputChannelCount: [1],
+                outputChannelCount: [2],
                 processorOptions: {
                     maxBufferSize: me.maxBufferSize
                 }
@@ -166,6 +166,7 @@ AudioEngine.prototype._start = function() {
             }
 
             e.outputBuffer.copyToChannel(out, 0);
+            e.outputBuffer.copyToChannel(out, 1);
             me.audioSamples.add(total);
 
         }
@@ -175,7 +176,7 @@ AudioEngine.prototype._start = function() {
         if (me.audioContext.createJavaScriptNode) {
             method = 'createJavaScriptNode';
         }
-        me.audioNode = me.audioContext[method](bufferSize, 0, 1);
+        me.audioNode = me.audioContext[method](bufferSize, 0, 2);
         me.audioNode.onaudioprocess = audio_onprocess;
         me.audioNode.connect(me.gainNode);
         runCallbacks('ScriptProcessorNode')
@@ -295,7 +296,7 @@ AudioEngine.prototype.processAudio = function(data, resampler, recorder) {
     } else {
         buffer = new Int16Array(data);
     }
-    if(this.recording) {
+    if (this.recording) {
         recorder.record(buffer);
     }
     buffer = resampler.process(buffer);
@@ -317,6 +318,11 @@ AudioEngine.prototype.pushAudio = function(data) {
 
 AudioEngine.prototype.pushHdAudio = function(data) {
     this.processAudio(data, this.hdResampler, this.hdRecorder);
+    this.lastHd = true;
+}
+
+AudioEngine.prototype.pushHdStereo = function(data) {
+    this.processAudio(data.filter((e, i) => { return !(i&1); }), this.hdResampler, this.hdRecorder);
     this.lastHd = true;
 }
 
