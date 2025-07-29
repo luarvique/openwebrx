@@ -6,6 +6,7 @@ function UI() {}
 
 // We start with these values
 UI.theme = 'default';
+UI.theme0 = 'default';
 UI.wfTheme = null;
 UI.frame = false;
 UI.opacity = 100;
@@ -27,7 +28,7 @@ UI.sections = {
 
 // Load UI settings from local storage.
 UI.loadSettings = function() {
-    this.setTheme(LS.has('ui_theme')? LS.loadStr('ui_theme') : 'default');
+    this.setTheme(LS.has('ui_theme')? LS.loadStr('ui_theme') : this.theme0);
     this.setOpacity(LS.has('ui_opacity')? LS.loadInt('ui_opacity') : 100);
     this.toggleFrame(LS.has('ui_frame')? LS.loadBool('ui_frame') : false);
     this.toggleWheelSwap(LS.has('ui_wheel')? LS.loadBool('ui_wheel') : false);
@@ -378,6 +379,11 @@ UI.setOpacity = function(x) {
             .val(x);
     }
 };
+
+// Set initial user interface theme
+UI.setDefaultTheme = function(theme) {
+    this.theme0 = theme;
+}
 
 // Set user interface theme.
 UI.setTheme = function(theme) {

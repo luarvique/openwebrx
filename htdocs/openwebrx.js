@@ -884,6 +884,9 @@ function on_ws_recv(evt) {
                         if ('waterfall_colors' in config)
                             UI.setDefaultWfTheme(config['waterfall_colors']);
 
+                        if ('ui_theme' in config)
+                            UI.setDefaultTheme(config['ui_theme']);
+
                         var initial_demodulator_params = {};
                         if ('start_mod' in config)
                             initial_demodulator_params['mod'] = config['start_mod'];

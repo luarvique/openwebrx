@@ -210,6 +210,21 @@ class GeneralSettingsController(SettingsFormController):
             Section(
                 "Display settings",
                 DropdownInput(
+                    "ui_theme",
+                    "User interface color theme",
+                    options=[
+                        Option("default", "Gray"),
+                        Option("brown", "Brown"),
+                        Option("red", "Red"),
+                        Option("green", "Green"),
+                        Option("khaki", "Khaki"),
+                        Option("blue", "Blue"),
+                        Option("navy", "Navy"),
+                        Option("black", "Black"),
+                        Option("night", "Night")
+                    ]
+                ),
+                DropdownInput(
                     "tuning_precision",
                     "Tuning precision",
                     options=[Option(str(i), "{} Hz".format(10 ** i)) for i in range(0, 6)],

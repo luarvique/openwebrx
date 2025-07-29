@@ -434,5 +434,6 @@ defaultConfig = PropertyLayer(
     rec_squelch=20,
     rec_hang_time=1000,
     ssb_agc_profile="Fast",
-    dab_output_rate=48000
+    dab_output_rate=48000,
+    ui_theme="default"
 ).readonly()
