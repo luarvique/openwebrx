@@ -398,6 +398,9 @@ UI.setTheme = function(theme) {
     var lb = $('#openwebrx-themes-listbox');
     lb.val(theme);
 
+    // Use the initial theme if not provided with one
+    if (!theme) theme = this.theme0;
+
     // Remove existing theme
     var opts = lb[0].options;
     for(j=0 ; j<opts.length ; j++) {
