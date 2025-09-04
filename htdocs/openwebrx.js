@@ -40,6 +40,7 @@ var scanner = null;
 var bookmarks = null;
 var audioEngine = null;
 var wf_data = null;
+var voltage_shown = false;
 
 function zoomInOneStep() {
     zoom_set(zoom_level + 1);
@@ -999,6 +1000,11 @@ function on_ws_recv(evt) {
                         break;
                     case "voltage":
                         $('#openwebrx-bar-voltage').progressbar().setVoltage(json['value']);
+                        if (!voltage_shown) {
+                            $('#openwebrx-bar-audio-speed').hide();
+                            $('#openwebrx-bar-voltage').show();
+                            voltage_shown = true;
+                        }
                         break;
                     case "charger":
                         $('#openwebrx-bar-voltage').progressbar().setCharger(json['value']);
