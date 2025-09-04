@@ -164,6 +164,8 @@ VoltageProgressBar.prototype.getDefaultText = function() {
 
 VoltageProgressBar.prototype.setVoltage = function(voltage) {
     this.set(voltage / 5.0, this.charger + "Battery [" + voltage + " V]", voltage < 3.5);
+    $('#openwebrx-bar-audio-speed').hide();
+    $('#openwebrx-bar-voltage').show();
 };
 
 VoltageProgressBar.prototype.setCharger = function(charger) {
