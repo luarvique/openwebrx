@@ -997,6 +997,12 @@ function on_ws_recv(evt) {
                     case "temperature":
                         $('#openwebrx-bar-server-cpu').progressbar().setTemp(json['value']);
                         break;
+                    case "voltage":
+                        $('#openwebrx-bar-voltage').progressbar().setVoltage(json['value']);
+                        break;
+                    case "charger":
+                        $('#openwebrx-bar-voltage').progressbar().setCharger(json['value']);
+                        break;
                     case "clients":
                         $('#openwebrx-bar-clients').progressbar().setClients(json['value']);
                         break;
