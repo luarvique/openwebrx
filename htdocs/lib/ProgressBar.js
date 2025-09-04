@@ -163,7 +163,7 @@ VoltageProgressBar.prototype.getDefaultText = function() {
 };
 
 VoltageProgressBar.prototype.setVoltage = function(voltage) {
-    this.set(voltage / 5.0, this.charger + "Battery [" + voltage + " V]", voltage < 3.5);
+    this.set(voltage / 5.0, this.charger + "Battery [" + voltage + " V]", voltage < 3.3);
     $('#openwebrx-bar-audio-speed').hide();
     $('#openwebrx-bar-voltage').show();
 };
