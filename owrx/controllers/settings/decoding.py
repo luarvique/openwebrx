@@ -167,7 +167,7 @@ class DecodingSettingsController(SettingsFormController):
                 NumberInput(
                     "fax_max_length",
                     "Maximum page length",
-                    validator=RangeValidator(500, 3000),
+                    validator=RangeValidator(500, 10000),
                     append="lines",
                 ),
                 CheckboxInput("fax_postprocess", "Post-process received images to reduce noise"),
