@@ -1,6 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input, TextInput, CheckboxInput, NumberInput
-from owrx.form.input.validator import RangeValidator
+from owrx.form.input.validator import Range, RangeValidator
 from typing import List
 
 
@@ -9,9 +9,6 @@ class DubokSource(SoapyConnectorSource):
         mappings = super().getSoapySettingsMappings()
         mappings.update(
             {
-                "audioDevice" : "audioDevice",
-                "i2cDevice"   : "i2cDevice",
-                "i2cAddress"  : "i2cAddress",
                 "biasT"       : "biasT",
                 "highZ"       : "highZ",
                 "lna"         : "lna",
@@ -30,22 +27,6 @@ class DubokDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
-            TextInput(
-                "audioDevice",
-                "Audio Device",
-                infotext="ALSA device to be used for IQ data",
-            ),
-            TextInput(
-                "i2cDevice",
-                "I2C Device",
-                infotext="I2C device to be used for control",
-            ),
-            NumberInput(
-                "i2cAddress",
-                "I2C Address",
-                infotext="I2C device address",
-                validator=RangeValidator(0, 255),
-            ),
             CheckboxInput(
                 "biasT",
                 "External antenna power output (Bias-T)",
@@ -66,4 +47,8 @@ class DubokDeviceDescription(SoapyConnectorDeviceDescription):
         ]
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["audioDevice", "i2cDevice", "i2cAddress", "biasT", "highZ", "lna", "attenuator"]
+        return super().getDeviceOptionalKeys() + ["biasT", "highZ", "lna", "attenuator"]
+
+    def getSampleRateRanges(self) -> List[Range]:
+        return [ Range(744192) ]
+
