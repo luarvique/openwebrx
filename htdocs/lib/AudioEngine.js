@@ -287,27 +287,38 @@ AudioEngine.prototype.getSampleRate = function() {
 };
 
 AudioEngine.prototype.processAudio = function(data, resampler, recorder) {
+    // audio must be initialized
     if (!this.audioNode) return;
-    this.audioBytes.add(data.byteLength);
-    var buffer;
-    if (this.compression === "adpcm") {
-        //resampling & ADPCM
-        buffer = this.audioCodec.decodeWithSync(new Uint8Array(data));
-    } else {
-        buffer = new Int16Array(data);
+
+    // make sure that data is an array of channels
+    if (!Array.isArray(data)) data = [ data ];
+
+    var buffer = [];
+    for (var j = 0 ; j < data.length ; j++) {
+        // allocate space
+        this.audioBytes[j].add(data[j].byteLength);
+        // decompress
+        if (this.compression === "adpcm") {
+            buffer[j] = this.audioCodec.decodeWithSync(new Uint8Array(data[j]));
+        } else {
+            buffer[j] = new Int16Array(data[j]);
+        }
     }
-    if (this.recording) {
-        recorder.record(buffer);
+
+    // record to MP3
+    if (this.recording) recorder.record(buffer);
+
+    // resample
+    for (var j = 0 ; j < data.length ; j++) {
+        buffer[j] = resampler.process(buffer[j]);
     }
-    buffer = resampler.process(buffer);
+
     if (this.audioNode.port) {
         // AudioWorklets supported
         this.audioNode.port.postMessage(buffer);
-    } else {
+    } else if (this.getBuffersize() + buffer[0].length <= this.maxBufferSize) {
         // silently drop excess samples
-        if (this.getBuffersize() + buffer.length <= this.maxBufferSize) {
-            this.audioBuffers.push(buffer);
-        }
+        this.audioBuffers.push(buffer);
     }
 }
 
