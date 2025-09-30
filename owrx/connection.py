@@ -495,8 +495,14 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_voltage(self, temp):
         self.mp_send({"type": "voltage", "value": temp})
 
+    def write_current(self, temp):
+        self.mp_send({"type": "current", "value": temp})
+
     def write_charger(self, temp):
         self.mp_send({"type": "charger", "value": temp})
+
+    def write_charge(self, temp):
+        self.mp_send({"type": "charge", "value": temp})
 
     def write_clients(self, clients):
         self.mp_send({"type": "clients", "value": clients})
