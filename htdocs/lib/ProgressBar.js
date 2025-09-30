@@ -153,21 +153,42 @@ CpuProgressBar.prototype.setTemp = function(temp) {
 
 VoltageProgressBar = function(el) {
     ProgressBar.call(this, el);
+    this.voltage = 0.0;
+    this.current = 0.0;
     this.charger = '';
+    this.charge  = 0;
 };
 
 VoltageProgressBar.prototype = new ProgressBar();
 
 VoltageProgressBar.prototype.getDefaultText = function() {
-    return 'Battery [0.0V]';
+    return
+        this.charger + 'Battery [' + this.voltage + 'V / ' +
+        this.current + 'A / ' + this.charge + '%]';
 };
 
+VoltageProgressBar.prototype.setAll = function() {
+    this.set(this.voltage / 5.0, this.getDefaultText(), this.voltage < 3.3);
+}
+
 VoltageProgressBar.prototype.setVoltage = function(voltage) {
-    this.set(voltage / 5.0, this.charger + "Battery [" + voltage + " V]", voltage < 3.3);
+    this.voltage = voltage;
+    this.setAll();
+};
+
+VoltageProgressBar.prototype.setCurrent = function(current) {
+    this.current = current;
+    this.setAll();
 };
 
 VoltageProgressBar.prototype.setCharger = function(charger) {
     this.charger = charger? '&#x1F5F2; ' : '';
+    this.setAll();
+};
+
+VoltageProgressBar.prototype.setCharge = function(charge) {
+    this.charge = charge;
+    this.setAll();
 };
 
 ProgressBar.types = {

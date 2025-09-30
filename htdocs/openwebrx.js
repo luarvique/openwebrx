@@ -1017,8 +1017,14 @@ function on_ws_recv(evt) {
                             voltage_shown = true;
                         }
                         break;
+                    case "current":
+                        $('#openwebrx-bar-voltage').progressbar().setCurrent(json['value']);
+                        break;
                     case "charger":
                         $('#openwebrx-bar-voltage').progressbar().setCharger(json['value']);
+                        break;
+                    case "charge":
+                        $('#openwebrx-bar-voltage').progressbar().setCharge(json['value']);
                         break;
                     case "clients":
                         $('#openwebrx-bar-clients').progressbar().setClients(json['value']);
