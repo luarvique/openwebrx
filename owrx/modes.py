@@ -211,6 +211,15 @@ class Modes(object):
             squelch=False,
         ),
         DigitalMode(
+            "rttyskimmer",
+            "RTTY Skimmer",
+            underlying=["empty"],
+            bandpass=Bandpass(0, 24000),
+            requirements=["cwskimmer"],
+            service=False,
+            squelch=False,
+        ),
+        DigitalMode(
             "sstv",
             "SSTV",
             underlying=["usb", "lsb", "nfm"],
