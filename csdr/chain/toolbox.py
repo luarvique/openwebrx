@@ -1,8 +1,8 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, LameModule
+from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
 from pycsdr.modules import FmDemod, Convert, Agc, Squelch, RealPart, SnrSquelch
 from pycsdr.types import Format
-from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, CwSkimmerParser, Mp3Recorder
+from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, CwSkimmerParser, RttySkimmerParser, Mp3Recorder
 from owrx.config import Config
 
 import math
@@ -149,6 +149,30 @@ class CwSkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
             Agc(Format.FLOAT),
             Convert(Format.FLOAT, Format.SHORT),
             CwSkimmerModule(sampleRate, charCount),
+            self.parser,
+        ]
+        # Connect all the workers
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def supportsSquelch(self) -> bool:
+        return False
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
+
+
+class RttySkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, sampleRate: int = 48000, charCount: int = 4, service: bool = False):
+        self.sampleRate = sampleRate
+        self.parser = RttySkimmerParser(service)
+        workers = [
+            RealPart(),
+            Agc(Format.FLOAT),
+            Convert(Format.FLOAT, Format.SHORT),
+            RttySkimmerModule(sampleRate, charCount),
             self.parser,
         ]
         # Connect all the workers
