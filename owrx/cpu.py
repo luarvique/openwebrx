@@ -81,10 +81,12 @@ class CpuUsageThread(threading.Thread):
             for c in self.clients:
                 c.write_temperature(temperature)
                 c.write_cpu_usage(cpu_usage)
-                c.write_voltage(voltage)
-                c.write_current(current)
-                c.write_charger(charger)
-                c.write_charge(charge)
+                c.write_battery(voltage, {
+                    "voltage": voltage,
+                    "current": current,
+                    "charger": charger,
+                    "charge":  charge
+                })
             self.endEvent.wait(timeout=3)
         logger.debug("cpu usage thread shut down")
 

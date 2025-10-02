@@ -40,7 +40,7 @@ var scanner = null;
 var bookmarks = null;
 var audioEngine = null;
 var wf_data = null;
-var voltage_shown = false;
+var battery_shown = false;
 
 function zoomInOneStep() {
     zoom_set(zoom_level + 1);
@@ -998,22 +998,13 @@ function on_ws_recv(evt) {
                     case "temperature":
                         $('#openwebrx-bar-server-cpu').progressbar().setTemp(json['value']);
                         break;
-                    case "voltage":
-                        $('#openwebrx-bar-voltage').progressbar().setVoltage(json['value']);
-                        if (!voltage_shown) {
+                    case "battery":
+                        $('#openwebrx-bar-battery').progressbar().setBattery(json['value']);
+                        if (!battery_shown) {
                             $('#openwebrx-bar-audio-speed').hide();
-                            $('#openwebrx-bar-voltage').show();
-                            voltage_shown = true;
+                            $('#openwebrx-bar-battery').show();
+                            battery_shown = true;
                         }
-                        break;
-                    case "current":
-                        $('#openwebrx-bar-voltage').progressbar().setCurrent(json['value']);
-                        break;
-                    case "charger":
-                        $('#openwebrx-bar-voltage').progressbar().setCharger(json['value']);
-                        break;
-                    case "charge":
-                        $('#openwebrx-bar-voltage').progressbar().setCharge(json['value']);
                         break;
                     case "clients":
                         $('#openwebrx-bar-clients').progressbar().setClients(json['value']);
