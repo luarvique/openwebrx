@@ -143,7 +143,7 @@ class CpuUsageThread(threading.Thread):
                 charge  = int(m.group(4))
         except:
             pass
-        return (voltage, charger)
+        return (voltage, current, charge, charger)
 
     def add_client(self, c):
         self.clients.append(c)
