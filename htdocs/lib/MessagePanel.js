@@ -914,7 +914,7 @@ CwSkimmerMessagePanel = function(el) {
 CwSkimmerMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 CwSkimmerMessagePanel.prototype.supportsMessage = function(message) {
-    return message['mode'] === 'CW';
+    return (message['mode'] === 'CW') || (message['mode'] === 'RTTY');
 };
 
 CwSkimmerMessagePanel.prototype.render = function() {
