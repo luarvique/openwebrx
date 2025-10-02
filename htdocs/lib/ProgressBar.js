@@ -169,7 +169,7 @@ VoltageProgressBar.prototype.setAll = function() {
     var text =
         this.charger + 'Battery [' + this.voltage + 'V/' +
         this.current + 'A/' + this.charge + '%]';
-    this.set(this.voltage / 5.0, text, this.voltage < 3.3);
+    this.set(this.charge / 100.0, text, this.charge < 20);
 }
 
 VoltageProgressBar.prototype.setVoltage = function(voltage) {
