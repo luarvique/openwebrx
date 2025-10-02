@@ -166,9 +166,10 @@ VoltageProgressBar.prototype.getDefaultText = function() {
 };
 
 VoltageProgressBar.prototype.setAll = function() {
+    var current = this.current > 0? ('/' + this.current + 'A') : '';
     var text =
-        this.charger + 'Battery [' + this.voltage + 'V/' +
-        this.current + 'A/' + this.charge + '%]';
+        this.charger + 'Battery [' + this.charge + '%/'
+        this.voltage + 'V' + current + ']';
     this.set(this.charge / 100.0, text, this.charge < 20);
 }
 
