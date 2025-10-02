@@ -151,51 +151,34 @@ CpuProgressBar.prototype.setTemp = function(temp) {
     this.temp = temp;
 };
 
-VoltageProgressBar = function(el) {
+BatteryProgressBar = function(el) {
     ProgressBar.call(this, el);
-    this.voltage = 0.0;
-    this.current = 0.0;
-    this.charger = '';
-    this.charge  = 0;
 };
 
-VoltageProgressBar.prototype = new ProgressBar();
+BatteryProgressBar.prototype = new ProgressBar();
 
-VoltageProgressBar.prototype.getDefaultText = function() {
+BatteryProgressBar.prototype.getDefaultText = function() {
     return 'Battery';
 };
 
-VoltageProgressBar.prototype.setAll = function() {
-    var current = this.current > 0? ('/' + this.current + 'A') : '';
-    var text =
-        this.charger + 'Battery [' + this.charge + '%/'
-        this.voltage + 'V' + current + ']';
-    this.set(this.charge / 100.0, text, this.charge < 20);
-}
+BatteryProgressBar.prototype.setBattery = function(battery) {
+    var voltage = battery.voltage || 0.0;
+    var current = battery.current || 0.0;
+    var charger = battery.charger? '&#x1F5F2; ' : '';
+    var charge  = battery.charge || 0;
 
-VoltageProgressBar.prototype.setVoltage = function(voltage) {
-    this.voltage = voltage;
-    this.setAll();
-};
+    current = current > 0? ('/' + current + 'A') : '';
 
-VoltageProgressBar.prototype.setCurrent = function(current) {
-    this.current = current;
-    this.setAll();
-};
-
-VoltageProgressBar.prototype.setCharger = function(charger) {
-    this.charger = charger? '&#x1F5F2; ' : '';
-    this.setAll();
-};
-
-VoltageProgressBar.prototype.setCharge = function(charge) {
-    this.charge = charge;
-    this.setAll();
+    this.set(
+        charge / 100.0,
+        charger + 'Battery [' + charge + '%/' + voltage + 'V' + current + ']';
+        charge < 20
+    );
 };
 
 ProgressBar.types = {
     cpu: CpuProgressBar,
-    voltage: VoltageProgressBar,
+    battery: BatteryProgressBar,
     audiobuffer: AudioBufferProgressBar,
     audiospeed: AudioSpeedProgressBar,
     audiooutput: AudioOutputProgressBar,
