@@ -726,6 +726,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "cwskimmer":
             from csdr.chain.toolbox import CwSkimmerDemodulator
             return CwSkimmerDemodulator()
+        elif mod == "rttyskimmer":
+            from csdr.chain.toolbox import RttySkimmerDemodulator
+            return RttySkimmerDemodulator()
         elif mod == "mfrtty170":
             from csdr.chain.digimodes import MFRttyDemodulator
             return MFRttyDemodulator(170.0, 45.45, reverse = False)
