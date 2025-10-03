@@ -171,7 +171,7 @@ BatteryProgressBar.prototype.setBattery = function(battery) {
 
     this.set(
         charge / 100.0,
-        charger + 'Battery [' + charge + '%/' + voltage + 'V' + current + ']';
+        charger + 'Battery [' + charge + '%/' + voltage + 'V' + current + ']',
         charge < 20
     );
 };

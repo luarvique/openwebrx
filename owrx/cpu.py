@@ -81,7 +81,7 @@ class CpuUsageThread(threading.Thread):
             for c in self.clients:
                 c.write_temperature(temperature)
                 c.write_cpu_usage(cpu_usage)
-                c.write_battery(voltage, {
+                c.write_battery({
                     "voltage": voltage,
                     "current": current,
                     "charger": charger,
