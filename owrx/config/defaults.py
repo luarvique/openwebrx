@@ -400,6 +400,7 @@ defaultConfig = PropertyLayer(
     pskreporter_enabled=False,
     pskreporter_callsign="N0CALL",
     # pskreporter_antenna_information=None,
+    # pskreporter_rig_information=None,
     wsprnet_enabled=False,
     wsprnet_callsign="N0CALL",
     mqtt_enabled=False,
