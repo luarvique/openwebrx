@@ -303,6 +303,17 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
+        DigitalMode(
+            "uat",
+            "UAT",
+            underlying=["empty"],
+            bandpass=None,
+            ifRate=2083334,
+            requirements=["uat"],
+            service=True,
+            squelch=False,
+            secondaryFft=False
+        ),
         # Server-side audio recording is a background service only.
         # See JavaScript code for client-side audio recording.
         ServiceOnlyMode(
