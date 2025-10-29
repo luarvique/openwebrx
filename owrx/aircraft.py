@@ -691,6 +691,36 @@ class AdsbParser(AircraftParser):
 
 
 #
+# Parser for UAT messages coming from Dump978 in JSON format.
+#
+class UatParser(AircraftParser):
+    def __init__(self, service: bool = False):
+        super().__init__(filePrefix="UAT", service=service)
+        self.attrMap = {
+        }
+
+    def parseAircraft(self, msg: bytes):
+        # Expect JSON data in text form
+        data = json.loads(msg)
+        logger.debug("@@@ UAT: {0}".format(data))
+        # Collect basic data first
+        out = {
+            "mode"      : "UAT",
+            "type"      : "UAT frame",
+            "timestamp" : round(datetime.now().timestamp() * 1000),
+            "data"      : data
+        }
+        # Fetch other data
+        for key in self.attrMap:
+            if key in data:
+                value = data[key].strip()
+                if len(value)>0:
+                    out[self.attrMap[key]] = value
+        # Done
+        return out
+
+
+#
 # Parser for ACARS messages coming from AcarsDec in JSON format.
 #
 class AcarsParser(AircraftParser):

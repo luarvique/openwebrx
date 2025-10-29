@@ -1,6 +1,6 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.aircraft import DumpHfdlModule, DumpVdl2Module, Dump1090Module, Dump978Module, AcarsDecModule
-from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser
+from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser, UatParser
 from pycsdr.modules import Convert, Agc
 from pycsdr.types import Format
 
@@ -81,10 +81,10 @@ class AdsbDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 class UatDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, service: bool = False, jsonFile: str = "/tmp/dump978/aircraft.json"):
         self.sampleRate = 2083334
-#        self.parser = AdsbParser(service=service, jsonFile=jsonFile)
+        self.parser = UatParser(service=service)
         workers = [
             Dump978Module(jsonOutput = True),
-#            self.parser,
+            self.parser,
         ]
         # Connect all the workers
         super().__init__(workers)
@@ -96,8 +96,8 @@ class UatDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         return False
 
     def setDialFrequency(self, frequency: int) -> None:
-#        self.parser.setDialFrequency(frequency)
-         pass
+        self.parser.setDialFrequency(frequency)
+
 
 class AcarsDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, service: bool = False):
