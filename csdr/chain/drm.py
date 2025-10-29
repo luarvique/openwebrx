@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain
-from pycsdr.modules import Convert, Downmix
+from pycsdr.modules import Convert, Downmix, Writer
 from pycsdr.types import Format
 from csdr.module.drm import DrmModule
 from owrx.drm import DrmStatusMonitor
