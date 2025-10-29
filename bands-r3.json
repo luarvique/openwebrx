@@ -386,8 +386,7 @@
     "upper_bound": 1215000000,
     "tags": ["service"],
     "frequencies": {
-      "adsb": 1090000000,
-      "uat": 978000000
+      "adsb": 1090000000
     }
   },
   {
