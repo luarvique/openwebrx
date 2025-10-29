@@ -359,6 +359,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "adsb":
             from csdr.chain.aircraft import AdsbDemodulator
             return AdsbDemodulator(service=True)
+        elif mod == "uat":
+            from csdr.chain.aircraft import UatDemodulator
+            return UatDemodulator(service=True)
         elif mod == "audio":
             from csdr.chain.toolbox import AudioRecorder
             return AudioRecorder(service=True)
