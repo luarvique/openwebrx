@@ -757,6 +757,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "adsb":
             from csdr.chain.aircraft import AdsbDemodulator
             return AdsbDemodulator()
+        elif mod == "uat":
+            from csdr.chain.aircraft import UatDemodulator
+            return UatDemodulator()
         elif mod == "audio":
             # this should only run as a service though
             from csdr.chain.toolbox import AudioRecorder

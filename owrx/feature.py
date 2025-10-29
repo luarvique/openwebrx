@@ -89,6 +89,7 @@ class FeatureDetector(object):
         "js8call": ["js8", "js8py"],
         "drm": ["dream"],
         "adsb": ["dump1090"],
+        "uat": ["dump978"],
         "ism": ["rtl_433"],
         "hfdl": ["dumphfdl"],
         "vdl2": ["dumpvdl2"],
@@ -671,6 +672,22 @@ class FeatureDetector(object):
         achieve this.
         """
         return self.command_is_runnable("dump1090 --version")
+
+    def has_dump978(self):
+        """
+        OpenWebRX supports decoding UAT airplane communications by using the
+        [Dump978](https://github.com/flightaware/dump978) decoder. You can install the
+        `dump978-fa-minimal` package from the OpenWebRX repositories.
+
+        While there exist many Dump978 forks, any version that supports `--ifile` and
+        `--iformat` arguments will work. We recommend using the
+        [Dump978 by FlightAware](https://github.com/flightaware/dump978).
+        If you are using a different fork, please make sure that the `dump978` command
+        (without suffixes) runs the desired version. You can use symbolic links or the
+        [Debian alternatives system](https://wiki.debian.org/DebianAlternatives) to
+        achieve this.
+        """
+        return self.command_is_runnable("dump978-fa --version")
 
     def has_rtl_433(self):
         """
