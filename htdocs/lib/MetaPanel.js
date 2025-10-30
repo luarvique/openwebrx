@@ -721,6 +721,79 @@ DabMetaPanel.prototype.clear = function() {
     );
 }
 
+function DrmMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['DRM'];
+    this.frequency = -1;
+
+    // Create info panel
+    var $container = $(
+        '<div class="drm-container">' +
+            '<div>' +
+                '<span class="drm-io">&#9634;</span>IO&nbsp;' +
+                '<span class="drm-time">&#9634;</span>Time&nbsp;' +
+                '<span class="drm-frame">&#9634;</span>Frame&nbsp;' +
+                '<span class="drm-fac">&#9634;</span>FAC&nbsp;' +
+                '<span class="drm-sdc">&#9634;</span>SDC&nbsp;' +
+                '<span class="drm-msc">&#9634;</span>MSC&nbsp;' +
+            '</div>' +
+            '<div>' +
+                'IF&nbsp;Level:&nbsp;<span class="drm-if">0</span>dB&nbsp;' +
+                'SNR:&nbsp;<span class="drm-snr">0</span>dB&nbsp;' +
+                'Mode:&nbsp;<span class="drm-mode">ABCD</span>&nbsp;' +
+            '</div>' +
+            '<div>' +
+                'Channel:&nbsp;<span class="drm-channel">4.5 5 9 10 18 20</span>kHz&nbsp;' +
+                'ILV:&nbsp;<span class="drm-ilv">LS</span>&nbsp;' +
+            '</div>' +
+            '<div>' +
+                'SDC:&nbsp;<span class="drm-sdc">4 16</span>QAM&nbsp;' +
+                'MSC:&nbsp;<span class="drm-msc">16 64</span>QAM&nbsp;' +
+            '</div>' +
+            '<div>' +
+                'Protect:&nbsp;<span class="drm-prota">A</span><span class="drm-protb">B</span>&nbsp;' +
+                'Services:&nbsp;<span class="drm-serva">A</span><span class="drm-servd">D</span>&nbsp;' +
+            '</div>' +
+            '<div>' +
+                'Media:&nbsp;' +
+                '<span class="drm-guide">&#9634;</span>Program&nbsp;Guide&nbsp;' +
+                '<span class="drm-journaline">&#9634;</span>Journaline&nbsp;' +
+                '<span class="drm-slideshow">&#9634;</span>Slideshow&nbsp;' +
+            '</div>' +
+            '<div>' +
+            '</div>' +
+        '</div>'
+    );
+
+    $(this.el).append($container);
+}
+
+DrmMetaPanel.prototype = new MetaPanel();
+
+DrmMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    // Update panel
+    var $el = $(this.el);
+    $el.find('.drm-io').html(data.status.io > 0?       '&#x25A3;':'&#x25A2;');
+    $el.find('.drm-time').html(data.status.time > 0?   '&#x25A3;':'&#x25A2;');
+    $el.find('.drm-frame').html(data.status.frame > 0? '&#x25A3;':'&#x25A2;');
+    $el.find('.drm-fac').html(data.status.fac > 0?     '&#x25A3;':'&#x25A2;');
+    $el.find('.drm-sdc').html(data.status.sdc > 0?     '&#x25A3;':'&#x25A2;');
+    $el.find('.drm-msc').html(data.status.msc > 0?     '&#x25A3;':'&#x25A2;');
+
+    $el.find('.drm-guide').html(data.media.program_guide?   '&#x25A3;':'&#x25A2;');
+    $el.find('.drm-journaline').html(data.media.journaline? '&#x25A3;':'&#x25A2;');
+    $el.find('.drm-slideshow').html(data.media.slideshow?   '&#x25A3;':'&#x25A2;');
+
+    $el.find('.drm-if').text(data.signal.if_level_db);
+    $el.find('.drm-snr').text(data.signal.snr_db);
+};
+
+DrmMetaPanel.prototype.isSupported = function(data) {
+    return this.modes.includes(data.mode);
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
@@ -730,6 +803,7 @@ MetaPanel.types = {
     wfm: WfmMetaPanel,
     dab: DabMetaPanel,
     hdr: HdrMetaPanel,
+    drm: DrmMetaPanel
 };
 
 $.fn.metaPanel = function() {

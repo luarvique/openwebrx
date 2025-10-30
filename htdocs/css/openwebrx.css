@@ -1883,6 +1883,12 @@ img.openwebrx-mirror-img
 	content: "Ensemble: ";
 }
 
+#openwebrx-panel-metadata-drm {
+	width: 350px;
+	max-height: 640px;
+	padding: 10px 10px 10px 10px;
+}
+
 @keyframes openwebrx-record-animation {
     0% { background: #ff0000; color: white; }
    50% { background: #800000; color: white; }

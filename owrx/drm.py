@@ -79,6 +79,7 @@ class DrmStatusMonitor(threading.Thread):
     def _process_status(self, json_str):
         try:
             status = json.loads(json_str)
+            logger.debug(f"DRM status: {status}")
             for callback in self.callbacks:
                 try:
                     callback(status)
