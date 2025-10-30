@@ -78,6 +78,12 @@ class ReportingController(SettingsFormController):
                     infotext="Antenna description to be sent along with spots to pskreporter",
                     converter=OptionalConverter(),
                 ),
+                TextInput(
+                    "pskreporter_rig_information",
+                    "Rig information",
+                    infotext="Rig information also sent to pskreporter",
+                    converter=OptionalConverter(),
+                ),
             ),
             Section(
                 "WSPRnet settings",
