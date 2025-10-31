@@ -1889,6 +1889,61 @@ img.openwebrx-mirror-img
 	padding: 10px 10px 10px 10px;
 }
 
+.drm-line {
+	margin-bottom: 5px;
+}
+
+.drm-program {
+	padding: 2px 6px;
+        background: #000;
+	margin-left: 1px;
+	margin-right: 1px; 
+}
+
+.drm-value {
+	padding: 2px 6px;
+	margin-left: 3px;
+	margin-right: 3px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	display: inline-flex;
+	align-items: right;
+	justify-content: right;
+	min-width: 70px;
+	letter-spacing: 0.3px;
+}
+
+.drm-indicator {
+	padding: 2px 6px;
+	margin-left: 3px;
+	margin-right: 3px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 10px;
+	transition: background-color 0.2s ease, color 0.2s ease;
+	letter-spacing: 0.3px;
+}
+
+.drm-on {
+	background: #0f0;
+	color: #000;
+}
+
+.drm-off {
+	background: #666;
+	color: #ccc;
+}
+
+.drm-error {
+	background: #f00;
+	color: #fff;
+}
+
 @keyframes openwebrx-record-animation {
     0% { background: #ff0000; color: white; }
    50% { background: #800000; color: white; }

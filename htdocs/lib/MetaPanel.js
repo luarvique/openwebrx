@@ -721,6 +721,36 @@ DabMetaPanel.prototype.clear = function() {
     );
 }
 
+/*************
+{
+  'timestamp': 1761880388,
+  'received_time': 1761880380,
+  'status': { 'io': 0, 'time': 0, 'frame': 0, 'fac': 0, 'sdc': 0, 'msc': 1 },
+  'signal': {
+    'if_level_db': -45.4, 'snr_db': 9.4, 'wmer_db': 15.0,
+    'mer_db': 7.7, 'doppler_hz': 0.86, 'delay_min_ms': 4.51,
+    'delay_max_ms': 6.36
+  },
+  'frequency': {
+    'dc_offset_hz': 5991.04, 'sample_offset_hz': -0.94,
+    'sample_offset_ppm': -19
+  },
+  'mode': { 'robustness': 1, 'bandwidth': 3, 'bandwidth_khz': 10.0, 'interleaver': 0},
+  'coding': { 'sdc_qam': 1, 'msc_qam': 2, 'protection_a': 1, 'protection_b': 1},
+  'services': {'audio': 1, 'data': 0},
+  'service_list': [
+    {
+      'id': '1000', 'label': 'TDF DRM', 'is_audio': True,
+      'audio_coding': 0, 'bitrate_kbps': 8.08, 'audio_mode': 'Mono',
+      'protection_mode': 'EEP',
+      'language': {'code': 'fre', 'name': 'French'},
+      'country': {'code': 'fr', 'name': 'France'}
+    }
+  ],
+  'media': {'program_guide': False, 'journaline': False, 'slideshow': False}
+}
+************/
+
 function DrmMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['DRM'];
@@ -729,38 +759,40 @@ function DrmMetaPanel(el) {
     // Create info panel
     var $container = $(
         '<div class="drm-container">' +
-            '<div>' +
-                '<span class="drm-io">&#9634;</span>IO&nbsp;' +
-                '<span class="drm-time">&#9634;</span>Time&nbsp;' +
-                '<span class="drm-frame">&#9634;</span>Frame&nbsp;' +
-                '<span class="drm-fac">&#9634;</span>FAC&nbsp;' +
-                '<span class="drm-sdc">&#9634;</span>SDC&nbsp;' +
-                '<span class="drm-msc">&#9634;</span>MSC&nbsp;' +
+            '<div class="drm-line">' +
+                '<span class="drm-indicator drm-io">IO</span>' +
+                '<span class="drm-indicator drm-time">Time</span>' +
+                '<span class="drm-indicator drm-frame">Frame</span>' +
+                '<span class="drm-indicator drm-fac">FAC</span>' +
+                '<span class="drm-indicator drm-sdc">SDC</span>' +
+                '<span class="drm-indicator drm-msc">MSC</span>' +
             '</div>' +
-            '<div>' +
-                'IF&nbsp;Level:&nbsp;<span class="drm-if">0</span>dB&nbsp;' +
-                'SNR:&nbsp;<span class="drm-snr">0</span>dB&nbsp;' +
-                'Mode:&nbsp;<span class="drm-mode">ABCD</span>&nbsp;' +
+            '<div class="drm-line">' +
+                'IF Level:<span class="drm-value drm-off drm-if"></span>' +
+                'SNR:<span class="drm-value drm-off drm-snr"></span>' +
             '</div>' +
-            '<div>' +
-                'Channel:&nbsp;<span class="drm-channel">4.5 5 9 10 18 20</span>kHz&nbsp;' +
-                'ILV:&nbsp;<span class="drm-ilv">LS</span>&nbsp;' +
+            '<div class="drm-line">' +
+                'Mode:<span class="drm-mode drm-indicator"></span>' +
+                'Channel:<span class="drm-channel drm-indicator"></span>' +
+                'ILV:<span class="drm-ilv drm-indicator"></span>' +
             '</div>' +
-            '<div>' +
-                'SDC:&nbsp;<span class="drm-sdc">4 16</span>QAM&nbsp;' +
-                'MSC:&nbsp;<span class="drm-msc">16 64</span>QAM&nbsp;' +
+            '<div class="drm-line">' +
+                'SDC:<span class="drm-sdc-qam drm-indicator"></span>' +
+                'MSC:<span class="drm-msc-qam drm-indicator"></span>' +
             '</div>' +
-            '<div>' +
-                'Protect:&nbsp;<span class="drm-prota">A</span><span class="drm-protb">B</span>&nbsp;' +
-                'Services:&nbsp;<span class="drm-serva">A</span><span class="drm-servd">D</span>&nbsp;' +
+            '<div class="drm-line">' +
+                '<span class="drm-prot-a drm-indicator">Protect-A</span>' +
+                '<span class="drm-prot-b drm-indicator">Protect-B</span>' +
+                '<span class="drm-audio drm-indicator">Audio</span>' +
+                '<span class="drm-data drm-indicator">Data</span>' +
             '</div>' +
-            '<div>' +
+            '<div class="drm-line">' +
                 'Media:&nbsp;' +
-                '<span class="drm-guide">&#9634;</span>Program&nbsp;Guide&nbsp;' +
-                '<span class="drm-journaline">&#9634;</span>Journaline&nbsp;' +
-                '<span class="drm-slideshow">&#9634;</span>Slideshow&nbsp;' +
+                '<span class="drm-indicator drm-guide">Guide</span>' +
+                '<span class="drm-indicator drm-journaline">Journaline</span>' +
+                '<span class="drm-indicator drm-slideshow">Slideshow</span>' +
             '</div>' +
-            '<div>' +
+            '<div class="drm-line drm-programs">' +
             '</div>' +
         '</div>'
     );
@@ -775,23 +807,96 @@ DrmMetaPanel.prototype.update = function(data) {
 
     // Update panel
     var $el = $(this.el);
-    $el.find('.drm-io').html(data.status.io > 0?       '&#x25A3;':'&#x25A2;');
-    $el.find('.drm-time').html(data.status.time > 0?   '&#x25A3;':'&#x25A2;');
-    $el.find('.drm-frame').html(data.status.frame > 0? '&#x25A3;':'&#x25A2;');
-    $el.find('.drm-fac').html(data.status.fac > 0?     '&#x25A3;':'&#x25A2;');
-    $el.find('.drm-sdc').html(data.status.sdc > 0?     '&#x25A3;':'&#x25A2;');
-    $el.find('.drm-msc').html(data.status.msc > 0?     '&#x25A3;':'&#x25A2;');
+    this.setIndicator('io', data.status.io);
+    this.setIndicator('time', data.status.time);
+    this.setIndicator('frame', data.status.frame);
+    this.setIndicator('fac', data.status.fac);
+    this.setIndicator('sdc', data.status.sdc);
+    this.setIndicator('msc', data.status.msc);
 
-    $el.find('.drm-guide').html(data.media.program_guide?   '&#x25A3;':'&#x25A2;');
-    $el.find('.drm-journaline').html(data.media.journaline? '&#x25A3;':'&#x25A2;');
-    $el.find('.drm-slideshow').html(data.media.slideshow?   '&#x25A3;':'&#x25A2;');
+    this.setIndicator('guide', data.media.program_guide);
+    this.setIndicator('journaline', data.media.journaline);
+    this.setIndicator('slideshow', data.media.slideshow);
 
-    $el.find('.drm-if').text(data.signal.if_level_db);
-    $el.find('.drm-snr').text(data.signal.snr_db);
+    this.setIndicator('prot-a', data.coding && data.coding.protection_a > 0? 1:0);
+    this.setIndicator('prot-b', data.coding && data.coding.protection_b > 0? 1:0);
+    this.setIndicator('audio', data.services && data.services.audio > 0? 1:0);
+    this.setIndicator('data', data.services && data.services.data > 0? 1:0);
+
+    $el.find('.drm-if').text('' + data.signal.if_level_db + 'dB');
+    $el.find('.drm-snr').text('' + data.signal.snr_db + 'dB');
+
+    if (data.drm_mode) {
+        var mode = ['A', 'B', 'C', 'D'][data.drm_mode.robustness] || '?';
+        var bw = ['4.5kHz', '5kHz', '9kHz', '10kHz', '18kHz', '20kHz'][data.drm_mode.bandwidth] || '?';
+        var ilv = ['S', 'L'][data.drm_mode.interleaver] || '?';
+        this.setIndicator('mode', 1, mode);
+        this.setIndicator('channel', 1, channel);
+        this.setIndicator('ilv', 1, ilv);
+    } else {
+        this.setIndicator('mode', 0, '-');
+        this.setIndicator('channel', 0, '-');
+        this.setIndicator('ilv', 0, '-');
+    }
+
+    if (data.coding) {
+        var sdc = ['4 QAM', '16 QAM'][data.coding.sdc_qam] || '?';
+        var msc = ['16 QAM', '64 QAM'][data.coding.msc_qam] || '?';
+        this.setIndicator('sdc-qam', 1, sdc);
+        this.setIndicator('msc-qam', 1, msc);
+    } else {
+        this.setIndicator('sdc-qam', 0, '-');
+        this.setIndicator('msc-qam', 0, '-');
+    }
+
+    var programs = '';
+    if (data.service_list) {
+        programs += '<div>Services:</div>';
+        for (var j = 0 ; j < data.service_list.length ; j++) {
+            var entry = data.service_list[j];
+            var codec = ['AAC', 'OPUS', 'RESERVED', 'xHE-AAC'][entry.audio_coding] || 'UNKNOWN';
+            var country = entry.country? entry.country.name : '';
+            var language = entry.language? entry.language.name : '';
+            var program =
+                codec + entry.label + ' '
+                entry.protection_mode + ' ' +
+                (entry.is_audio? entry.audio_mode : 'Data') + ' ' +
+                entry.bitrate_kbps + ' kbps';
+
+            programs +=
+                '<tr>' +
+                    '<td class="drm-program" align="center">' + (j+1) + '</td>' +
+                    '<td class="drm-program" align="left">' + program + 'kbps</td>' +
+                '</tr>';
+        }
+    }
+
+    $el.find('.drm-programs').html(programs);
 };
 
 DrmMetaPanel.prototype.isSupported = function(data) {
     return this.modes.includes(data.mode);
+};
+
+DrmMetaPanel.prototype.setIndicator = function(name, value, text = null) {
+    var $el = $(this.el).find('.drm-' + name);
+
+    // Remove all color
+    $el.removeClass('drm-error');
+    $el.removeClass('drm-off');
+    $el.removeClass('drm-on');
+
+    // Set new color based on the value
+    if (value > 0) {
+        $el.addClass('drm-on');
+    } else if (value == 0) {
+        $el.addClass('drm-off');
+    } else {
+        $el.addClass('drm-error');
+    }
+
+    // Set new text, if given
+    if (text != null) $el.text(text);
 };
 
 MetaPanel.types = {

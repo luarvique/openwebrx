@@ -55,6 +55,8 @@ class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, Met
         # Forward DRM status via metadata writer
         if self.metaWriter:
             try:
+                if "mode" in status:
+                    status["drm_mode"] = status["mode"]
                 status["mode"] = "DRM"
                 self.metaWriter.write(pickle.dumps(status));
             except Exception as e:
