@@ -1893,46 +1893,50 @@ img.openwebrx-mirror-img
 	width: 100%;
 }
 
-.drm-line {
+.drm-line, .drm-separator {
 	width: 100%;
 	padding-bottom: 5px;
 	padding-top: 5px;
+	text-align: center;
 }
 
 .drm-separator {
-	width: 100%;
-	padding-bottom: 5px;
-	padding-top: 5px;
 	border-top: 2px dotted;
 }
 
 .drm-program {
-	padding: 2px 6px;
+	width: 95%;
+	padding: 5px 5px 5px 5px;
 	border-radius: 3px;
         background: #111;
-	margin-left: 1px;
-	margin-right: 1px; 
+	text-align: left;
 }
 
-.drm-label {
+.drm-label, .drm-left {
 	display: inline-block;
-	padding-right: 10px;
 	font-size: 11px;
-	text-align: right;
 	letter-spacing: 0.3px;
-	width: 20%;
 	color: #ccc;
 }
 
-.drm-value {
+.drm-left {
+	padding-right: 10px;
+	text-align: right;
+	width: 20%;
+}
+
+.drm-value, .drm-right {
 	display: inline-block;
-	padding-left: 10px;
 	font-size: 11px;
 	font-weight: 600;
-	text-align: left;
 	letter-spacing: 0.3px;
-	width: 20%;
 	color: #fff;
+}
+
+.drm-right {
+	padding-left: 10px;
+	text-align: left;
+	width: 20%;
 }
 
 .drm-indicator {

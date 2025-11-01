@@ -767,28 +767,28 @@ function DrmMetaPanel(el) {
                 '<span class="drm-indicator drm-msc">MSC</span>' +
             '</div>' +
             '<div class="drm-separator">' +
-                '<span class="drm-label">IF Level</span>' +
-                '<span class="drm-value drm-if"></span>' +
-                '<span class="drm-label">SNR</span>' +
-                '<span class="drm-value drm-snr"></span>' +
+                '<span class="drm-left">IF Level</span>' +
+                '<span class="drm-right drm-if"></span>' +
+                '<span class="drm-left">SNR</span>' +
+                '<span class="drm-right drm-snr"></span>' +
             '</div>' +
             '<div class="drm-line">' +
-                '<span class="drm-label">Mode</span>' +
-                '<span class="drm-value drm-mode"></span>' +
-                '<span class="drm-label">Channel</span>' +
-                '<span class="drm-value drm-channel"></span>' +
+                '<span class="drm-left">Mode</span>' +
+                '<span class="drm-right drm-mode"></span>' +
+                '<span class="drm-left">Channel</span>' +
+                '<span class="drm-right drm-channel"></span>' +
             '</div>' +
             '<div class="drm-line">' +
-                '<span class="drm-label">SDC</span>' +
-                '<span class="drm-value drm-sdc-qam"></span>' +
-                '<span class="drm-label">MSC</span>' +
-                '<span class="drm-value drm-msc-qam"></span>' +
+                '<span class="drm-left">SDC</span>' +
+                '<span class="drm-right drm-sdc-qam"></span>' +
+                '<span class="drm-left">MSC</span>' +
+                '<span class="drm-right drm-msc-qam"></span>' +
             '</div>' +
             '<div class="drm-line">' +
-                '<span class="drm-label">ILV</span>' +
-                '<span class="drm-value drm-ilv"></span>' +
-                '<span class="drm-label">Protect</span>' +
-                '<span class="drm-value">' +
+                '<span class="drm-left">ILV</span>' +
+                '<span class="drm-right drm-ilv"></span>' +
+                '<span class="drm-left">Protect</span>' +
+                '<span class="drm-right">' +
                   '<span class="drm-indicator drm-prot-a">A</span>' +
                   '<span class="drm-indicator drm-prot-b">B</span>' +
                 '</span>' +
@@ -859,36 +859,45 @@ data = SAMPLE_DRM;
 
     var programs = '';
     if (data.service_list) {
-        programs += '<table width="100%">';
+        programs += '';
         for (var j = 0 ; j < data.service_list.length ; j++) {
             var entry = data.service_list[j];
             var codec = ['AAC', 'OPUS', 'RESERVED', 'xHE-AAC'][entry.audio_coding] || 'UNKNOWN';
             var country = entry.country? entry.country.name : '';
             var language = entry.language? entry.language.name : '';
             var id = parseInt(entry.id).toString(16).toUpperCase();
+            var type = entry.is_audio? entry.audio_mode.toUpperCase() : 'DATA';
 
             var program =
-                '<div>' + entry.label + ' (' + id + ')' +
-                (entry.language? ' in ' + entry.language.name : '') +
-                (entry.country? ' from ' + entry.country.name : '') +
-                '</div>';
+                '<div class="drm-program">' +
+                    '<div style="color:yellow;"><b>' + entry.label + '</b> (' + id + ')</div>' +
+                    '<div>' +
+                        '<span class="drm-label">Type:&nbsp;</span>' +
+                        '<span class="drm-value">' + type + '</span> | ' +
+                        '<span class="drm-label">Codec:&nbsp;</span>' +
+                        '<span class="drm-value">' + codec + '</span> | ' +
+                        '<span class="drm-label">Bitrate:&nbsp;</span>' +
+                        '<span class="drm-value">' + entry.bitrate_kbps + ' kbps</span> | ' +
+                        '<span class="drm-label">Protection:&nbsp;</span>' +
+                        '<span class="drm-value">' + entry.protection_mode + '</span>';
 
-            var encoding =
-                '<div>' +
-                (entry.is_audio? entry.audio_mode.toUpperCase() : 'DATA') +
-                ' | ' + codec +
-                ' | ' + entry.protection_mode +
-                ' | ' + entry.bitrate_kbps + ' kbps' +
-                '</div>';
+            if (entry.country) {
+                program +=
+                        ' | <span class="drm-label">Country:&nbsp;</span>' +
+                        '<span class="drm-value">' + entry.country.name + '</span>';
 
-            programs +=
-                '<tr>' +
-                    '<td class="drm-program" align="right">' + (j+1) + '</td>' +
-                    '<td class="drm-program" align="left" width="100%" nowrap>' + program + encoding + '</td>' +
-                '</tr>';
+            }
+
+            if (entry.language) {
+                program +=
+                        ' | <span class="drm-label">Language:&nbsp;</span>' +
+                        '<span class="drm-value">' + entry.language.name + '</span>';
+
+            }
+
+            program += '</div></div>';
+            programs += program;
         }
-
-        programs += '</table>';
     }
 
     $el.find('.drm-programs').html(programs);
