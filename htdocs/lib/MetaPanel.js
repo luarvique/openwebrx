@@ -873,12 +873,12 @@ data = SAMPLE_DRM;
                     '<div style="color:yellow;"><b>' + entry.label + '</b> (' + id + ')</div>' +
                     '<div>' +
                         '<span class="drm-label">Type:&nbsp;</span>' +
-                        '<span class="drm-value">' + type + '</span> | ' +
-                        '<span class="drm-label">Codec:&nbsp;</span>' +
-                        '<span class="drm-value">' + codec + '</span> | ' +
-                        '<span class="drm-label">Bitrate:&nbsp;</span>' +
-                        '<span class="drm-value">' + entry.bitrate_kbps + ' kbps</span> | ' +
-                        '<span class="drm-label">Protection:&nbsp;</span>' +
+                        '<span class="drm-value">' + type + '</span>' +
+                        ' | <span class="drm-label">Codec:&nbsp;</span>' +
+                        '<span class="drm-value">' + codec + '</span>' +
+                        ' | <span class="drm-label">Bitrate:&nbsp;</span>' +
+                        '<span class="drm-value">' + entry.bitrate_kbps + ' kbps</span>' +
+                        ' | <span class="drm-label">Protection:&nbsp;</span>' +
                         '<span class="drm-value">' + entry.protection_mode + '</span>';
 
             if (entry.country) {
