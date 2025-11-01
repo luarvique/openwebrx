@@ -1895,7 +1895,15 @@ img.openwebrx-mirror-img
 
 .drm-line {
 	width: 100%;
-	margin-bottom: 5px;
+	padding-bottom: 5px;
+	padding-top: 5px;
+}
+
+.drm-separator {
+	width: 100%;
+	padding-bottom: 5px;
+	padding-top: 5px;
+	border-top: 2px dotted;
 }
 
 .drm-program {
@@ -1906,18 +1914,25 @@ img.openwebrx-mirror-img
 	margin-right: 1px; 
 }
 
+.drm-label {
+	display: inline-block;
+	padding-right: 10px;
+	font-size: 11px;
+	text-align: right;
+	letter-spacing: 0.3px;
+	width: 20%;
+	color: #ccc;
+}
+
 .drm-value {
-	padding: 2px 6px;
-	margin-left: 3px;
-	margin-right: 3px;
-	border-radius: 3px;
+	display: inline-block;
+	padding-left: 10px;
 	font-size: 11px;
 	font-weight: 600;
-	display: inline-flex;
-	align-items: right;
-	justify-content: right;
-	min-width: 70px;
+	text-align: left;
 	letter-spacing: 0.3px;
+	width: 20%;
+	color: #fff;
 }
 
 .drm-indicator {
