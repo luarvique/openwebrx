@@ -669,13 +669,13 @@ function DabMetaPanel(el) {
     $(this.el).append($container);
     this.clear();
     this.programmeTimeout = false;
-}
+};
 
 DabMetaPanel.prototype = new MetaPanel();
 
 DabMetaPanel.prototype.isSupported = function(data) {
     return this.modes.includes(data.mode);
-}
+};
 
 DabMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
@@ -711,7 +711,7 @@ DabMetaPanel.prototype.update = function(data) {
             me.$select.val(me.$select.find('option:first').val()).change();
         }, 1000);
     }
-}
+};
 
 DabMetaPanel.prototype.clear = function() {
     this.service_id = 0;
@@ -719,9 +719,9 @@ DabMetaPanel.prototype.clear = function() {
     this.$select.html(
         '<option value="" disabled selected hidden>Loading...</option>'
     );
-}
+};
 
-/*************
+const SAMPLE_DRM =
 {
   'timestamp': 1761880388,
   'received_time': 1761880380,
@@ -740,16 +740,15 @@ DabMetaPanel.prototype.clear = function() {
   'services': {'audio': 1, 'data': 0},
   'service_list': [
     {
-      'id': '1000', 'label': 'TDF DRM', 'is_audio': True,
+      'id': '1000', 'label': 'TDF DRM', 'is_audio': true,
       'audio_coding': 0, 'bitrate_kbps': 8.08, 'audio_mode': 'Mono',
       'protection_mode': 'EEP',
       'language': {'code': 'fre', 'name': 'French'},
       'country': {'code': 'fr', 'name': 'France'}
     }
   ],
-  'media': {'program_guide': False, 'journaline': False, 'slideshow': False}
-}
-************/
+  'media': {'program_guide': false, 'journaline': false, 'slideshow': false}
+};
 
 function DrmMetaPanel(el) {
     MetaPanel.call(this, el);
@@ -798,7 +797,7 @@ function DrmMetaPanel(el) {
     );
 
     $(this.el).append($container);
-}
+};
 
 DrmMetaPanel.prototype = new MetaPanel();
 
@@ -831,7 +830,7 @@ DrmMetaPanel.prototype.update = function(data) {
         var bw = ['4.5kHz', '5kHz', '9kHz', '10kHz', '18kHz', '20kHz'][data.drm_mode.bandwidth] || '?';
         var ilv = ['S', 'L'][data.drm_mode.interleaver] || '?';
         this.setIndicator('mode', 1, mode);
-        this.setIndicator('channel', 1, channel);
+        this.setIndicator('channel', 1, bw);
         this.setIndicator('ilv', 1, ilv);
     } else {
         this.setIndicator('mode', 0, '-');
@@ -851,24 +850,36 @@ DrmMetaPanel.prototype.update = function(data) {
 
     var programs = '';
     if (data.service_list) {
-        programs += '<div>Services:</div>';
+        programs += 'Services:<hr><table width="100%">';
         for (var j = 0 ; j < data.service_list.length ; j++) {
             var entry = data.service_list[j];
             var codec = ['AAC', 'OPUS', 'RESERVED', 'xHE-AAC'][entry.audio_coding] || 'UNKNOWN';
             var country = entry.country? entry.country.name : '';
             var language = entry.language? entry.language.name : '';
+            var id = parseInt(entry.id).toString(16).toUpperCase();
+
             var program =
-                codec + entry.label + ' '
-                entry.protection_mode + ' ' +
-                (entry.is_audio? entry.audio_mode : 'Data') + ' ' +
-                entry.bitrate_kbps + ' kbps';
+                '<div>' + entry.label + ' (' + id + ')' +
+                (entry.language? ' in ' + entry.language.name : '') +
+                (entry.country? ' from ' + entry.country.name : '') +
+                '</div>';
+
+            var encoding =
+                '<div>' +
+                (entry.is_audio? entry.audio_mode.toUpperCase() : 'DATA') +
+                ' | ' + codec +
+                ' | ' + entry.protection_mode +
+                ' | ' + entry.bitrate_kbps + ' kbps' +
+                '</div>';
 
             programs +=
                 '<tr>' +
-                    '<td class="drm-program" align="center">' + (j+1) + '</td>' +
-                    '<td class="drm-program" align="left">' + program + 'kbps</td>' +
+                    '<td class="drm-program" align="right">' + (j+1) + '</td>' +
+                    '<td class="drm-program" align="left" width="100%" nowrap>' + program + encoding + '</td>' +
                 '</tr>';
         }
+
+        programs += '</table>';
     }
 
     $el.find('.drm-programs').html(programs);
