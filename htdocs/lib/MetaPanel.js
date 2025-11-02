@@ -721,35 +721,6 @@ DabMetaPanel.prototype.clear = function() {
     );
 };
 
-const SAMPLE_DRM =
-{
-  'timestamp': 1761880388,
-  'received_time': 1761880380,
-  'status': { 'io': 0, 'time': 0, 'frame': 0, 'fac': 0, 'sdc': 0, 'msc': 1 },
-  'signal': {
-    'if_level_db': -45.4, 'snr_db': 9.4, 'wmer_db': 15.0,
-    'mer_db': 7.7, 'doppler_hz': 0.86, 'delay_min_ms': 4.51,
-    'delay_max_ms': 6.36
-  },
-  'frequency': {
-    'dc_offset_hz': 5991.04, 'sample_offset_hz': -0.94,
-    'sample_offset_ppm': -19
-  },
-  'mode': { 'robustness': 1, 'bandwidth': 3, 'bandwidth_khz': 10.0, 'interleaver': 0},
-  'coding': { 'sdc_qam': 1, 'msc_qam': 2, 'protection_a': 1, 'protection_b': 1},
-  'services': {'audio': 1, 'data': 0},
-  'service_list': [
-    {
-      'id': '1000', 'label': 'TDF DRM', 'is_audio': true,
-      'audio_coding': 0, 'bitrate_kbps': 8.08, 'audio_mode': 'Mono',
-      'protection_mode': 'EEP',
-      'language': {'code': 'fre', 'name': 'French'},
-      'country': {'code': 'fr', 'name': 'France'}
-    }
-  ],
-  'media': {'program_guide': false, 'journaline': false, 'slideshow': false}
-};
-
 function DrmMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['DRM'];
@@ -812,7 +783,7 @@ DrmMetaPanel.prototype = new MetaPanel();
 
 DrmMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
-data = SAMPLE_DRM;
+
     // Update panel
     var $el = $(this.el);
     this.setIndicator('io', data.status.io);
@@ -868,7 +839,7 @@ data = SAMPLE_DRM;
             var id = parseInt(entry.id).toString(16).toUpperCase();
             var type = entry.is_audio? entry.audio_mode.toUpperCase() : 'DATA';
 
-            var program =
+            programs +=
                 '<div class="drm-program">' +
                     '<div style="color:yellow;"><b>' + entry.label + '</b> (' + id + ')</div>' +
                     '<div>' +
@@ -882,21 +853,20 @@ data = SAMPLE_DRM;
                         '<span class="drm-value">' + entry.protection_mode + '</span>';
 
             if (entry.country) {
-                program +=
+                programs +=
                         ' | <span class="drm-label">Country:&nbsp;</span>' +
                         '<span class="drm-value">' + entry.country.name + '</span>';
 
             }
 
             if (entry.language) {
-                program +=
+                programs +=
                         ' | <span class="drm-label">Language:&nbsp;</span>' +
                         '<span class="drm-value">' + entry.language.name + '</span>';
 
             }
 
-            program += '</div></div>';
-            programs += program;
+            programs += '</div></div>';
         }
     }
 
