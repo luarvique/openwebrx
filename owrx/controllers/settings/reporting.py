@@ -81,7 +81,7 @@ class ReportingController(SettingsFormController):
                 TextInput(
                     "pskreporter_rig_information",
                     "Rig information",
-                    infotext="Rig information also sent to pskreporter",
+                    infotext="SDR description to be sent along with spots to pskreporter",
                     converter=OptionalConverter(),
                 ),
             ),
