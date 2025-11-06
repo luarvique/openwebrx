@@ -164,7 +164,10 @@ class Uploader(object):
     def getReceiverInformationHeader(self):
         pm = Config.get()
         with_antenna = "pskreporter_antenna_information" in pm and pm["pskreporter_antenna_information"] is not None
-        num_fields = 4 if with_antenna else 3
+        with_rig = "pskreporter_rig_information" in pm and pm["pskreporter_rig_information"] is not None
+        num_fields = 3
+        num_fields += 1 if with_antenna
+        num_fields += 1 if with_rig
         length = 12 + num_fields * 8
         return bytes(
             # id
@@ -184,6 +187,8 @@ class Uploader(object):
             + [0x80, 0x08, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # antennaInformation
             + ([0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F] if with_antenna else [])
+            # rigInformation
+            + ([0x80, 0x0D, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F] if with_rig else [])
             # padding
             + [0x00, 0x00]
         )
@@ -200,6 +205,8 @@ class Uploader(object):
         ]
         if "pskreporter_antenna_information" in pm and pm["pskreporter_antenna_information"] is not None:
             bodyFields += [pm["pskreporter_antenna_information"]]
+        if "pskreporter_rig_information" in pm and pm["pskreporter_rig_information"] is not None:
+            bodyFields += [pm["pskreporter_rig_information"]]
         body = [b for s in bodyFields for b in self.encodeString(s)]
         body = self.pad(body, 4)
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
