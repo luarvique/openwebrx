@@ -66,6 +66,7 @@ MODE_CATEGORIES = {
   "ACARS": (5, 10),
   "HFDL":  (6, 10),
   "VDL2":  (7, 10),
+  "UAT":   (0, 0)
 }
 
 #
@@ -696,26 +697,53 @@ class AdsbParser(AircraftParser):
 class UatParser(AircraftParser):
     def __init__(self, service: bool = False):
         super().__init__(filePrefix="UAT", service=service)
-        self.attrMap = {
-        }
 
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
         logger.debug("@@@ UAT: {0}".format(data))
+
         # Collect basic data first
         out = {
             "mode"      : "UAT",
-            "type"      : "UAT frame",
-            "timestamp" : round(datetime.now().timestamp() * 1000),
+            "timestamp" : round(data["metadata"]["received_at"] * 1000),
+            "rssi"      : data["metadata"]["rssi"],
+            "icao"      : data["address"],
+            "aircraft"  : data["callsign"],
+            "category"  : data["emitter_category"],
+            "state"     : data["airground_state"],
+            "lat"       : data["position"]["lat"],
+            "lon"       : data["position"]["lon"],
             "data"      : data
         }
-        # Fetch other data
-        for key in self.attrMap:
-            if key in data:
-                value = data[key].strip()
-                if len(value)>0:
-                    out[self.attrMap[key]] = value
+
+        # Emergency status
+        if "emergency" in data and data["emergency"] != "none":
+            out["emergency"] = data["emergency"].upper()
+
+        # Altitude
+        if "geometric_altitude" in data:
+            out["altitude"] = data["geometric_altitude"]
+        elif "pressure_altitude" in data:
+            out["altitude"] = data["pressure_altitude"]
+
+        # Climb/descent rate
+        if "vertical_velocity_geometric" in data:
+            out["vspeed"] = data["vertical_velocity_geometric"]
+        elif "vertical_velocity_barometric" in data:
+            out["vspeed"] = data["vertical_velocity_barometric"]
+
+        # Speed
+        if "ground_speed" in data:
+            out["speed"] = data["ground_speed"]
+
+        # Heading
+        if "true_track" in data:
+            out["course"] = data["true_track"]
+
+        # Get country and aircraft registration from ICAO ID
+        self.parseIcaoId(out["icao"], out)
+
         # Done
         return out
 
