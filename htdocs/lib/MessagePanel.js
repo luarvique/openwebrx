@@ -355,7 +355,7 @@ $.fn.pageMessagePanel = function() {
 HfdlMessagePanel = function(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
-    this.modes = ['HFDL', 'VDL2', 'ADSB', 'ACARS'];
+    this.modes = ['HFDL', 'VDL2', 'ADSB', 'ACARS', 'UAT'];
 }
 
 HfdlMessagePanel.prototype = Object.create(MessagePanel.prototype);
