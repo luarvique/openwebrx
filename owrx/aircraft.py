@@ -723,23 +723,23 @@ class UatParser(AircraftParser):
 
         # Altitude
         if "geometric_altitude" in data:
-            out["altitude"] = data["geometric_altitude"]
+            out["altitude"] = round(data["geometric_altitude"])
         elif "pressure_altitude" in data:
-            out["altitude"] = data["pressure_altitude"]
+            out["altitude"] = round(data["pressure_altitude"])
 
         # Climb/descent rate
         if "vertical_velocity_geometric" in data:
-            out["vspeed"] = data["vertical_velocity_geometric"]
+            out["vspeed"] = round(data["vertical_velocity_geometric"])
         elif "vertical_velocity_barometric" in data:
-            out["vspeed"] = data["vertical_velocity_barometric"]
+            out["vspeed"] = round(data["vertical_velocity_barometric"])
 
         # Speed
         if "ground_speed" in data:
-            out["speed"] = data["ground_speed"]
+            out["speed"] = round(data["ground_speed"])
 
         # Heading
         if "true_track" in data:
-            out["course"] = data["true_track"]
+            out["course"] = round(data["true_track"])
 
         # Get country and aircraft registration from ICAO ID
         self.parseIcaoId(out["icao"], out)
