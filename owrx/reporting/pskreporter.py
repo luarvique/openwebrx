@@ -166,8 +166,8 @@ class Uploader(object):
         with_antenna = "pskreporter_antenna_information" in pm and pm["pskreporter_antenna_information"] is not None
         with_rig = "pskreporter_rig_information" in pm and pm["pskreporter_rig_information"] is not None
         num_fields = 3
-        num_fields += 1 if with_antenna
-        num_fields += 1 if with_rig
+        num_fields += 1 if with_antenna else 0
+        num_fields += 1 if with_rig else 0
         length = 12 + num_fields * 8
         return bytes(
             # id
