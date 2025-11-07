@@ -17,7 +17,8 @@ function MarkerManager() {
         'ACARS'     : '#800000',
         'HFDL'      : '#004000',
         'VDL2'      : '#000080',
-        'ADSB'      : '#000000'
+        'ADSB'      : '#000000',
+        'UAT'       : '#404000'
     };
 
     // Symbols used for marker types
@@ -33,6 +34,7 @@ function MarkerManager() {
         'VDL2'      : '&#9992;',
         'ADSB'      : '&#9992;',
         'ACARS'     : '&#9992;',
+        'UAT'       : '&#9992;',
         'HDR'       : '&#9836;'
     };
 
