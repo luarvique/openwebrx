@@ -140,6 +140,11 @@
         "modulation" : "acars"
     },
     {
+        "name" : "ACARS - Europe 5",
+        "frequency" : 131825000,
+        "modulation" : "acars"
+    },
+    {
         "name" : "ARINC - USA",
         "frequency" : 136650000,
         "modulation" : "vdl2"
