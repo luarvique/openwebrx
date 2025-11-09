@@ -146,8 +146,6 @@ class CwSkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         self.parser = CwSkimmerParser(service)
         workers = [
             RealPart(),
-            Agc(Format.FLOAT),
-            Convert(Format.FLOAT, Format.SHORT),
             CwSkimmerModule(sampleRate, charCount),
             self.parser,
         ]
@@ -170,8 +168,6 @@ class RttySkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         self.parser = RttySkimmerParser(service)
         workers = [
             RealPart(),
-            Agc(Format.FLOAT),
-            Convert(Format.FLOAT, Format.SHORT),
             RttySkimmerModule(sampleRate, charCount),
             self.parser,
         ]
