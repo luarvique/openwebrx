@@ -52,7 +52,8 @@ Recommends: python3-digiham (>= 0.6),
             imagemagick,
             nrsc5,
             libhamlib-utils,
-            csdr-cwskimmer,
-            lame
+            csdr-skimmer,
+            lame,
+            dream
 Description: multi-user web sdr
  Open source, multi-user SDR receiver with a web interface
