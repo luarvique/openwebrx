@@ -1,3 +1,13 @@
+openwebrx (1.2.98) bullseye jammy; urgency=low
+
+  * Added rig info to PSKReporter reports.
+  * Added RTTY skimmer (please, test).
+  * Added 131.825MHz ACARS frequency.
+  * Switched to csdr-skimmer package.
+  * Removed AGC from CW skimmer.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 10 Nov 2025 16:12:00 +0000
+
 openwebrx (1.2.97) bullseye jammy; urgency=low
 
   * Added Dream 2.2 support, with AAC.

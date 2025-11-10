@@ -1,3 +1,10 @@
+**1.2.98**
+- Added rig info to PSKReporter reports.
+- Added RTTY skimmer (please, test).
+- Added 131.825MHz ACARS frequency.
+- Switched to csdr-skimmer package.
+- Removed AGC from CW skimmer.
+
 **1.2.97**
 - Added Dream 2.2 support, with AAC.
 - Added DRM metadata display.
