@@ -409,3 +409,40 @@ class CwSkimmerParser(TextParser):
     def setDialFrequency(self, frequency: int) -> None:
         self.freqChanged = frequency != self.frequency
         super().setDialFrequency(frequency)
+
+
+class RttySkimmerParser(TextParser):
+    def __init__(self, service: bool = False):
+        self.reLine = re.compile("^([0-9]+):(.+)$")
+        self.freqChanged = False
+        # Construct parent object
+        super().__init__(filePrefix="RTTY", service=service)
+
+    def parse(self, msg: bytes):
+        # Do not parse in service mode
+        if self.service:
+            return None
+        # Parse RTTY messages by frequency
+        msg = msg.decode("utf-8", "replace")
+        r = self.reLine.match(msg)
+        if r is not None:
+            freq = int(r.group(1))
+            text = r.group(2)
+            if len(text) > 0:
+                # Compose output
+                out = { "mode": "RTTY", "text": text }
+                # Add frequency, if known
+                if self.frequency:
+                    out["freq"] = self.frequency + freq
+                # Report frequency changes
+                if self.freqChanged:
+                    self.freqChanged = False
+                    out["changed"] = True
+                # Done
+                return out
+        # No result
+        return None
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.freqChanged = frequency != self.frequency
+        super().setDialFrequency(frequency)
