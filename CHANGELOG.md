@@ -2,6 +2,7 @@
 - Added rig info to PSKReporter reports.
 - Added RTTY skimmer (please, test).
 - Added 131.825MHz ACARS frequency.
+- Added cosmetic fixes to DRM panel.
 - Switched to csdr-skimmer package.
 - Removed AGC from CW skimmer.
 

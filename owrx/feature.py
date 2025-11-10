@@ -104,7 +104,7 @@ class FeatureDetector(object):
         "mqtt": ["paho_mqtt"],
         "hdradio": ["nrsc5"],
         "rigcontrol": ["hamlib"],
-        "cwskimmer": ["csdr_cwskimmer"],
+        "skimmer": ["csdr_skimmer"],
         "mp3": ["lame"],
     }
 
@@ -846,13 +846,13 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("rigctl -V")
 
-    def has_csdr_cwskimmer(self):
+    def has_csdr_skimmer(self):
         """
-        OpenWebRX uses the [CSDR CWSkimmer](https://github.com/luarvique/csdr-cwskimmer)
-        to decode multiple CW signals at once. You can install the
-        `csdr-cwskimmer` package from the OpenWebRX+ repositories.
+        OpenWebRX uses the [CSDR Skimmer](https://github.com/luarvique/csdr-skimmer)
+        to decode multiple CW and RTTY signals at once. You can install
+        the `csdr-skimmer` package from the OpenWebRX+ repositories.
         """
-        return self.command_is_runnable("csdr-cwskimmer -h")
+        return self.command_is_runnable("csdr-rttyskimmer -h")
 
     def has_lame(self):
         """
