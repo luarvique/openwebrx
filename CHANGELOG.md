@@ -1,7 +1,9 @@
 **1.2.98**
-- Added rig info to PSKReporter reports.
+- Added UAT decoder using Dump978.
 - Added RTTY skimmer (please, test).
+- Added rig info to PSKReporter reports.
 - Added 131.825MHz ACARS frequency.
+- Added 978MHz UAT frequency.
 - Added cosmetic fixes to DRM panel.
 - Switched to csdr-skimmer package.
 - Removed AGC from CW skimmer.

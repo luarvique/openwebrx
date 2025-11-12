@@ -1,13 +1,15 @@
 openwebrx (1.2.98) bullseye jammy; urgency=low
 
-  * Added rig info to PSKReporter reports.
+  * Added UAT decoder using Dump978.
   * Added RTTY skimmer (please, test).
+  * Added rig info to PSKReporter reports.
   * Added 131.825MHz ACARS frequency.
+  * Added 978MHz UAT frequency.
   * Added cosmetic fixes to DRM panel.
   * Switched to csdr-skimmer package.
   * Removed AGC from CW skimmer.
 
- -- Marat Fayzullin <luarvique@gmail.com>  Mon, 10 Nov 2025 16:12:00 +0000
+ -- Marat Fayzullin <luarvique@gmail.com>  Thu, 13 Nov 2025 16:12:00 +0000
 
 openwebrx (1.2.97) bullseye jammy; urgency=low
 
