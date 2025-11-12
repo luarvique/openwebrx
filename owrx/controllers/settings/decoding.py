@@ -109,7 +109,7 @@ class DecodingSettingsController(SettingsFormController):
                 "Aircraft messages",
                 NumberInput(
                     "adsb_ttl",
-                    "ADSB reports expiration time",
+                    "ADSB and UAT reports expiration time",
                     validator=RangeValidator(30, 100000),
                     append="s",
                 ),

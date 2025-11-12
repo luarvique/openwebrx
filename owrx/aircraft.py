@@ -187,7 +187,7 @@ class AircraftManager(object):
         elif mode == "HFDL":
             data["ttl"] = data["timestamp"] + pm["hfdl_ttl"] * 1000
         else:
-            # Assume ADSB time-to-live
+            # Assume ADSB/UAT time-to-live
             data["ttl"] = data["timestamp"] + pm["adsb_ttl"] * 1000
 
         # Now operating on the database...
