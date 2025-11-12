@@ -701,21 +701,25 @@ class UatParser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
-        logger.debug("@@@ UAT: {0}".format(data))
+        #logger.debug("@@@ UAT: {0}".format(data))
 
         # Collect basic data first
         out = {
             "mode"      : "UAT",
             "timestamp" : round(data["metadata"]["received_at"] * 1000),
             "rssi"      : data["metadata"]["rssi"],
-            "icao"      : data["address"],
-            "aircraft"  : data["callsign"],
-            "category"  : data["emitter_category"],
+            "icao"      : data["address"].upper(),
             "state"     : data["airground_state"],
             "lat"       : data["position"]["lat"],
             "lon"       : data["position"]["lon"],
             "data"      : data
         }
+
+        # Aircraft
+        if "callsign" in data and data["callsign"] != "UNKN":
+            out["aircraft"] = data["callsign"].upper()
+        if "emitter_category" in data:
+            out["category"] = data["emitter_category"].upper()
 
         # Emergency status
         if "emergency" in data and data["emergency"] != "none":
@@ -742,7 +746,7 @@ class UatParser(AircraftParser):
             out["course"] = round(data["true_track"])
 
         # Get country and aircraft registration from ICAO ID
-        self.parseIcaoId(out["icao"], out)
+        self.parseIcaoId(data["address"], out)
 
         # Done
         return out

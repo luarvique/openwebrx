@@ -18,7 +18,7 @@ function MarkerManager() {
         'HFDL'      : '#004000',
         'VDL2'      : '#000080',
         'ADSB'      : '#000000',
-        'UAT'       : '#404000'
+        'UAT'       : '#800080'
     };
 
     // Symbols used for marker types
