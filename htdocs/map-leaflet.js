@@ -451,7 +451,8 @@ MapManager.prototype.processUpdates = function(updates) {
                 // If new item, create a new marker for it
                 if (!marker) {
                     switch(update.mode) {
-                        case 'HFDL': case 'VDL2': case 'ADSB': case 'ACARS':
+                        case 'HFDL': case 'VDL2': case 'ADSB':
+                        case 'ACARS': case 'UAT':
                             marker = new LAircraftMarker();
                             break;
                         case 'APRS': case 'AIS': case 'HDR':

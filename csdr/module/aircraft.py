@@ -51,6 +51,19 @@ class Dump1090Module(ExecModule):
         super().__init__(Format.COMPLEX_SHORT, Format.CHAR, cmd)
 
 
+class Dump978Module(ExecModule):
+    def __init__(self, jsonOutput: bool = False):
+        cmd = [
+            "dump978-fa", "--stdin", "--format", "CF32H"
+        ]
+        # Choose between JSON and RAW output
+        if jsonOutput:
+            cmd += [ "--json-stdout" ]
+        else:
+            cmd += [ "--raw-stdout" ]
+        super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
+
+
 class AcarsDecModule(ExecModule):
     def __init__(self, sampleRate: int = 12000, jsonOutput: bool = False):
         self.sampleRate = sampleRate

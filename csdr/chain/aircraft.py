@@ -1,6 +1,6 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.aircraft import DumpHfdlModule, DumpVdl2Module, Dump1090Module, AcarsDecModule
-from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser
+from csdr.module.aircraft import DumpHfdlModule, DumpVdl2Module, Dump1090Module, Dump978Module, AcarsDecModule
+from owrx.aircraft import HfdlParser, Vdl2Parser, AdsbParser, AcarsParser, UatParser
 from pycsdr.modules import Convert, Agc
 from pycsdr.types import Format
 
@@ -63,6 +63,27 @@ class AdsbDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         workers = [
             Convert(Format.COMPLEX_FLOAT, Format.COMPLEX_SHORT),
             Dump1090Module(rawOutput = True, jsonFolder = jsonFolder),
+            self.parser,
+        ]
+        # Connect all the workers
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def supportsSquelch(self) -> bool:
+        return False
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
+
+
+class UatDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, service: bool = False, jsonFile: str = "/tmp/dump978/aircraft.json"):
+        self.sampleRate = 2083334
+        self.parser = UatParser(service=service)
+        workers = [
+            Dump978Module(jsonOutput = True),
             self.parser,
         ]
         # Connect all the workers
