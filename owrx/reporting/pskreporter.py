@@ -177,8 +177,8 @@ class Uploader(object):
             + Uploader.receieverDelimiter
             # number of fields
             + list(num_fields.to_bytes(2, "big"))
-            # padding
-            + [0x00, 0x00]
+            # scoped field count
+            + [0x00, 0x01]
             # receiverCallsign
             + [0x80, 0x02, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # receiverLocator
