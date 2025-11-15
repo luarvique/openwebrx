@@ -708,7 +708,7 @@ class FeatureDetector(object):
         [Dump978](https://github.com/flightaware/dump978) decoder. You can install the
         `dump978-fa-minimal` package from the OpenWebRX+ repositories.
         """
-        return self.command_is_runnable("dump978-fa --version")
+        return self.command_is_runnable("dump978 --version")
 
     def has_rtl_433(self):
         """
