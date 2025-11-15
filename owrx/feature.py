@@ -706,7 +706,7 @@ class FeatureDetector(object):
         """
         OpenWebRX supports decoding UAT airplane communications by using the
         [Dump978](https://github.com/flightaware/dump978) decoder. You can install the
-        `dump978-fa` package from the OpenWebRX+ repositories.
+        `dump978-fa-minimal` package from the OpenWebRX+ repositories.
         """
         return self.command_is_runnable("dump978-fa --version")
 
