@@ -54,7 +54,7 @@ class Dump1090Module(ExecModule):
 class Dump978Module(ExecModule):
     def __init__(self, jsonOutput: bool = False):
         cmd = [
-            "dump978-fa", "--stdin", "--format", "CF32H"
+            "dump978", "--stdin", "--format", "CF32H"
         ]
         # Choose between JSON and RAW output
         if jsonOutput:
