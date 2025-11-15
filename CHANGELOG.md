@@ -1,4 +1,5 @@
 **1.2.99**
+- Fixing RTLSDR issues caused by 'dump978-fa'.
 - Switched to 'dump978-fa-minimal' package.
 - Please, do 'sudo apt remove dump978-fa'.
 - Please, do 'sudo apt remove skyaware978'.
