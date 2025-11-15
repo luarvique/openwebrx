@@ -1,3 +1,8 @@
+**1.2.99**
+- Switched to 'dump978-fa-minimal' package.
+- Please, do 'sudo apt remove dump978-fa'.
+- Please, do 'sudo apt remove skyaware978'.
+
 **1.2.98**
 - Added UAT decoder using Dump978.
 - Added RTTY skimmer (please, test).

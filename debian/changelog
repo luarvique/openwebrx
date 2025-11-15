@@ -1,3 +1,11 @@
+openwebrx (1.2.99) bullseye jammy; urgency=low
+
+  * Switched to 'dump978-fa-minimal' package.
+  * Please, do 'sudo apt remove dump978-fa'.
+  * Please, do 'sudo apt remove skyaware978'.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Sun, 16 Nov 2025 16:12:00 +0000
+
 openwebrx (1.2.98) bullseye jammy; urgency=low
 
   * Added UAT decoder using Dump978.
