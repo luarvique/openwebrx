@@ -26,7 +26,7 @@ class MqttReporter(Reporter):
     def _getClient(self):
         pm = Config.get()
         clientId = pm["mqtt_client_id"] if "mqtt_client_id" in pm else ""
-        client = Client(clientId)
+        client = Client(client_id=clientId)
 
         if "mqtt_user" in pm and "mqtt_password" in pm:
             client.username_pw_set(pm["mqtt_user"], pm["mqtt_password"])
