@@ -586,25 +586,29 @@ class SdrSource(ABC):
             c.onBusyStateChange(state)
 
     def reportStateChange(self):
-      ReportingEngine.getSharedInstance().spot({
-          "mode"      : "RX",
-          "timestamp" : round(datetime.now().timestamp() * 1000),
-          "source_id" : self.id,
-          "source"    : self.getName(),
-          "state"     : str(self.state)
-      })
+        pm = Config.get()
+        if pm["report_radio"]:
+            ReportingEngine.getSharedInstance().spot({
+                "mode"      : "RX",
+                "timestamp" : round(datetime.now().timestamp() * 1000),
+                "source_id" : self.id,
+                "source"    : self.getName(),
+                "state"     : str(self.state)
+            })
 
     def reportProfileChange(self):
-        ReportingEngine.getSharedInstance().spot({
-            "mode"       : "RX",
-            "timestamp"  : round(datetime.now().timestamp() * 1000),
-            "source_id"  : self.id,
-            "source"     : self.getName(),
-            "profile_id" : self.getProfileId(),
-            "profile"    : self.getProfileName(),
-            "freq"       : self.props["center_freq"],
-            "samplerate" : self.props["samp_rate"]
-        })
+        pm = Config.get()
+        if pm["report_radio"]:
+            ReportingEngine.getSharedInstance().spot({
+                "mode"       : "RX",
+                "timestamp"  : round(datetime.now().timestamp() * 1000),
+                "source_id"  : self.id,
+                "source"     : self.getName(),
+                "profile_id" : self.getProfileId(),
+                "profile"    : self.getProfileName(),
+                "freq"       : self.props["center_freq"],
+                "samplerate" : self.props["samp_rate"]
+            })
 
 
 class SdrDeviceDescriptionMissing(Exception):

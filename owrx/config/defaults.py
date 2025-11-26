@@ -439,5 +439,7 @@ defaultConfig = PropertyLayer(
     ssb_agc_profile="Fast",
     dab_output_rate=48000,
     ui_theme="default",
-    bot_ban_enabled=True
+    bot_ban_enabled=True,
+    report_clients=True,
+    report_radio=True
 ).readonly()

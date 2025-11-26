@@ -103,10 +103,18 @@ class ReportingController(SettingsFormController):
                     "mqtt_enabled",
                     "Enable publishing reports to MQTT",
                 ),
+                CheckboxInput(
+                    "report_clients",
+                    "Report clients connecting to the server (disable for public MQTT brokers!)",
+                ),
+                CheckboxInput(
+                    "report_radio",
+                    "Report server startup and SDR profile changes (disable for public MQTT brokers!)",
+                ),
                 TextInput(
                     "mqtt_host",
                     "Broker address",
-                    infotext="Addresss of the MQTT broker to send reports to (address[:port])",
+                    infotext="Address of the MQTT broker to send reports to (address[:port])",
                     validator=AddressAndOptionalPortValidator(),
                 ),
                 TextInput(

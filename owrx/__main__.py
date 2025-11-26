@@ -146,12 +146,14 @@ Support and info:       https://groups.io/g/openwebrx
     Markers.start()
 
     # Report server started
-    ReportingEngine.getSharedInstance().spot({
-        "mode"      : "RX",
-        "timestamp" : round(datetime.now().timestamp() * 1000),
-        "version"   : openwebrx_version,
-        "state"     : "ServerStarted"
-    })
+    pm = Config.get()
+    if pm["report_radio"]:
+        ReportingEngine.getSharedInstance().spot({
+            "mode"      : "RX",
+            "timestamp" : round(datetime.now().timestamp() * 1000),
+            "version"   : openwebrx_version,
+            "state"     : "ServerStarted"
+        })
 
     try:
         # This is our HTTP server
@@ -184,12 +186,13 @@ Support and info:       https://groups.io/g/openwebrx
     DecoderQueue.stopAll()
 
     # Report server stopped
-    ReportingEngine.getSharedInstance().spot({
-        "mode"      : "RX",
-        "timestamp" : round(datetime.now().timestamp() * 1000),
-        "version"   : openwebrx_version,
-        "state"     : "ServerStopped"
-    })
+    if pm["report_radio"]:
+        ReportingEngine.getSharedInstance().spot({
+            "mode"      : "RX",
+            "timestamp" : round(datetime.now().timestamp() * 1000),
+            "version"   : openwebrx_version,
+            "state"     : "ServerStopped"
+        })
 
     # Done with reporting now
     ReportingEngine.stopAll()
