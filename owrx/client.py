@@ -95,7 +95,8 @@ class ClientRegistry(object):
                 "mode"      : "CLIENT",
                 "timestamp" : round(datetime.now().timestamp() * 1000),
                 "ip"        : self.getIp(client.conn.handler),
-                "banned"    : self.isBanned(client.conn.handler)
+                "banned"    : self.isBanned(client.conn.handler),
+                "clients"   : self.clientCount()
             })
             ReportingEngine.getSharedInstance().spot(data)
 
