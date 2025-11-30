@@ -3,6 +3,7 @@ from owrx.reporting.reporter import Reporter
 from owrx.config import Config
 from owrx.property import PropertyDeleted
 from owrx.client import ClientRegistry
+from owrx.mqtt import MqttSubscriber
 import json
 import threading
 import time
@@ -20,7 +21,9 @@ class MqttReporter(Reporter):
         self.topic = self.DEFAULT_TOPIC
         self.client = self._getClient()
         self.connected = False
-        self.watching = { "CLIENT" : self._handleCLIENT }
+        self.watchLock = threading.Lock()
+        self.watching = {}
+        self.subscriber = MqttSubscriber(self)
         self.subscriptions = [
             pm.wireProperty("mqtt_topic", self._setTopic),
             pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect)
@@ -57,11 +60,12 @@ class MqttReporter(Reporter):
         return client
 
     def addWatch(self, watch, handler):
-        if watch not in self.watching:
-            self.watching[watch] = handler
-            if self.connected:
-                options = SubscribeOptions(noLocal=1)
-                self.client.subscribe(self.topic + "/" + watch, options=options)
+        with self.watchLock:
+            if watch not in self.watching:
+                self.watching[watch] = handler
+                if self.connected:
+                    options = SubscribeOptions(noLocal=1)
+                    self.client.subscribe(self.topic + "/" + watch, options=options)
 
     def _setTopic(self, topic):
         if topic is PropertyDeleted:
@@ -77,9 +81,10 @@ class MqttReporter(Reporter):
 
     def _onConnect(self, client, userdata, flags, rc, properties=None):
         options = SubscribeOptions(noLocal=1)
-        for watch in list(self.watching.keys()):
-            client.subscribe(self.topic + "/" + watch, options=options)
-        self.connected = True
+        with self.watchLock:
+            for watch in list(self.watching.keys()):
+                client.subscribe(self.topic + "/" + watch, options=options)
+            self.connected = True
 
     def _onDisconnect(self, client, userdata, rc, properties=None):
         self.connected = False
@@ -89,16 +94,6 @@ class MqttReporter(Reporter):
             watch = msg.topic[len(self.topic) + 1 : ]
             if watch in self.watching:
                 self.watching[watch](msg.payload.decode())
-
-    def _handleCLIENT(self, msg):
-        try:
-            data = json.loads(msg)
-            if data["state"] == "ChatMessage":
-                ClientRegistry.getSharedInstance().RelayChatMessage(
-                    data["name"], data["message"]
-                )
-        except Exception as e:
-            logger.exception("Exception receving MQTT message: {}".format(e))
 
     def stop(self):
         self.client.disconnect()
