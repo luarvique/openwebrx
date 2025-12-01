@@ -74,7 +74,7 @@ class MqttReporter(Reporter):
 
     def _resubscribe(self, *args, **kwargs):
         logger.debug("Resubscribing...")
-        # Remove all current subscriptions
+        # Remove all currently watched topics
         self.removeAllWatches()
         # Resubscribe
         self.subscriber = MqttSubscriber(self)
@@ -84,7 +84,8 @@ class MqttReporter(Reporter):
         with self.watchLock:
             # Subscribe to all watched topics
             for watch in list(self.watching.keys()):
-                client.subscribe(self.topic + "/" + watch, options=options)
+                client.subscribe("+/+/" + watch, options=options)
+                client.subscribe("+/" + watch, options=options)
             # We are now connected to the MQTT broker
             self.connected = True
 
@@ -94,13 +95,12 @@ class MqttReporter(Reporter):
 
     def _onMessage(self, client, userdata, msg, properties=None):
         # Call message handlers for topics we are watching
-        if msg.topic.startswith(self.topic + "/"):
-            watch = msg.topic[len(self.topic) + 1 : ]
-            if watch in self.watching:
-                try:
-                    self.watching[watch](json.loads(msg.payload.decode()))
-                except Exception as e:
-                    logger.exception("Exception receving MQTT message: {}".format(e))
+        parts = msg.topic.rsplit("/", 1)
+        if len(parts) == 2 and parts[0] != self.topic and parts[1] in self.watching:
+            try:
+                self.watching[parts[1]](parts[0], json.loads(msg.payload.decode()))
+            except Exception as e:
+                logger.exception("Exception receving MQTT message: {}".format(e))
 
     # Watch given MQTT topic
     def addWatch(self, watch, handler):
@@ -108,7 +108,8 @@ class MqttReporter(Reporter):
             # When client already connected, subscribe to new topics immediately
             if watch not in self.watching and self.connected:
                 options = SubscribeOptions(noLocal=1)
-                self.client.subscribe(self.topic + "/" + watch, options=options)
+                self.client.subscribe("+/+/" + watch, options=options)
+                self.client.subscribe("+/" + watch, options=options)
             # Update topic-specific handler
             self.watching[watch] = handler
 
@@ -118,7 +119,8 @@ class MqttReporter(Reporter):
             # Unsubscribe from everything
             if self.connected:
                 for watch in list(self.watching.keys()):
-                    self.client.unsubscribe(self.topic + "/" + watch)
+                    self.client.unsubscribe("+/+/" + watch)
+                    self.client.unsubscribe("+/" + watch)
             # No more watches
             self.watching = {}
 

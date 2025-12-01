@@ -22,14 +22,14 @@ class MqttSubscriber(object):
             mqttReporter.addWatch("JT65", self._handleWSJT)
             mqttReporter.addWatch("FST4W", self._handleWSJT)
 
-    def _handleCHAT(self, data):
+    def _handleCHAT(self, source, data):
         # Relay received chat messages to all connected users
         if data["state"] == "ChatMessage":
             ClientRegistry.getSharedInstance().RelayChatMessage(
-                data["name"], data["message"]
+                data["name"] + "@" + source, data["message"]
             )
 
-    def _handleWSJT(self, data):
+    def _handleWSJT(self, source, data):
         # Determine band by frequency
         band = None
         if "freq" in data:

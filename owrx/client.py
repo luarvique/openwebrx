@@ -153,7 +153,7 @@ class ClientRegistry(object):
     # Relay external chat message to all connected clients.
     def RelayChatMessage(self, name: str, text: str):
         for c in self.clients:
-            c.write_chat_message(name, text, "#404040")
+            c.write_chat_message(name, text, "#ccc")
 
     # Broadcast administrative message to all connected clients.
     def broadcastAdminMessage(self, text: str):
