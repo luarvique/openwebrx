@@ -128,6 +128,10 @@ class GeneralSettingsController(SettingsFormController):
                     "Allow users to chat with each other",
                 ),
                 CheckboxInput(
+                    "mqtt_chat",
+                    "Allow users to chat via MQTT",
+                ),
+                CheckboxInput(
                     "allow_audio_recording",
                     "Allow users to record received audio",
                 ),

@@ -26,7 +26,8 @@ class MqttReporter(Reporter):
         self.subscriber = MqttSubscriber(self)
         self.subscriptions = [
             pm.wireProperty("mqtt_topic", self._setTopic),
-            pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect)
+            pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect),
+            pm.filter("mqtt_chat", "mqtt_wsjt").wire(self._resubscribe)
         ]
 
     def _getClient(self):
@@ -59,14 +60,6 @@ class MqttReporter(Reporter):
 
         return client
 
-    def addWatch(self, watch, handler):
-        with self.watchLock:
-            if watch not in self.watching:
-                self.watching[watch] = handler
-                if self.connected:
-                    options = SubscribeOptions(noLocal=1)
-                    self.client.subscribe(self.topic + "/" + watch, options=options)
-
     def _setTopic(self, topic):
         if topic is PropertyDeleted:
             self.topic = self.DEFAULT_TOPIC
@@ -79,21 +72,55 @@ class MqttReporter(Reporter):
         self.client = self._getClient()
         old.disconnect()
 
+    def _resubscribe(self, *args, **kwargs):
+        logger.debug("Resubscribing...")
+        # Remove all current subscriptions
+        self.removeAllWatches()
+        # Resubscribe
+        self.subscriber = MqttSubscriber(self)
+
     def _onConnect(self, client, userdata, flags, rc, properties=None):
         options = SubscribeOptions(noLocal=1)
         with self.watchLock:
+            # Subscribe to all watched topics
             for watch in list(self.watching.keys()):
                 client.subscribe(self.topic + "/" + watch, options=options)
+            # We are now connected to the MQTT broker
             self.connected = True
 
     def _onDisconnect(self, client, userdata, rc, properties=None):
+        # We are now disconnected from the MQTT broker
         self.connected = False
 
     def _onMessage(self, client, userdata, msg, properties=None):
+        # Call message handlers for topics we are watching
         if msg.topic.startswith(self.topic + "/"):
             watch = msg.topic[len(self.topic) + 1 : ]
             if watch in self.watching:
-                self.watching[watch](msg.payload.decode())
+                try:
+                    self.watching[watch](json.loads(msg.payload.decode()))
+                except Exception as e:
+                    logger.exception("Exception receving MQTT message: {}".format(e))
+
+    # Watch given MQTT topic
+    def addWatch(self, watch, handler):
+        with self.watchLock:
+            # When client already connected, subscribe to new topics immediately
+            if watch not in self.watching and self.connected:
+                options = SubscribeOptions(noLocal=1)
+                self.client.subscribe(self.topic + "/" + watch, options=options)
+            # Update topic-specific handler
+            self.watching[watch] = handler
+
+    # Stop watching all MQTT topics
+    def removeAllWatches(self):
+        with self.watchLock:
+            # Unsubscribe from everything
+            if self.connected:
+                for watch in list(self.watching.keys()):
+                    self.client.unsubscribe(self.topic + "/" + watch)
+            # No more watches
+            self.watching = {}
 
     def stop(self):
         self.client.disconnect()
