@@ -30,17 +30,23 @@ class MqttSubscriber(object):
             )
 
     def _handleWSJT(self, source, data):
-        # Determine band by frequency
         band = None
+        ts   = None
+        # Determine band by frequency
         if "freq" in data:
             band = Bandplan.getSharedInstance().findBand(data["freq"])
+        # Get timestamp, if available
+        if "timestamp" in data:
+            ts = data["timestamp"]
         # Put callsigns with locators on the map
         if "callsign" in data and "locator" in data:
             Map.getSharedInstance().updateLocation(
-                data["callsign"], LocatorLocation(data["locator"]), data["mode"], band
+                data["callsign"], LocatorLocation(data["locator"]),
+                data["mode"], band, hops=[source], timestamp=ts
             )
         # Put calls between callsigns on the map
         if "callsign" in data and "callee" in data:
             Map.getSharedInstance().updateCall(
-                data["callsign"], data["callee"], data["mode"], band
+                data["callsign"], data["callee"],
+                data["mode"], band, timestamp=ts
             )

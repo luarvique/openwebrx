@@ -250,6 +250,5 @@ class DecodingSettingsController(SettingsFormController):
                     [Option(v, "{}s".format(v)) for v in Fst4wProfile.availableIntervals],
                 ),
                 Q65ModeMatrix("q65_enabled_combinations", "Enabled Q65 Mode combinations"),
-                CheckboxInput("mqtt_wsjt", "Receive WSJT decodes via MQTT."),
             ),
         ]
