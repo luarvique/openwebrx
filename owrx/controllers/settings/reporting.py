@@ -116,6 +116,10 @@ class ReportingController(SettingsFormController):
                     "Receive chat messages over MQTT",
                 ),
                 CheckboxInput(
+                    "mqtt_aircraft",
+                    "Receive aircraft data over MQTT",
+                ),
+                CheckboxInput(
                     "mqtt_wsjt",
                     "Receive WSJT decodes over MQTT",
                 ),

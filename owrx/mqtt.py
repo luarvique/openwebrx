@@ -1,3 +1,4 @@
+from owrx.aircraft import AircraftManager
 from owrx.client import ClientRegistry
 from owrx.map import Map, LocatorLocation
 from owrx.bands import Bandplan
@@ -11,7 +12,7 @@ class MqttSubscriber(object):
     def __init__(self, mqttReporter):
         pm = Config.get()
         if pm["mqtt_chat"]:
-            mqttReporter.addWatch("CLIENT", self._handleCHAT)
+            mqttReporter.addWatch("CLIENT", self._handleChat)
         if pm["mqtt_wsjt"]:
             mqttReporter.addWatch("JT9", self._handleWSJT)
             mqttReporter.addWatch("Q65", self._handleWSJT)
@@ -21,13 +22,26 @@ class MqttSubscriber(object):
             mqttReporter.addWatch("WSPR", self._handleWSJT)
             mqttReporter.addWatch("JT65", self._handleWSJT)
             mqttReporter.addWatch("FST4W", self._handleWSJT)
+        if pm["mqtt_aircraft"]:
+            mqttReporter.addWatch("ACARS", self._handleAircraft)
+            mqttReporter.addWatch("ADSB", self._handleAircraft)
+            mqttReporter.addWatch("HFDL", self._handleAircraft)
+            mqttReporter.addWatch("VDL2", self._handleAircraft)
+            mqttReporter.addWatch("UAT", self._handleAircraft)
 
-    def _handleCHAT(self, source, data):
+    def _handleChat(self, source, data):
         # Relay received chat messages to all connected users
         if data["state"] == "ChatMessage":
             ClientRegistry.getSharedInstance().RelayChatMessage(
                 data["name"] + "@" + source, data["message"]
             )
+
+    def _handleAircraft(self, source, data):
+        # Remove original data from the message
+        if "data" in data:
+            del data["data"]
+        # Update aircraft database with the received data
+        AircraftManager.getSharedInstance().update(data)
 
     def _handleWSJT(self, source, data):
         band = None
