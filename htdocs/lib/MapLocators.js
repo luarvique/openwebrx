@@ -298,10 +298,10 @@ Locator.prototype.getInfoHTML = function(locator, pos, receiverMarker = null) {
     var list = inLocator.map(function(x) {
         var mc = self.colorMode === 'mode'? chroma(self.colorKeys[x.mode]).alpha(0.5) : 'inherit';
         var bc = self.colorMode === 'band'? chroma(self.colorKeys[x.band]).alpha(0.5) : 'inherit';
-        var tc = x.relayed? 'color:#808080;' : '';
 
         var row = '<tr style="background-color:' + (odd? '#E0FFE0':'#FFFFFF')
-            + ';' + tc + '"><td>' + Utils.linkifyCallsign(x.callsign) + '</td>'
+            + ';color:' + (x.relayed? '#808080':'#000000') + ';">'
+            + '<td>' + Utils.linkifyCallsign(x.callsign) + '</td>'
             + '<td>' + moment(x.lastseen).fromNow() + '</td>'
             + '<td style="background-color:' + mc + ';">' + x.mode + '</td>'
             + '<td style="background-color:' + bc + ';">' + x.band + '</td>'
