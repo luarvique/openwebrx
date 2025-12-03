@@ -94,9 +94,14 @@ class MqttReporter(Reporter):
         self.connected = False
 
     def _onMessage(self, client, userdata, msg, properties=None):
-        # Call message handlers for topics we are watching
+        # Split off the last part of the topic
         parts = msg.topic.rsplit("/", 1)
+        # Ignore our own messages and messages not being watched
         if len(parts) == 2 and parts[0] != self.topic and parts[1] in self.watching:
+            # Remove leading "openwebrx/" from the topic, if present
+            if parts[0].startswith("openwebrx/"):
+                parts[0] = parts[0][10:]
+            # Call relevant message handler
             try:
                 self.watching[parts[1]](parts[0], json.loads(msg.payload.decode()))
             except Exception as e:
