@@ -52,7 +52,7 @@ class MqttSubscriber(object):
             band = Bandplan.getSharedInstance().findBand(data["freq"])
         # Get timestamp, if available
         if "timestamp" in data:
-            ts = datetime.fromtimestamp(data["timestamp"], timezone.utc)
+            ts = datetime.fromtimestamp(data["timestamp"] / 1000, timezone.utc)
         # Put callsigns with locators on the map
         if "callsign" in data and "locator" in data:
             Map.getSharedInstance().updateLocation(
