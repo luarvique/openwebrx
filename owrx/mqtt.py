@@ -1,6 +1,7 @@
 from owrx.aircraft import AircraftManager
 from owrx.client import ClientRegistry
 from owrx.map import Map, LocatorLocation
+from owrx.aprs import AprsParser
 from owrx.bands import Bandplan
 from owrx.config import Config
 from datetime import datetime, timezone
@@ -29,6 +30,10 @@ class MqttSubscriber(object):
             mqttReporter.addWatch("HFDL", self._handleAircraft)
             mqttReporter.addWatch("VDL2", self._handleAircraft)
             mqttReporter.addWatch("UAT", self._handleAircraft)
+        if pm["mqtt_aprs"]:
+            mqttReporter.addWatch("APRS", self._handleAPRS)
+        if pm["mqtt_ais"]:
+            mqttReporter.addWatch("AIS", self._handleAPRS)
 
     def _handleChat(self, source, data):
         # Relay received chat messages to all connected users
@@ -65,3 +70,15 @@ class MqttSubscriber(object):
                 data["callsign"], data["callee"],
                 data["mode"], band, timestamp=ts
             )
+
+    def _handleAPRS(self, source, data):
+        band = None
+        ts   = None
+        # Determine band by frequency
+        if "freq" in data:
+            band = Bandplan.getSharedInstance().findBand(data["freq"])
+        # Get timestamp, if available
+        if "timestamp" in data:
+            ts = datetime.fromtimestamp(data["timestamp"] / 1000, timezone.utc)
+        # Put APRS/AIS marker on the map
+        AprsParser.updateMap(data, band, ts)

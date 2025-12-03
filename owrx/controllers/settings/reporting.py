@@ -111,18 +111,6 @@ class ReportingController(SettingsFormController):
                     "report_radio",
                     "Report server startup and SDR profile changes (disable for public MQTT brokers!)",
                 ),
-                CheckboxInput(
-                    "mqtt_chat",
-                    "Receive chat messages over MQTT",
-                ),
-                CheckboxInput(
-                    "mqtt_aircraft",
-                    "Receive aircraft data over MQTT",
-                ),
-                CheckboxInput(
-                    "mqtt_wsjt",
-                    "Receive WSJT decodes over MQTT",
-                ),
                 TextInput(
                     "mqtt_host",
                     "Broker address",
@@ -153,6 +141,26 @@ class ReportingController(SettingsFormController):
                     "MQTT topic",
                     infotext="MQTT topic to publish reports to (default: openwebrx)",
                     converter=OptionalConverter(),
+                ),
+                CheckboxInput(
+                    "mqtt_chat",
+                    "Receive chat messages over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_aircraft",
+                    "Receive aircraft data over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_ais",
+                    "Receive marine data over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_aprs",
+                    "Receive APRS reports over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_wsjt",
+                    "Receive WSJT decodes over MQTT",
                 ),
             ),
             Section(

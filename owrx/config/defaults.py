@@ -444,5 +444,7 @@ defaultConfig = PropertyLayer(
     report_radio=True,
     mqtt_aircraft=False,
     mqtt_chat=False,
-    mqtt_wsjt=False
+    mqtt_wsjt=False,
+    mqtt_aprs=False,
+    mqtt_ais=False
 ).readonly()
