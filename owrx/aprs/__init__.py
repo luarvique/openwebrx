@@ -195,7 +195,8 @@ class AprsParser(PickleModule):
             aprsData["mode"] = "AIS" if data["source"] == "AIS" else "APRS"
 
             # it is always a good idea to know the frequency
-            aprsData["freq"] = self.freq
+            if self.freq > 0:
+                aprsData["freq"] = self.freq
 
             logger.debug("decoded APRS data: %s", aprsData)
             AprsParser.updateMap(aprsData, self.band)
