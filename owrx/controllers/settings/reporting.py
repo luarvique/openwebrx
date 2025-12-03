@@ -142,6 +142,26 @@ class ReportingController(SettingsFormController):
                     infotext="MQTT topic to publish reports to (default: openwebrx)",
                     converter=OptionalConverter(),
                 ),
+                CheckboxInput(
+                    "mqtt_chat",
+                    "Receive chat messages over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_aircraft",
+                    "Receive aircraft data over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_ais",
+                    "Receive marine data over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_aprs",
+                    "Receive APRS reports over MQTT",
+                ),
+                CheckboxInput(
+                    "mqtt_wsjt",
+                    "Receive WSJT decodes over MQTT",
+                ),
             ),
             Section(
                 "RigControl settings",

@@ -150,6 +150,11 @@ class ClientRegistry(object):
         # Report message
         self.reportChatMessage(client, text)
 
+    # Relay external chat message to all connected clients.
+    def RelayChatMessage(self, name: str, text: str):
+        for c in self.clients:
+            c.write_chat_message(name, text, "#ccc")
+
     # Broadcast administrative message to all connected clients.
     def broadcastAdminMessage(self, text: str):
         for c in self.clients:

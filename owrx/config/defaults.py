@@ -441,5 +441,10 @@ defaultConfig = PropertyLayer(
     ui_theme="default",
     bot_ban_enabled=True,
     report_clients=True,
-    report_radio=True
+    report_radio=True,
+    mqtt_aircraft=False,
+    mqtt_chat=False,
+    mqtt_wsjt=False,
+    mqtt_aprs=False,
+    mqtt_ais=False
 ).readonly()

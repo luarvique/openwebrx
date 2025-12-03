@@ -196,6 +196,7 @@ Locator.prototype.update = function(data, map) {
     this.callsigns[data.callsign] = {
         callsign : data.callsign,
         lastseen : data.lastseen,
+        relayed  : 'hops' in data && data.hops.length > 0,
         mode     : data.mode,
         band     : data.band,
         weight   : 1
@@ -299,7 +300,8 @@ Locator.prototype.getInfoHTML = function(locator, pos, receiverMarker = null) {
         var bc = self.colorMode === 'band'? chroma(self.colorKeys[x.band]).alpha(0.5) : 'inherit';
 
         var row = '<tr style="background-color:' + (odd? '#E0FFE0':'#FFFFFF')
-            + ';"><td>' + Utils.linkifyCallsign(x.callsign) + '</td>'
+            + ';color:' + (x.relayed? '#808080':'#000000') + ';">'
+            + '<td>' + Utils.linkifyCallsign(x.callsign) + '</td>'
             + '<td>' + moment(x.lastseen).fromNow() + '</td>'
             + '<td style="background-color:' + mc + ';">' + x.mode + '</td>'
             + '<td style="background-color:' + bc + ';">' + x.band + '</td>'
