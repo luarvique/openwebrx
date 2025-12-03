@@ -3,6 +3,7 @@ from owrx.client import ClientRegistry
 from owrx.map import Map, LocatorLocation
 from owrx.bands import Bandplan
 from owrx.config import Config
+from datetime import datetime, timezone
 
 import logging
 
@@ -51,7 +52,7 @@ class MqttSubscriber(object):
             band = Bandplan.getSharedInstance().findBand(data["freq"])
         # Get timestamp, if available
         if "timestamp" in data:
-            ts = data["timestamp"]
+            ts = datetime.fromtimestamp(data["timestamp"], timezone.utc)
         # Put callsigns with locators on the map
         if "callsign" in data and "locator" in data:
             Map.getSharedInstance().updateLocation(
