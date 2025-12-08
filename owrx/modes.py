@@ -207,7 +207,7 @@ class Modes(object):
             underlying=["empty"],
             bandpass=Bandpass(0, 24000),
             requirements=["skimmer"],
-            service=False,
+            service=True,
             squelch=False,
         ),
         DigitalMode(

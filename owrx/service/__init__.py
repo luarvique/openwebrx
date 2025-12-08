@@ -365,6 +365,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "audio":
             from csdr.chain.toolbox import AudioRecorder
             return AudioRecorder(service=True)
+        elif mod == "cwskimmer":
+            from csdr.chain.toolbox import CwSkimmerDemodulator
+            return CwSkimmerDemodulator(service=True)
         elif mod == "noaa-apt-15":
             from csdr.chain.satellite import NoaaAptDemodulator
             return NoaaAptDemodulator(satellite=15, service=True)
