@@ -1,3 +1,9 @@
+**1.2.101**
+- Added callsign spotter to the CW skimmer.
+- Enabled CW skimmer as a service.
+- Added more checks to callsign-to-country conversion.
+- Added timestamps to chat messages.
+
 **1.2.100**
 - Added option to chat between OWRX+ servers via MQTT.
 - Added option to relay WSJT spots between OWRX+ servers.
