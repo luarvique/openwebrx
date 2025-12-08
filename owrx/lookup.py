@@ -1,11 +1,12 @@
 class HamCallsign(object):
     @staticmethod
     def getCountry(callsign: str):
-        callsign = callsign.upper()
-        for x in range(4, 0, -1):
-            pfx = callsign[0:x]
-            if pfx in CALL2COUNTRY:
-                return CALL2COUNTRY[pfx]
+        if len(callsign) >= 3 and (callsign[0].isdigit() or callsign[1].isdigit() or callsign[2].isdigit()):
+            callsign = callsign.upper()
+            for x in range(4, 0, -1):
+                pfx = callsign[0:x]
+                if pfx in CALL2COUNTRY:
+                    return CALL2COUNTRY[pfx]
         return None
 
     @staticmethod
