@@ -156,7 +156,6 @@ class WebAgent(object):
                 "entries"   : numEntries,
                 "state"     : "DataDownloaded"
             }
-            logger.info("@@@ MQTT: {}".format(out))
             ReportingEngine.getSharedInstance().spot(out)
 
     # Scrape web site(s) for data
