@@ -2,6 +2,7 @@
 - Fixed bandwidth allocation for services.
 - Added callsign spotter to CW/RTTY skimmers.
 - Added more checks to callsign-to-country conversion.
+- Added MQTT events for downloading data from the web.
 - Added timestamps to chat messages.
 - Enabled CW/RTTY skimmers as background services.
 - Extended CW/RTTY skimmer bandwidth to 96ksps.

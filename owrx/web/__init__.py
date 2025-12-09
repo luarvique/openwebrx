@@ -1,4 +1,6 @@
 from owrx.config.core import CoreConfig
+from owrx.config import Config
+from owrx.reporting import ReportingEngine
 from datetime import datetime
 from random import randint
 
@@ -142,6 +144,20 @@ class WebAgent(object):
         # Done
         logger.info("Loaded {0} items from '{1}'...".format(len(result), file))
         return result
+
+    # Report data download
+    def report(self, source: str, numEntries: int):
+        pm = Config.get()
+        if pm["report_radio"]:
+            out = {
+                "mode"      : "RX",
+                "timestamp" : round(datetime.now().timestamp() * 1000),
+                "source"    : source,
+                "entries"   : numEntries,
+                "state"     : "DataDownloaded"
+            }
+            logger.info("@@@ MQTT: {}".format(out))
+            ReportingEngine.getSharedInstance().spot(out)
 
     # Scrape web site(s) for data
     def _loadFromWeb(self):

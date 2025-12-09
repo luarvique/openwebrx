@@ -425,6 +425,7 @@ class EIBI(WebAgent):
             return None
 
         # Done
+        self.report(url, len(result))
         return result
 
 

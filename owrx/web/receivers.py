@@ -89,6 +89,7 @@ class Receivers(WebAgent):
             logger.error("scrapeOWRX() exception: {0}".format(e))
 
         # Done
+        self.report(url, len(result))
         return result
 
     def scrapeWebSDR(self, url: str = "http://websdr.ewi.utwente.nl/~~websdrlistk?v=1&fmt=2&chseq=0"):
@@ -127,6 +128,7 @@ class Receivers(WebAgent):
             logger.error("scrapeWebSDR() exception: {0}".format(e))
 
         # Done
+        self.report(url, len(result))
         return result
 
     def scrapeKiwiSDR(self, url: str = "http://kiwisdr.com/.public/"):
@@ -189,4 +191,5 @@ class Receivers(WebAgent):
             logger.error("scrapeKiwiSDR() exception: {0}".format(e))
 
         # Done
+        self.report(url, len(result))
         return result

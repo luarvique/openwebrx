@@ -162,6 +162,7 @@ class Repeaters(WebAgent):
             return None
 
         # Done
+        self.report(url1, len(result))
         return result
 
     #
