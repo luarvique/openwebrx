@@ -350,26 +350,6 @@ class Modes(object):
         # SatDump-based weather satellite reception is not real-time
         # and thus only works as background services.
         ServiceOnlyMode(
-            "noaa-apt-15",
-            "NOAA-15 APT",
-            underlying=["empty"],
-            bandpass=Bandpass(-25000, 25000),
-            requirements=["wxsat"],
-            service=True,
-            squelch=False,
-            secondaryFft=False
-        ),
-        ServiceOnlyMode(
-            "noaa-apt-19",
-            "NOAA-19 APT",
-            underlying=["empty"],
-            bandpass=Bandpass(-25000, 25000),
-            requirements=["wxsat"],
-            service=True,
-            squelch=False,
-            secondaryFft=False
-        ),
-        ServiceOnlyMode(
             "meteor-lrpt",
             "Meteor-M2 LRPT",
             underlying=["empty"],
@@ -389,6 +369,28 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
+        # NOAA-15 satellite has been retired, not operational
+        #ServiceOnlyMode(
+        #    "noaa-apt-15",
+        #    "NOAA-15 APT",
+        #    underlying=["empty"],
+        #    bandpass=Bandpass(-25000, 25000),
+        #    requirements=["wxsat"],
+        #    service=True,
+        #    squelch=False,
+        #    secondaryFft=False
+        #),
+        # NOAA-19 satellite has been retired, not operational
+        #ServiceOnlyMode(
+        #    "noaa-apt-19",
+        #    "NOAA-19 APT",
+        #    underlying=["empty"],
+        #    bandpass=Bandpass(-25000, 25000),
+        #    requirements=["wxsat"],
+        #    service=True,
+        #    squelch=False,
+        #    secondaryFft=False
+        #),
     ]
 
     @staticmethod

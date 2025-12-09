@@ -372,18 +372,20 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "rttyskimmer":
             from csdr.chain.toolbox import RttySkimmerDemodulator
             return RttySkimmerDemodulator(service=True)
-        elif mod == "noaa-apt-15":
-            from csdr.chain.satellite import NoaaAptDemodulator
-            return NoaaAptDemodulator(satellite=15, service=True)
-        elif mod == "noaa-apt-19":
-            from csdr.chain.satellite import NoaaAptDemodulator
-            return NoaaAptDemodulator(satellite=19, service=True)
         elif mod == "meteor-lrpt":
             from csdr.chain.satellite import MeteorLrptDemodulator
             return MeteorLrptDemodulator(service=True)
         elif mod == "elektro-lrit":
             from csdr.chain.satellite import ElektroLritDemodulator
             return ElektroLritDemodulator(service=True)
+        # NOAA-15 satellite has been retired, not operational
+        #elif mod == "noaa-apt-15":
+        #    from csdr.chain.satellite import NoaaAptDemodulator
+        #    return NoaaAptDemodulator(satellite=15, service=True)
+        # NOAA-19 satellite has been retired, not operational
+        #elif mod == "noaa-apt-19":
+        #    from csdr.chain.satellite import NoaaAptDemodulator
+        #    return NoaaAptDemodulator(satellite=19, service=True)
 
         raise ValueError("unsupported service modulation: {}".format(mod))
 
