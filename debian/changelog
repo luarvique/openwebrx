@@ -7,6 +7,7 @@ openwebrx (1.2.101) bullseye jammy; urgency=low
   * Added timestamps to chat messages.
   * Enabled CW/RTTY skimmers as background services.
   * Extended CW/RTTY skimmer bandwidth to 96ksps.
+  * Removed NOAA-15 and NOAA-19 satellite decoders.
 
  -- Marat Fayzullin <luarvique@gmail.com>  Thu, 11 Dec 2025 16:12:00 +0000
 

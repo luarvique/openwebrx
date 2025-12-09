@@ -6,6 +6,7 @@
 - Added timestamps to chat messages.
 - Enabled CW/RTTY skimmers as background services.
 - Extended CW/RTTY skimmer bandwidth to 96ksps.
+- Removed NOAA-15 and NOAA-19 satellite decoders.
 
 **1.2.100**
 - Added option to chat between OWRX+ servers via MQTT.
