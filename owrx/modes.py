@@ -33,6 +33,14 @@ class Mode:
     def get_modulation(self):
         return self.modulation
 
+    def get_bandwidth(self):
+        bandwidth = 0
+        if self.bandpass is not None:
+            bandwidth = 2 * max(abs(self.bandpass.low_cut), abs(self.bandpass.high_cut))
+        if self.ifRate is not None:
+            bandwidth = max(bandwidth, self.ifRate)
+        return bandwidth
+
 
 EmptyMode = Mode("empty", "Empty")
 
@@ -68,6 +76,12 @@ class DigitalMode(Mode):
         if self.bandpass is not None:
             return self.bandpass
         return self.get_underlying_mode().get_bandpass()
+
+    def get_bandwidth(self):
+        bandwidth = super().get_bandwidth()
+        if bandwidth > 0:
+            return bandwidth
+        return self.get_underlying_mode().get_bandwidth()
 
     def get_modulation(self):
         return self.get_underlying_mode().get_modulation()
@@ -205,7 +219,7 @@ class Modes(object):
             "cwskimmer",
             "CW Skimmer",
             underlying=["empty"],
-            bandpass=Bandpass(0, 24000),
+            bandpass=Bandpass(0, 48000),
             requirements=["skimmer"],
             service=True,
             squelch=False,
@@ -214,9 +228,9 @@ class Modes(object):
             "rttyskimmer",
             "RTTY Skimmer",
             underlying=["empty"],
-            bandpass=Bandpass(0, 24000),
+            bandpass=Bandpass(0, 48000),
             requirements=["skimmer"],
-            service=False,
+            service=True,
             squelch=False,
         ),
         DigitalMode(

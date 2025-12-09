@@ -58,13 +58,13 @@ class WavFileModule(PopenModule):
 
 
 class CwSkimmerModule(ExecModule):
-    def __init__(self, sampleRate: int = 48000, charCount: int = 4):
+    def __init__(self, sampleRate: int = 96000, charCount: int = 4):
         cmd = ["csdr-cwskimmer", "-f", "-r", str(sampleRate), "-n", str(charCount)]
         super().__init__(Format.FLOAT, Format.CHAR, cmd)
 
 
 class RttySkimmerModule(ExecModule):
-    def __init__(self, sampleRate: int = 48000, charCount: int = 4):
+    def __init__(self, sampleRate: int = 96000, charCount: int = 4):
         cmd = ["csdr-rttyskimmer", "-f", "-r", str(sampleRate), "-n", str(charCount)]
         super().__init__(Format.FLOAT, Format.CHAR, cmd)
 

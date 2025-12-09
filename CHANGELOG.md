@@ -1,8 +1,10 @@
 **1.2.101**
-- Added callsign spotter to the CW skimmer.
-- Enabled CW skimmer as a service.
+- Fixed bandwidth allocation for services.
+- Added callsign spotter to CW/RTTY skimmers.
 - Added more checks to callsign-to-country conversion.
 - Added timestamps to chat messages.
+- Enabled CW/RTTY skimmers as background services.
+- Extended CW/RTTY skimmer bandwidth to 96ksps.
 
 **1.2.100**
 - Added option to chat between OWRX+ servers via MQTT.

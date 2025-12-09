@@ -12,6 +12,7 @@ from typing import Union, Optional
 from csdr.chain.demodulator import BaseDemodulatorChain, ServiceDemodulator, DialFrequencyReceiver
 from pycsdr.modules import Buffer
 
+import sys
 import logging
 
 logger = logging.getLogger(__name__)
@@ -174,22 +175,22 @@ class ServiceHandler(SdrSourceEventClient):
                         addService(dial, self.source)
 
     def get_min_max(self, group):
-        def find_bandpass(dial):
+        minFreq = sys.maxsize
+        maxFreq = 0
+
+        for dial in group:
             mode = Modes.findByModulation(dial["mode"])
             if "underlying" in dial:
                 mode = mode.for_underlying(dial["underlying"])
-            return mode.get_bandpass()
+            bandwidth = mode.get_bandwidth()
+            minFreq = min(minFreq, dial["frequency"] - bandwidth / 2)
+            maxFreq = max(maxFreq, dial["frequency"] + bandwidth / 2)
 
-        frequencies = sorted(group, key=lambda f: f["frequency"])
-        lowest = frequencies[0]
-        min = lowest["frequency"] + find_bandpass(lowest).low_cut
-        highest = frequencies[-1]
-        max = highest["frequency"] + find_bandpass(highest).high_cut
-        return min, max
+        return minFreq, maxFreq
 
     def get_center_frequency(self, group):
-        min, max = self.get_min_max(group)
-        return (min + max) / 2
+        minFreq, maxFreq = self.get_min_max(group)
+        return (minFreq + maxFreq) / 2
 
     def get_bandwidth(self, group):
         minFreq, maxFreq = self.get_min_max(group)
@@ -368,6 +369,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "cwskimmer":
             from csdr.chain.toolbox import CwSkimmerDemodulator
             return CwSkimmerDemodulator(service=True)
+        elif mod == "rttyskimmer":
+            from csdr.chain.toolbox import RttySkimmerDemodulator
+            return RttySkimmerDemodulator(service=True)
         elif mod == "noaa-apt-15":
             from csdr.chain.satellite import NoaaAptDemodulator
             return NoaaAptDemodulator(satellite=15, service=True)

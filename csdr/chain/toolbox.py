@@ -2,7 +2,8 @@ from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
 from pycsdr.modules import FmDemod, Convert, Agc, Squelch, RealPart, SnrSquelch
 from pycsdr.types import Format
-from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, CwSkimmerParser, RttySkimmerParser, Mp3Recorder
+from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
+from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
 from owrx.config import Config
 
 import math
@@ -141,7 +142,7 @@ class RdsDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 
 
 class CwSkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, sampleRate: int = 48000, charCount: int = 4, service: bool = False):
+    def __init__(self, sampleRate: int = 96000, charCount: int = 4, service: bool = False):
         self.sampleRate = sampleRate
         self.parser = CwSkimmerParser(service)
         workers = [
@@ -163,7 +164,7 @@ class CwSkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 
 
 class RttySkimmerDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, sampleRate: int = 48000, charCount: int = 4, service: bool = False):
+    def __init__(self, sampleRate: int = 96000, charCount: int = 4, service: bool = False):
         self.sampleRate = sampleRate
         self.parser = RttySkimmerParser(service)
         workers = [
