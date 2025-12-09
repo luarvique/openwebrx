@@ -427,6 +427,7 @@ defaultConfig = PropertyLayer(
     image_quantize_colors="256",
     cw_showcw=False,
     dsc_show_errors=True,
+    ism_record_levels=False,
     gps_updates=False,
     bandplan_region=0,
     rig_enabled=False,
