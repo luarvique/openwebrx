@@ -29,7 +29,7 @@ class PskReporter(FilteredReporter):
         Current version at the time of the last change:
         https://www.adif.org/314/ADIF_314.htm#Mode_Enumeration
         """
-        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8", "Q65", "WSPR", "FST4W", "MSK144"]
+        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8", "Q65", "WSPR", "FST4W", "MSK144", "CW"]
 
     def stop(self):
         self.cancelTimer()
@@ -56,7 +56,7 @@ class PskReporter(FilteredReporter):
         self.timer.start()
 
     def spotEquals(self, s1, s2):
-        keys = ["callsign", "timestamp", "locator", "mode", "msg"]
+        keys = ["callsign", "timestamp", "mode", "msg"]
 
         return reduce(and_, map(lambda key: s1[key] == s2[key], keys))
 
@@ -97,14 +97,31 @@ class Uploader(object):
 
     def upload(self, spots):
         logger.debug("uploading %i spots", len(spots))
-        for packet in self.getPackets(spots):
-            self.socket.sendto(packet, ("report.pskreporter.info", 4739))
 
-    def getPackets(self, spots):
-        encoded = [self.encodeSpot(spot) for spot in spots]
-        # filter out any erroneous encodes
-        encoded = [e for e in encoded if e is not None]
+        # encode complete and abbreviated records separately
+        encodedSpots = []
+        encodedCwSpots = []
+        for spot in spots:
+            if "locator" in spot:
+                encoded = self.encodeSpot(spot)
+                if encoded is not None:
+                    encodedSpots.append(encoded)
+            else:
+                encoded = self.encodeCwSpot(spot)
+                if encoded is not None:
+                    encodedCwSpots.append(encoded)
 
+        # send complete records which have SNR and locator
+        if len(encodedSpots) > 0:
+            for packet in self.getPackets(self.getSenderInformationHeader(), encodedSpots):
+                self.socket.sendto(packet, ("report.pskreporter.info", 4739))
+
+        # send abbreviated records that have no SNR or locator
+        if len(encodedCwSpots) > 0:
+            for packet in self.getPackets(self.getSenderCwInformationHeader(), encodedCwSpots):
+                self.socket.sendto(packet, ("report.pskreporter.info", 4739))
+
+    def getPackets(self, sHeader, encodedSpots):
         def chunks(block, max_size):
             size = 0
             current = []
@@ -119,11 +136,10 @@ class Uploader(object):
 
         rHeader = self.getReceiverInformationHeader()
         rInfo = self.getReceiverInformation()
-        sHeader = self.getSenderInformationHeader()
 
         packets = []
         # 1200 bytes of sender data should keep the packet size below MTU for most cases
-        for chunk in chunks(encoded, 1200):
+        for chunk in chunks(encodedSpots, 1200):
             sInfo = self.getSenderInformation(chunk)
             length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
             header = self.getHeader(length)
@@ -144,6 +160,20 @@ class Uploader(object):
 
     def encodeString(self, s):
         return [len(s)] + list(s.encode("utf-8"))
+
+    def encodeCwSpot(self, spot):
+        try:
+            return bytes(
+                self.encodeString(spot["callsign"])
+                + list(int(spot["freq"]).to_bytes(5, "big"))
+                + self.encodeString(spot["mode"])
+                # informationsource. 1 means "automatically extracted
+                + [0x01]
+                + list(int(spot["timestamp"] / 1000).to_bytes(4, "big"))
+            )
+        except Exception:
+            logger.exception("Error while encoding CW spot for pskreporter")
+            return None
 
     def encodeSpot(self, spot):
         try:
@@ -211,6 +241,25 @@ class Uploader(object):
         body = self.pad(body, 4)
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
         return body
+
+    def getSenderCwInformationHeader(self):
+        return bytes(
+            # id, length
+            [0x00, 0x02, 0x00, 0x2C]
+            + Uploader.senderDelimiter
+            # number of fields
+            + [0x00, 0x05]
+            # senderCallsign
+            + [0x80, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # frequency
+            + [0x80, 0x05, 0x00, 0x05, 0x00, 0x00, 0x76, 0x8F]
+            # mode
+            + [0x80, 0x0A, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # informationSource
+            + [0x80, 0x0B, 0x00, 0x01, 0x00, 0x00, 0x76, 0x8F]
+            # flowStartSeconds
+            + [0x00, 0x96, 0x00, 0x04]
+        )
 
     def getSenderInformationHeader(self):
         return bytes(

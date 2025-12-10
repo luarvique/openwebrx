@@ -13,9 +13,10 @@ logger = logging.getLogger(__name__)
 class SkimmerParser(TextParser):
     def __init__(self, mode: str, service: bool = False):
         self.reLine = re.compile(r"^([0-9]+):(.+)$")
-        self.reCqCall = re.compile(r".*(CQ +[A-Z]{2,} +([0-9A-Z]{3,})) .*")
-        self.reDeCall = re.compile(r".*(DE +([0-9A-Z]{3,})) .*")
-        self.re2xCall = re.compile(r".* +(([0-9A-Z]{3,}) +([0-9A-Z]{3,})) .*")
+        self.reCqCall = re.compile(r"(.*CQ +[A-Z]{2,} +([0-9A-Z]{3,})) .*")
+        self.reDeCall = re.compile(r"(.*DE +([0-9A-Z]{3,})) .*")
+        self.reTuCall = re.compile(r"(.*TU +([0-9A-Z]{3,}) +([0-9A-Z]{3,})) .*")
+        self.re2xCall = re.compile(r"(.* +([0-9A-Z]{3,}) +([0-9A-Z]{3,})) .*")
         self.mode = mode
         self.frequency = 0
         self.freqChanged = False
@@ -49,25 +50,36 @@ class SkimmerParser(TextParser):
     def _reportCallsign(self, freq: int, text: str) -> None:
         # No callsign yet
         callsign = None
+        callee   = None
         country  = None
         # Append new text to whatever received at given frequency
         if freq in self.signals:
             text = self.signals[freq] + text
+        # Match 'TU <callsign1> <callsign2>'
+        if country is None:
+            r = self.reTuCall.match(text)
+            if r is not None:
+                callee  = r.group(2)
+                country = HamCallsign.getCountry(callee)
+                if country is not None:
+                    callsign = r.group(3)
+                    country  = HamCallsign.getCountry(callsign)
         # Match 'CQ <...> <callsign>'
-        r = self.reCqCall.match(text)
-        if r is not None:
-            callsign = r.group(2)
-            country  = HamCallsign.getCountry(callsign)
+        if country is None:
+            r = self.reCqCall.match(text)
+            if r is not None:
+                callsign = r.group(2)
+                country  = HamCallsign.getCountry(callsign)
         # Match 'DE <callsign>'
         if country is None:
             r = self.reDeCall.match(text)
             if r is not None:
                 callsign = r.group(2)
                 country  = HamCallsign.getCountry(callsign)
-        # Match '<callsign> <callsign>'
+        # Match '<callsign> <callsign>', but ignore signal reports
         if country is None:
             r = self.re2xCall.match(text)
-            if r is not None and r.group(2) == r.group(3):
+            if r is not None and r.group(2) == r.group(3) and "NN" not in r.group(2):
                 callsign = r.group(2)
                 country  = HamCallsign.getCountry(callsign)
         # If callsign not matched...
@@ -83,12 +95,14 @@ class SkimmerParser(TextParser):
                 "timestamp" : round(datetime.now().timestamp() * 1000),
                 "freq"      : freq,
                 "callsign"  : callsign,
-                "raw"       : r.group(1)
+                "msg"       : r.group(1)
             }
             if country[0]:
                 out["ccode"] = country[0]
             if country[1]:
                 out["country"] = country[1]
+            if callee:
+                out["callee"] = callee
             ReportingEngine.getSharedInstance().spot(out)
 
     def setDialFrequency(self, frequency: int) -> None:
