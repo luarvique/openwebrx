@@ -50,6 +50,7 @@
       "jt9": 3572000,
       "ft4": [3568000, 3575000],
       "js8": 3578000,
+      "cwskimmer": 3510000,
       "sstv": [
         { "frequency": 3730000, "underlying": "lsb" },
         { "frequency": 3845000, "underlying": "lsb" }
@@ -79,6 +80,7 @@
       "jt9": 7078000,
       "ft4": 7047500,
       "js8": 7078000,
+      "cwskimmer": 7010000,
       "sstv": [
         { "frequency": 7165000, "underlying": "lsb" },
         { "frequency": 7171000, "underlying": "lsb" }
@@ -115,6 +117,7 @@
       "jt9": 14078000,
       "ft4": 14080000,
       "js8": 14078000,
+      "cwskimmer": 14010000,
       "sstv": 14230000
     },
     "tags": ["hamradio"]
@@ -178,6 +181,7 @@
       "jt9": 28078000,
       "ft4": 28180000,
       "js8": 28078000,
+      "cwskimmer": 28010000,
       "sstv": 28680000
     },
     "tags": ["hamradio"]

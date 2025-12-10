@@ -2,6 +2,7 @@
 - Fixed bandwidth allocation for services.
 - Added callsign spotter to CW/RTTY skimmers.
 - Added CW spot reporting to PskReporter.
+- Added CW skimmer to band plans.
 - Added more checks to callsign-to-country conversion.
 - Added MQTT events for downloading data from the web.
 - Added timestamps to chat messages.
