@@ -56,7 +56,7 @@ class DigitalMode(Mode):
         name,
         underlying,
         bandpass: Bandpass = None,
-        ifRate = None,
+        ifRate=None,
         requirements=None,
         service=False,
         squelch=True,
@@ -90,7 +90,7 @@ class DigitalMode(Mode):
         if underlying not in self.underlying:
             raise ValueError("{} is not a valid underlying mode for {}".format(underlying, self.modulation))
         return DigitalMode(
-            self.modulation, self.name, [underlying], self.bandpass, self.requirements, self.service, self.squelch
+            self.modulation, self.name, [underlying], self.bandpass, self.ifRate, self.requirements, self.service, self.squelch
         )
 
 
