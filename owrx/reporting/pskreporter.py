@@ -29,7 +29,7 @@ class PskReporter(FilteredReporter):
         Current version at the time of the last change:
         https://www.adif.org/314/ADIF_314.htm#Mode_Enumeration
         """
-        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8", "Q65", "WSPR", "FST4W", "MSK144", "CW"]
+        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8", "Q65", "WSPR", "FST4W", "MSK144", "CW", "RTTY"]
 
     def stop(self):
         self.cancelTimer()
@@ -100,16 +100,16 @@ class Uploader(object):
 
         # encode complete and abbreviated records separately
         encodedSpots = []
-        encodedCwSpots = []
+        encodedShortSpots = []
         for spot in spots:
             if "locator" in spot:
                 encoded = self.encodeSpot(spot)
                 if encoded is not None:
                     encodedSpots.append(encoded)
             else:
-                encoded = self.encodeCwSpot(spot)
+                encoded = self.encodeShortSpot(spot)
                 if encoded is not None:
-                    encodedCwSpots.append(encoded)
+                    encodedShortSpots.append(encoded)
 
         # send complete records which have SNR and locator
         if len(encodedSpots) > 0:
@@ -117,8 +117,8 @@ class Uploader(object):
                 self.socket.sendto(packet, ("report.pskreporter.info", 4739))
 
         # send abbreviated records that have no SNR or locator
-        if len(encodedCwSpots) > 0:
-            for packet in self.getPackets(self.getSenderCwInformationHeader(), encodedCwSpots):
+        if len(encodedShortSpots) > 0:
+            for packet in self.getPackets(self.getSenderShortInformationHeader(), encodedShortSpots):
                 self.socket.sendto(packet, ("report.pskreporter.info", 4739))
 
     def getPackets(self, sHeader, encodedSpots):
@@ -161,7 +161,7 @@ class Uploader(object):
     def encodeString(self, s):
         return [len(s)] + list(s.encode("utf-8"))
 
-    def encodeCwSpot(self, spot):
+    def encodeShortSpot(self, spot):
         try:
             return bytes(
                 self.encodeString(spot["callsign"])
@@ -172,7 +172,7 @@ class Uploader(object):
                 + list(int(spot["timestamp"] / 1000).to_bytes(4, "big"))
             )
         except Exception:
-            logger.exception("Error while encoding CW spot for pskreporter")
+            logger.exception("Error while encoding short spot for pskreporter")
             return None
 
     def encodeSpot(self, spot):
@@ -242,7 +242,7 @@ class Uploader(object):
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
         return body
 
-    def getSenderCwInformationHeader(self):
+    def getSenderShortInformationHeader(self):
         return bytes(
             # id, length
             [0x00, 0x02, 0x00, 0x2C]
