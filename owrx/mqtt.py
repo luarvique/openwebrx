@@ -24,6 +24,7 @@ class MqttSubscriber(object):
             mqttReporter.addWatch("WSPR", self._handleWSJT)
             mqttReporter.addWatch("JT65", self._handleWSJT)
             mqttReporter.addWatch("FST4W", self._handleWSJT)
+            mqttReporter.addWatch("MSK144", self._handleWSJT)
         if pm["mqtt_aircraft"]:
             mqttReporter.addWatch("ACARS", self._handleAircraft)
             mqttReporter.addWatch("ADSB", self._handleAircraft)

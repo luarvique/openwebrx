@@ -1,8 +1,10 @@
 openwebrx (1.2.102) bullseye jammy; urgency=low
 
+  * Added MSK144 to WSJT modes received over MQTT.
   * Improved HAM callsigns verification.
   * Enabled RTTY skimmer to send to PskReporter.
   * Fixed background digital mode instantiation.
+  * Removed NOAA satellites from the bandplans.
 
  -- Marat Fayzullin <luarvique@gmail.com>  Thu, 18 Dec 2025 16:12:00 +0000
 
