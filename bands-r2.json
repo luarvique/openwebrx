@@ -439,8 +439,6 @@
     "upper_bound": 138000000,
     "tags": ["service"],
     "frequencies": {
-      "noaa-apt-15": 137620000,
-      "noaa-apt-19": 137100000,
       "meteor-lrpt": [137900000, 137101000]
     }
   },
