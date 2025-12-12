@@ -19,10 +19,10 @@ class MqttReporter(Reporter):
     def __init__(self):
         pm = Config.get()
         self.topic = self.DEFAULT_TOPIC
-        self.client = self._getClient()
         self.connected = False
         self.watchLock = threading.Lock()
         self.watching = {}
+        self.client = self._getClient()
         self.subscriber = MqttSubscriber(self)
         self.subscriptions = [
             pm.wireProperty("mqtt_topic", self._setTopic),
