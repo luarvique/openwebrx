@@ -1,3 +1,11 @@
+openwebrx (1.2.102) bullseye jammy; urgency=low
+
+  * Improved HAM callsigns verification.
+  * Enabled RTTY skimmer to send to PskReporter.
+  * Fixed background digital mode instantiation.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Thu, 18 Dec 2025 16:12:00 +0000
+
 openwebrx (1.2.101) bullseye jammy; urgency=low
 
   * Fixed bandwidth allocation for services.

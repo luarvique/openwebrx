@@ -1,3 +1,8 @@
+**1.2.102**
+- Improved HAM callsigns verification.
+- Enabled RTTY skimmer to send to PskReporter.
+- Fixed background digital mode instantiation.
+
 **1.2.101**
 - Fixed bandwidth allocation for services.
 - Added callsign spotter to CW/RTTY skimmers.
