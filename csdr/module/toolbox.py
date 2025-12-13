@@ -11,7 +11,8 @@ class Rtl433Module(ExecModule):
             "-F", "json" if jsonOutput else "kv",
             "-A", "-Y", "autolevel",
         ]
-        if Config.get()["ism_record_levels"]:
+        pm = Config.get()
+        if pm["ism_report_levels"]:
             cmd += ["-M", "level"]
         super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
 
