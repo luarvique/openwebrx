@@ -10,8 +10,9 @@ class Rtl433Module(ExecModule):
             "-M", "time:unix" if jsonOutput else "time:utc",
             "-F", "json" if jsonOutput else "kv",
             "-A", "-Y", "autolevel",
-            # "-M", "level",
         ]
+        if Config.get()["ism_record_levels"]:
+            cmd += ["-M", "level"]
         super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
 
 
