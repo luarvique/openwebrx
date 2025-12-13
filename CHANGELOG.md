@@ -1,9 +1,11 @@
 **1.2.102**
 - Added MSK144 to WSJT modes received over MQTT.
-- Improved HAM callsigns verification.
-- Enabled RTTY skimmer to send to PskReporter.
+- Added ISM signal level reporting [Ryan Jacobs].
+- Fixed MQTT initialization order [Jan Loewe].
 - Fixed background digital mode instantiation.
+- Enabled RTTY skimmer to send to PskReporter.
 - Removed NOAA satellites from the bandplans.
+- Improved HAM callsigns verification.
 
 **1.2.101**
 - Fixed bandwidth allocation for services.
