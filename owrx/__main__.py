@@ -48,6 +48,19 @@ def handleSignal(sig, frame):
     raise SignalException("Received Signal {sig}".format(sig=sig))
 
 
+def reportServerState(state):
+    pm = Config.get()
+    if pm["report_radio"]:
+        ReportingEngine.getSharedInstance().spot({
+            "mode"      : "RX",
+            "timestamp" : round(datetime.now().timestamp() * 1000),
+            "version"   : openwebrx_version,
+            "lat"       : pm["receiver_gps"]["lat"],
+            "lon"       : pm["receiver_gps"]["lon"],
+            "state"     : state
+        })
+
+
 def main():
     parser = argparse.ArgumentParser(description="OpenWebRX - Open Source SDR Web App for Everyone!")
     parser.add_argument(
@@ -146,14 +159,7 @@ Support and info:       https://groups.io/g/openwebrx
     Markers.start()
 
     # Report server started
-    pm = Config.get()
-    if pm["report_radio"]:
-        ReportingEngine.getSharedInstance().spot({
-            "mode"      : "RX",
-            "timestamp" : round(datetime.now().timestamp() * 1000),
-            "version"   : openwebrx_version,
-            "state"     : "ServerStarted"
-        })
+    reportServerState("ServerStarted")
 
     try:
         # This is our HTTP server
@@ -186,13 +192,7 @@ Support and info:       https://groups.io/g/openwebrx
     DecoderQueue.stopAll()
 
     # Report server stopped
-    if pm["report_radio"]:
-        ReportingEngine.getSharedInstance().spot({
-            "mode"      : "RX",
-            "timestamp" : round(datetime.now().timestamp() * 1000),
-            "version"   : openwebrx_version,
-            "state"     : "ServerStopped"
-        })
+    reportServerState("ServerStopped")
 
     # Done with reporting now
     ReportingEngine.stopAll()
