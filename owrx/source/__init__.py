@@ -716,6 +716,7 @@ class SdrDeviceDescription(object):
             CheckboxInput(
                 "key_locked",
                 "Require magic key to switch profile",
+                infotext="A device will require the key to switch profiles. A profile will require the key to switch to or from.",
             ),
             GainInput("rf_gain", "Device gain", self.hasAgc()),
             NumberInput(
