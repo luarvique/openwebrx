@@ -377,6 +377,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         # Locked source's profile can only be changed with a key
         magic = self.stack["magic_key"]
         if self.sdr.isLocked(profile) and magic != "" and key != magic:
+            # Tell client of locked profile
+            self.write_log_message("This profile is locked, keeping current profile.")
             # Force update back to the current profile
             self.resetSdr()
 
