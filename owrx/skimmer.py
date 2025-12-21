@@ -12,11 +12,14 @@ logger = logging.getLogger(__name__)
 
 class SkimmerParser(TextParser):
     def __init__(self, mode: str, service: bool = False):
+        # Looking for 4+ character callsigns, since 3 character
+        # ones are often decoding errors
         self.reLine = re.compile(r"^([0-9]+):(.+)$")
-        self.reCqCall = re.compile(r"(.*CQ +[A-Z]{2,} +([0-9A-Z]{3,})) .*")
-        self.reDeCall = re.compile(r"(.*DE +([0-9A-Z]{3,})) .*")
-        self.reTuCall = re.compile(r"(.*TU +([0-9A-Z]{3,}) +([0-9A-Z]{3,})) .*")
-        self.re2xCall = re.compile(r"(.* +([0-9A-Z]{3,}) +([0-9A-Z]{3,})) .*")
+        self.reCqCall = re.compile(r"(.*CQ +([A-Z]{2,}) +([0-9A-Z]{4,})) .*")
+        self.reDeCall = re.compile(r"(.*(DE|TEST|DX|CW|CWT|SST|MST|QRP|POTA|SOTA) +([0-9A-Z]{4,})) .*")
+        self.reTuCall = re.compile(r"(.*TU +([0-9A-Z]{4,}) +([0-9A-Z]{4,})) .*")
+        self.re2dCall = re.compile(r"(.* +([0-9A-Z]{4,}) +DE *([0-9A-Z]{4,})) .*")
+        self.re2xCall = re.compile(r"(.* +([0-9A-Z]{4,}) +([0-9A-Z]{4,})) .*")
         self.mode = mode
         self.frequency = 0
         self.freqChanged = False
@@ -55,32 +58,41 @@ class SkimmerParser(TextParser):
         # Append new text to whatever received at given frequency
         if freq in self.signals:
             text = self.signals[freq] + text
-        # Match 'TU <callsign1> <callsign2>'
+        # Match '<callsign1> DE <callsign2>'
         if country is None:
-            r = self.reTuCall.match(text)
-            if r is not None:
+            r = self.re2dCall.match(text)
+            if r is not None and r.group(2) != r.group(3):
                 callee  = r.group(2)
                 country = HamCallsign.getCountry(callee)
                 if country is not None:
                     callsign = r.group(3)
                     country  = HamCallsign.getCountry(callsign)
-        # Match 'CQ <...> <callsign>'
+        # Match 'TU <callsign1> <callsign2>'
         if country is None:
-            r = self.reCqCall.match(text)
-            if r is not None:
-                callsign = r.group(2)
-                country  = HamCallsign.getCountry(callsign)
-        # Match 'DE <callsign>'
-        if country is None:
-            r = self.reDeCall.match(text)
-            if r is not None:
-                callsign = r.group(2)
-                country  = HamCallsign.getCountry(callsign)
+            r = self.reTuCall.match(text)
+            if r is not None and r.group(2) != r.group(3):
+                callee  = r.group(2)
+                country = HamCallsign.getCountry(callee)
+                if country is not None:
+                    callsign = r.group(3)
+                    country  = HamCallsign.getCountry(callsign)
         # Match '<callsign> <callsign>', but ignore signal reports
         if country is None:
             r = self.re2xCall.match(text)
             if r is not None and r.group(2) == r.group(3) and "NN" not in r.group(2):
                 callsign = r.group(2)
+                country  = HamCallsign.getCountry(callsign)
+        # Match 'CQ <...> <callsign>'
+        if country is None:
+            r = self.reCqCall.match(text)
+            if r is not None:
+                callsign = r.group(3)
+                country  = HamCallsign.getCountry(callsign)
+        # Match 'DE|TEST|DX|CW|CWT|SST|MST|QRP|POTA|SOTA <callsign>'
+        if country is None:
+            r = self.reDeCall.match(text)
+            if r is not None:
+                callsign = r.group(3)
                 country  = HamCallsign.getCountry(callsign)
         # If callsign not matched...
         if country is None:
