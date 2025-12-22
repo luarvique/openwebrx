@@ -38,6 +38,7 @@ class WiFi(object):
 
     def startHotspot(self, ssid: str = "openwebrx", password: str = "openwebrx", device: str = "wlan0"):
         if len(ssid) > 0 and len(password) > 0 and len(device) > 0:
+            logger.info("Starting hotspot '{0}'...".format(ssid))
             command = [
                 "nmcli", "device", "wifi", "hotspot",
                 "con-name", "owrx.hotspot",
@@ -61,7 +62,7 @@ class WiFi(object):
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             lines = result.stdout.splitlines()
             for line in lines:
-                m = re.match(r"^(.*):(.*):(.*):(.*)\s*$")
+                m = re.match(r"^(.*):(.*):(.*):(.*)\s*$", line)
                 if m is not None and m.group(1) == device and m.group(3) == "connected":
                     return m.group(4)
         except Exception as e:
@@ -88,6 +89,7 @@ class WiFi(object):
 
     def add(self, ssid: str, password: str, device: str = "wlan0"):
         if len(ssid) > 0 and len(password) > 0 and len(device) > 0:
+            logger.info("Adding connection '{0}'...".format(ssid))
             command = [
                 "nmcli", "con", "add",
                 "con-name", "owrx." + ssid,
@@ -98,7 +100,6 @@ class WiFi(object):
                 "wifi-sec.psk", password,
                 "connection.autoconnect", "yes"
             ]
-            logger.info("Adding connection '{0}'...".format(ssid))
             try:
                 subprocess.run(command, check=True)
                 return True
@@ -124,30 +125,31 @@ class WiFi(object):
                 self.delete(ap["uuid"])
         # Add active WiFi connections from config
         pm = Config()
-        on = 0
-        if pm["wifi_enable_1"] and self.add(pm["wifi_name_1"], pm["wifi_pass_1"]):
-            on += 1
-        if pm["wifi_enable_2"] and self.add(pm["wifi_name_2"], pm["wifi_pass_2"]):
-            on += 1
-        if pm["wifi_enable_3"] and self.add(pm["wifi_name_3"], pm["wifi_pass_3"]):
-            on += 1
-        if pm["wifi_enable_4"] and self.add(pm["wifi_name_4"], pm["wifi_pass_4"]):
-            on += 1
-        # If no WiFi connections added, start WiFi hotspot
-        if on > 0:
-            self.startConnectionCheck()
-        else:
-            self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
+        if pm["wifi_enable_1"]:
+            self.add(pm["wifi_name_1"], pm["wifi_pass_1"])
+        if pm["wifi_enable_2"]:
+            self.add(pm["wifi_name_2"], pm["wifi_pass_2"])
+        if pm["wifi_enable_3"]:
+            self.add(pm["wifi_name_3"], pm["wifi_pass_3"])
+        if pm["wifi_enable_4"]:
+            self.add(pm["wifi_name_4"], pm["wifi_pass_4"])
+        # If no WiFi connections go up after a while, become hotspot
+        self.startConnectionCheck()
 
     # Wait for a while, then check if WiFi connection is active
     # Start WiFi hotspot if there is no active WiFi connection
     def _connectionThread(self):
+        logger.info("Will check for active connection in {0} seconds.".format(self.checkPeriod))
         self.event.wait(self.checkPeriod)
-        if not self.event.is_set():
-            logger.info("Checking for an active WiFi connection...")
-            if self.getCurrentSSID() is None:
+        if self.event.is_set():
+            logger.info("Cancelled active connection check.")
+        else:
+            ssid = self.getCurrentSSID()
+            if ssid is not None:
+                logger.info("Found active connection to '{0}'.".format(ssid))
+            else:
+                logger.info("No active connection, becoming hotspot...")
                 pm = Config.get()
-                logger.info("Not active WiFi connection, becoming hotspot...")
                 self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
         # Thread completed
         self.thread = None
