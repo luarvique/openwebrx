@@ -24,14 +24,15 @@ class WiFi(object):
         self.lock = threading.Lock()
         self.event = threading.Event()
         self.thread = None
-        self.checkPeriod = 60
 
-    def startConnectionCheck(self):
+    def startConnectionCheck(self, delay: int = 1):
         # Stop existing connection check, if present
         if self.thread is not None:
             self.event.set()
             while self.thread is not None:
                 time.sleep(1)
+        # This is how much we wait until the actual check
+        self.checkDelay = delay
         # Start delayed connection check
         self.thread = threading.Thread(target=self._connectionThread, name=type(self).__name__ + ".Check")
         self.thread.start()
@@ -41,7 +42,7 @@ class WiFi(object):
             logger.info("Starting hotspot '{0}'...".format(ssid))
             command = [
                 "nmcli", "device", "wifi", "hotspot",
-                "con-name", "owrx.hotspot",
+                "con-name", "owrx-hotspot",
                 "ifname", device,
                 "ssid", ssid,
                 "password", password
@@ -54,7 +55,7 @@ class WiFi(object):
         return False
 
     def stopHotspot(self):
-        return self.delete("owrx.hotspot")
+        return self.delete("owrx-hotspot")
 
     def getCurrentSSID(self, device: str = "wlan0"):
         command = ["nmcli", "-t", "-c", "no", "device", "status"]
@@ -121,7 +122,7 @@ class WiFi(object):
     def applyNewSettings(self):
         # Delete all connections added by OpenWebRX, including hotspot
         for ap in self.getAll():
-            if ap["name"].startswith("owrx."):
+            if ap["name"] == "owrx-hotspot" or ap["name"].startswith("owrx."):
                 self.delete(ap["uuid"])
         # Add active WiFi connections from config
         pm = Config()
@@ -134,13 +135,13 @@ class WiFi(object):
         if pm["wifi_enable_4"]:
             self.add(pm["wifi_name_4"], pm["wifi_pass_4"])
         # If no WiFi connections go up after a while, become hotspot
-        self.startConnectionCheck()
+        self.startConnectionCheck(60)
 
     # Wait for a while, then check if WiFi connection is active
     # Start WiFi hotspot if there is no active WiFi connection
     def _connectionThread(self):
-        logger.info("Will check for active connection in {0} seconds.".format(self.checkPeriod))
-        self.event.wait(self.checkPeriod)
+        logger.info("Will check for active connection in {0} seconds.".format(self.checkDelay))
+        self.event.wait(self.checkDelay)
         if self.event.is_set():
             logger.info("Cancelled active connection check.")
         else:
