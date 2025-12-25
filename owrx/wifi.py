@@ -38,7 +38,11 @@ class WiFi(object):
         self.thread.start()
 
     def startHotspot(self, ssid: str = "openwebrx", password: str = "openwebrx", device: str = "wlan0"):
-        if len(ssid) > 0 and len(password) > 0 and len(device) > 0:
+        if len(ssid) == 0:
+            ssid = "openwebrx"
+        if len(password) == 0:
+            password = "openwebrx"
+        if len(device) > 0:
             logger.info("Starting hotspot '{0}'...".format(ssid))
             command = [
                 "nmcli", "device", "wifi", "hotspot",
