@@ -8,6 +8,7 @@ from owrx.form.input import (
     FloatInput,
     TextAreaInput,
     DropdownInput,
+    PasswordInput,
     Option,
 )
 from owrx.form.input.validator import RangeValidator
@@ -20,6 +21,7 @@ from owrx.form.input.country import CountryInput
 from owrx.waterfall import WaterfallOptions
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 from owrx.controllers.settings import SettingsBreadcrumb
+from owrx.users import UserList, DefaultPasswordClass
 import shutil
 import os
 import re
@@ -351,6 +353,19 @@ class GeneralSettingsController(SettingsFormController):
                     + "brackets ({}) where aircraft Mode-S code is supposed to be.",
                 ),
             ),
+            Section(
+                "Change password for '{0}'".format(self.user.name),
+                PasswordInput(
+                    "admin_pass_1",
+                    "New password",
+                    infotext="Enter non-empty value in order to change the password."
+                ),
+                PasswordInput(
+                    "admin_pass_2",
+                    "Repeat password",
+                    infotext="Enter the same value in order to change the password."
+                ),
+            ),
         ]
 
     def remove_existing_image(self, image_id):
@@ -392,6 +407,13 @@ class GeneralSettingsController(SettingsFormController):
         # Image handling
         for img in ["receiver_avatar", "receiver_top_photo"]:
             self.handle_image(data, img)
+        # Handle changing admin password
+        if len(data["admin_pass_1"]) > 0 and data["admin_pass_1"] == data["admin_pass_2"]:
+            userList = UserList()
+            userList[self.user.name].setPassword(DefaultPasswordClass(data["admin_pass_1"]))
+            userList.store()
+        del data["admin_pass_1"]
+        del data["admin_pass_2"]
         # special handling for waterfall colors: custom colors only stay in config if custom color scheme is selected
         if "waterfall_scheme" in data:
             scheme = WaterfallOptions(data["waterfall_scheme"])
