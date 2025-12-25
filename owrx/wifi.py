@@ -55,9 +55,13 @@ class WiFi(object):
                 "ipv4.addresses", ip + "/24",
                 "ipv4.gateway", ip
             ]
+            command3 = [
+                "nmcli", "con", "up", "owrx-hotspot"
+            ]
             try:
                 subprocess.run(command1, check=True)
                 subprocess.run(command2, check=True)
+                subprocess.run(command3, check=True)
                 return True
             except Exception as e:
                 logger.error("Failed to start hotspot '{0}': {1}".format(ssid, str(e)))
