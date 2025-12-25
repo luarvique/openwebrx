@@ -23,6 +23,7 @@ from owrx.admin import add_admin_parser, run_admin_action
 from owrx.reporting import ReportingEngine
 from owrx.markers import Markers
 from owrx.gps import GpsUpdater
+from owrx.wifi import WiFi
 from datetime import datetime
 from pathlib import Path
 import signal
@@ -131,6 +132,9 @@ Support and info:       https://groups.io/g/openwebrx
 
     # config warmup
     Config.validateConfig()
+
+    # Check for WiFi connection and become hotspot if none
+    WiFi.getSharedInstance().startConnectionCheck()
 
     featureDetector = FeatureDetector()
     failed = featureDetector.get_failed_requirements("core")
