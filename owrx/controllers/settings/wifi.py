@@ -22,7 +22,7 @@ class WifiSettingsController(SettingsFormController):
         return [
             Section(
                 "Self-Hosted Access Point",
-                CheckboxInput("wifi_enable_ap", "Enable access point"),
+                CheckboxInput("wifi_enable_ap", "Enable access point (192.168.10.1)"),
                 TextInput("wifi_name_ap", "SSID", validator=WifiSsidValidator()),
                 TextInput("wifi_pass_ap", "Password", validator=WifiPassValidator()),
             ),
