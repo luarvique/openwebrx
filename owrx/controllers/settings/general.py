@@ -356,13 +356,18 @@ class GeneralSettingsController(SettingsFormController):
             Section(
                 "Change password for '{0}'".format(self.user.name),
                 PasswordInput(
+                    "admin_pass_0",
+                    "Current password",
+                    infotext="Enter current password in order to change it."
+                ),
+                PasswordInput(
                     "admin_pass_1",
                     "New password",
                     infotext="Enter non-empty value in order to change the password."
                 ),
                 PasswordInput(
                     "admin_pass_2",
-                    "Repeat password",
+                    "Repeat new password",
                     infotext="Enter the same value in order to change the password."
                 ),
             ),
@@ -409,8 +414,10 @@ class GeneralSettingsController(SettingsFormController):
             self.handle_image(data, img)
         # Handle changing admin password
         if len(data["admin_pass_1"]) > 0 and data["admin_pass_1"] == data["admin_pass_2"]:
-            self.user.setPassword(DefaultPasswordClass(data["admin_pass_1"]))
-            UserList.getSharedInstance().store()
+            if self.user.password.is_valid(data["admin_pass_0"]):
+                self.user.setPassword(DefaultPasswordClass(data["admin_pass_1"]))
+                UserList.getSharedInstance().store()
+        del data["admin_pass_0"]
         del data["admin_pass_1"]
         del data["admin_pass_2"]
         # special handling for waterfall colors: custom colors only stay in config if custom color scheme is selected
