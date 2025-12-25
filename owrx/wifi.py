@@ -26,7 +26,7 @@ class WiFi(object):
         self.thread = None
 
     def startConnectionCheck(self, delay: int = 1):
-        # Stop existing connection check, if present
+        # Stop existing connection check
         if self.thread is not None:
             self.event.set()
             while self.thread is not None:
@@ -38,11 +38,10 @@ class WiFi(object):
         self.thread.start()
 
     def startHotspot(self, ssid: str = "openwebrx", password: str = "openwebrx", device: str = "wlan0"):
-        if len(ssid) == 0:
-            ssid = "openwebrx"
-        if len(password) == 0:
-            password = "openwebrx"
-        if len(device) > 0:
+        if len(ssid) > 0 and len(password) > 0 and len(device) > 0:
+            # Make sure WiFi is on
+            self.enableRadio()
+            # Create a WiFi hotspot
             logger.info("Starting hotspot '{0}'...".format(ssid))
             command = [
                 "nmcli", "device", "wifi", "hotspot",
@@ -60,6 +59,15 @@ class WiFi(object):
 
     def stopHotspot(self):
         return self.delete("owrx-hotspot")
+
+    def enableRadio(self, enable: bool = True):
+        command = ["nmcli", "radio", "wifi", "on" if enable else "off"]
+        try:
+            subprocess.run(command, check=True)
+            return True
+        except Exception as e:
+            logger.error("Failed to {0} radio: {1}".format("enable" if enable else "disable", str(e)))
+        return False
 
     def getCurrentSSID(self, device: str = "wlan0"):
         command = ["nmcli", "-t", "-c", "no", "device", "status"]
@@ -130,14 +138,22 @@ class WiFi(object):
                 self.delete(ap["uuid"])
         # Add active WiFi connections from config
         pm = Config()
+        on = 0
         if pm["wifi_enable_1"]:
             self.add(pm["wifi_name_1"], pm["wifi_pass_1"])
+            on += 1
         if pm["wifi_enable_2"]:
             self.add(pm["wifi_name_2"], pm["wifi_pass_2"])
+            on += 1
         if pm["wifi_enable_3"]:
             self.add(pm["wifi_name_3"], pm["wifi_pass_3"])
+            on += 1
         if pm["wifi_enable_4"]:
             self.add(pm["wifi_name_4"], pm["wifi_pass_4"])
+            on += 1
+        # If any connections added, make sure WiFi is enabled
+        if on > 0:
+            self.enableRadio()
         # If no WiFi connections go up after a while, become hotspot
         self.startConnectionCheck(60)
 
@@ -155,6 +171,7 @@ class WiFi(object):
             else:
                 logger.info("No active connection, becoming hotspot...")
                 pm = Config.get()
-                self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
+                if pm["wifi_enable_ap"]:
+                    self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
         # Thread completed
         self.thread = None
