@@ -1,3 +1,14 @@
+openwebrx (1.2.103) bullseye jammy; urgency=low
+
+  * Added WiFi connections configuration.
+  * Added standalone hotspot configuration.
+  * Added option to change admin password.
+  * Added GPS position to MQTT server events.
+  * Added ability to lock individual profiles.
+  * Improved pattern recognition in CW skimmer.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Fri, 26 Dec 2025 16:12:00 +0000
+
 openwebrx (1.2.102) bullseye jammy; urgency=low
 
   * Added MSK144 to WSJT modes received over MQTT.

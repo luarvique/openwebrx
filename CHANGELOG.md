@@ -1,3 +1,11 @@
+**1.2.103**
+- Added WiFi connections configuration.
+- Added standalone hotspot configuration.
+- Added option to change admin password.
+- Added GPS position to MQTT server events.
+- Added ability to lock individual profiles.
+- Improved pattern recognition in CW skimmer.
+
 **1.2.102**
 - Added MSK144 to WSJT modes received over MQTT.
 - Added ISM signal level reporting [Ryan Jacobs].
