@@ -37,21 +37,27 @@ class WiFi(object):
         self.thread = threading.Thread(target=self._connectionThread, name=type(self).__name__ + ".Check")
         self.thread.start()
 
-    def startHotspot(self, ssid: str = "openwebrx", password: str = "openwebrx", device: str = "wlan0"):
+    def startHotspot(self, ssid: str = "openwebrx", password: str = "openwebrx", ip: str = "192.168.10.1", device: str = "wlan0"):
         if len(ssid) > 0 and len(password) > 0 and len(device) > 0:
             # Make sure WiFi is on
             self.enableRadio()
             # Create a WiFi hotspot
             logger.info("Starting hotspot '{0}'...".format(ssid))
-            command = [
+            command1 = [
                 "nmcli", "device", "wifi", "hotspot",
                 "con-name", "owrx-hotspot",
                 "ifname", device,
                 "ssid", ssid,
                 "password", password
             ]
+            command2 = [
+                "nmcli", "con", "modify", "owrx-hotspot",
+                "ipv4.addresses", ip + "/24",
+                "ipv4.gateway", ip
+            ]
             try:
-                subprocess.run(command, check=True)
+                subprocess.run(command1, check=True)
+                subprocess.run(command2, check=True)
                 return True
             except Exception as e:
                 logger.error("Failed to start hotspot '{0}': {1}".format(ssid, str(e)))
