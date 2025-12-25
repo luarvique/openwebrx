@@ -413,10 +413,13 @@ class GeneralSettingsController(SettingsFormController):
         for img in ["receiver_avatar", "receiver_top_photo"]:
             self.handle_image(data, img)
         # Handle changing admin password
-        if len(data["admin_pass_1"]) > 0 and data["admin_pass_1"] == data["admin_pass_2"]:
-            if self.user.password.is_valid(data["admin_pass_0"]):
-                self.user.setPassword(DefaultPasswordClass(data["admin_pass_1"]))
-                UserList.getSharedInstance().store()
+        if len(data["admin_pass_1"]) > 0 or len(data["admin_pass_2"]) > 0:
+            if not self.user.password.is_valid(data["admin_pass_0"]):
+                raise Exception("Cannot change password. The current password is incorrect.")
+            if data["admin_pass_1"] != data["admin_pass_2"]:
+                raise Exception("Cannot change password. The new passwords do not match.")
+            self.user.setPassword(DefaultPasswordClass(data["admin_pass_1"]))
+            UserList.getSharedInstance().store()
         del data["admin_pass_0"]
         del data["admin_pass_1"]
         del data["admin_pass_2"]
