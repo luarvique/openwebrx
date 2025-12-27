@@ -151,8 +151,34 @@ CpuProgressBar.prototype.setTemp = function(temp) {
     this.temp = temp;
 };
 
+BatteryProgressBar = function(el) {
+    ProgressBar.call(this, el);
+};
+
+BatteryProgressBar.prototype = new ProgressBar();
+
+BatteryProgressBar.prototype.getDefaultText = function() {
+    return 'Battery';
+};
+
+BatteryProgressBar.prototype.setBattery = function(battery) {
+    var voltage = battery.voltage || 0.0;
+    var current = battery.current || 0.0;
+    var charger = battery.charger? '&#x1F5F2; ' : '';
+    var charge  = battery.charge || 0;
+
+    current = current > 0? ('/' + current + 'A') : '';
+
+    this.set(
+        charge / 100.0,
+        charger + 'Battery [' + charge + '%/' + voltage + 'V' + current + ']',
+        charge < 20
+    );
+};
+
 ProgressBar.types = {
     cpu: CpuProgressBar,
+    battery: BatteryProgressBar,
     audiobuffer: AudioBufferProgressBar,
     audiospeed: AudioSpeedProgressBar,
     audiooutput: AudioOutputProgressBar,

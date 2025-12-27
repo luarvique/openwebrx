@@ -58,6 +58,7 @@ class FeatureDetector(object):
         "rtl_tcp": ["rtl_tcp_connector"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "mirics": ["soapy_connector", "soapy_mirics"],
+        "malahit_rr": ["soapy_connector", "soapy_malahit_rr"],
         "hackrf": ["soapy_connector", "soapy_hackrf"],
         "perseussdr": ["perseustest", "nmux"],
         "airspy": ["soapy_connector", "soapy_airspy"],
@@ -360,6 +361,14 @@ class FeatureDetector(object):
         library.
         """
         return self._has_soapy_driver("soapyMiri")
+
+    def has_soapy_malahit_rr(self):
+        """
+        The [SoapySDR module for Malahit Remote Radio](https://github.com/luarvique/SoapyMalahitR1)
+        is required for interfacing with Malahit-R1 devices. You can install the
+        `soapysdr-module-malahit-rr` package from the OpenWebRX+ repositories.
+        """
+        return self._has_soapy_driver("malahit-rr")
 
     def has_soapy_airspy(self):
         """

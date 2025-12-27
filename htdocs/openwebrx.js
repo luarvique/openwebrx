@@ -40,6 +40,7 @@ var scanner = null;
 var bookmarks = null;
 var audioEngine = null;
 var wf_data = null;
+var battery_shown = false;
 
 function zoomInOneStep() {
     zoom_set(zoom_level + 1);
@@ -1007,6 +1008,14 @@ function on_ws_recv(evt) {
                         break;
                     case "temperature":
                         $('#openwebrx-bar-server-cpu').progressbar().setTemp(json['value']);
+                        break;
+                    case "battery":
+                        $('#openwebrx-bar-battery').progressbar().setBattery(json['value']);
+                        if (!battery_shown) {
+                            $('#openwebrx-bar-audio-speed').hide();
+                            $('#openwebrx-bar-battery').show();
+                            battery_shown = true;
+                        }
                         break;
                     case "clients":
                         $('#openwebrx-bar-clients').progressbar().setClients(json['value']);

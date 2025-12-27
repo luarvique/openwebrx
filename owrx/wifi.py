@@ -26,7 +26,7 @@ class WiFi(object):
         self.thread = None
 
     def startConnectionCheck(self, delay: int = 1):
-        # Stop existing connection check
+        # Stop existing connection check, if present
         if self.thread is not None:
             self.event.set()
             while self.thread is not None:

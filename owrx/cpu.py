@@ -70,12 +70,23 @@ class CpuUsageThread(threading.Thread):
             try:
                 cpu_usage = self.get_cpu_usage()
                 temperature = self.get_temperature()
+                (voltage, current, charge, charger) = self.get_battery()
             except:
                 cpu_usage = 0
                 temperature = 0
+                voltage = 0.0
+                current = 0.0
+                charger = False
+                charge = 0
             for c in self.clients:
                 c.write_temperature(temperature)
                 c.write_cpu_usage(cpu_usage)
+                c.write_battery({
+                    "voltage": voltage,
+                    "current": current,
+                    "charger": charger,
+                    "charge":  charge
+                })
             self.endEvent.wait(timeout=3)
         logger.debug("cpu usage thread shut down")
 
@@ -116,6 +127,25 @@ class CpuUsageThread(threading.Thread):
         if self.last_worktime == 0:
             return 0
         return rate
+
+    def get_battery(self):
+        voltage = 0.0
+        current = 0.0
+        charger = False
+        charge  = 0.0
+        try:
+            f = open("/tmp/battery", "r")
+            line = f.readline()
+            f.close()
+            m = re.match(r"(\d+\.\d+)V(\S?)\s+(\d+\.\d+)A\s+(\d+)%", line)
+            if m:
+                voltage = float(m.group(1))
+                charger = m.group(2) == "!"
+                current = float(m.group(3))
+                charge  = int(m.group(4))
+        except:
+            pass
+        return (voltage, current, charge, charger)
 
     def add_client(self, c):
         self.clients.append(c)
