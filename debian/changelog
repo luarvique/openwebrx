@@ -5,6 +5,7 @@ openwebrx (1.2.103) bullseye jammy; urgency=low
   * Added option to change admin password.
   * Added GPS position to MQTT server events.
   * Added ability to lock individual profiles.
+  * Added support for the Malahit-R1 source.
   * Improved pattern recognition in CW skimmer.
 
  -- Marat Fayzullin <luarvique@gmail.com>  Fri, 26 Dec 2025 16:12:00 +0000

@@ -4,6 +4,7 @@
 - Added option to change admin password.
 - Added GPS position to MQTT server events.
 - Added ability to lock individual profiles.
+- Added support for the Malahit-R1 source.
 - Improved pattern recognition in CW skimmer.
 
 **1.2.102**
