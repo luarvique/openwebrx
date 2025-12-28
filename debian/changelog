@@ -8,7 +8,7 @@ openwebrx (1.2.103) bullseye jammy; urgency=low
   * Added support for the Malahit-R1 source.
   * Improved pattern recognition in CW skimmer.
 
- -- Marat Fayzullin <luarvique@gmail.com>  Fri, 26 Dec 2025 16:12:00 +0000
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 29 Dec 2025 16:12:00 +0000
 
 openwebrx (1.2.102) bullseye jammy; urgency=low
 
