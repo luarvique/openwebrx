@@ -368,7 +368,7 @@ class FeatureDetector(object):
         is required for interfacing with Malahit-R1 devices. You can install the
         `soapysdr-module-malahit-rr` package from the OpenWebRX+ repositories.
         """
-        return self._has_soapy_driver("malahit-rr")
+        return self._has_soapy_driver("malahitrr")
 
     def has_soapy_airspy(self):
         """
