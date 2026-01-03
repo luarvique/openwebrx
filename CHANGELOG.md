@@ -1,3 +1,9 @@
+**1.2.104**
+- Fixed battery display showing with no battery.
+- Fixed graying out relayed locator reports.
+- Delayed initial WiFi check by 30 seconds.
+- Made latest Malahit-R1 driver work.
+
 **1.2.103**
 - Added WiFi connections configuration.
 - Added standalone hotspot configuration.

@@ -1,3 +1,12 @@
+openwebrx (1.2.104) bullseye jammy; urgency=low
+
+  * Fixed battery display showing with no battery.
+  * Fixed graying out relayed locator reports.
+  * Delayed initial WiFi check by 30 seconds.
+  * Made latest Malahit-R1 driver work.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 12 Jan 2026 16:12:00 +0000
+
 openwebrx (1.2.103) bullseye jammy; urgency=low
 
   * Added WiFi connections configuration.
