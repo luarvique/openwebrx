@@ -25,6 +25,8 @@ Chat.recvMessage = function(nickname, text, color = 'white') {
     // Show chat panel
     toggle_panel('openwebrx-panel-log', true);
 
+    Chat.playDing();    //play the tone 
+
     divlog(
         Utils.HHMMSS(Date.now()) + '&nbsp;['
       + '<span class="chatname" style="color:' + color + ';">'
@@ -55,4 +57,33 @@ Chat.keyPress = function(event) {
         event.preventDefault();
         this.send();
     }
+};
+
+
+//add a tone when message is received
+Chat.playDing = function() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    function tone(freq, start, dur, peak) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(peak, start + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(start);
+        osc.stop(start + dur + 0.02);
+    }
+tone(1046.5, now,        0.35, 0.27); // Do
+tone(1568.0, now + 0.38, 0.30, 0.27); 
+tone(1318.5, now + 0.70, 0.35, 0.27); 
 };
