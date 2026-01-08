@@ -885,7 +885,7 @@ class FeatureDetector(object):
     def has_sonde_rs(self):
         """
         OpenWebRX uses Zilog decoders in [radiosonde_auto_rx](https://github.com/projecthorus/radiosonde_auto_rx)
-        to decode radio sonde data. This software has to be built and
+        to decode radiosonde data. This software has to be built and
         installed manually.
         """
         return self.command_is_runnable("rs41mod -h")
