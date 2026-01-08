@@ -185,12 +185,12 @@ DemodulatorPanel.prototype.updatePanels = function() {
     toggle_panel("openwebrx-panel-hfdl-message", ['hfdl', 'vdl2', 'acars', 'uat'].indexOf(modulation) >= 0);
     // Packet modes share the same panel
     toggle_panel("openwebrx-panel-packet-message", ['packet', 'ais'].indexOf(modulation) >= 0);
-    // Sonde modes share the same panel
-    toggle_panel("openwebrx-panel-sonde-message", ['sonde-rs41', 'sonde-dfm9', 'sonde-dfm17', 'sonde-mxx'].indexOf(modulation) >= 0);
     // ISM modes share the same panel
     toggle_panel("openwebrx-panel-ism-message", ['ism', 'wmbus'].indexOf(modulation) >= 0);
     // Skimmer modes share the same panel
     toggle_panel("openwebrx-panel-cwskimmer-message", ['cwskimmer', 'rttyskimmer'].indexOf(modulation) >= 0);
+    // Radiosonde modes share the same panel
+    toggle_panel("openwebrx-panel-sonde-message", ['sonde-rs41', 'sonde-dfm9', 'sonde-dfm17', 'sonde-mxx'].indexOf(modulation) >= 0);
     // These modes come with their own panels
     ['js8', 'page', 'pocsag', 'sstv', 'fax', 'dsc', 'adsb'].forEach(function(m) {
         toggle_panel('openwebrx-panel-' + m + '-message', modulation === m);

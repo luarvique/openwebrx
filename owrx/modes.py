@@ -337,16 +337,6 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
-        # Server-side audio recording is a background service only.
-        # See JavaScript code for client-side audio recording.
-        ServiceOnlyMode(
-            "audio",
-            "Audio Recorder",
-            underlying=["am", "usb", "lsb", "nfm", "sam", "cw"],
-            requirements=["mp3"],
-            service=True,
-            squelch=True
-        ),
         # Radiosonde modes
         DigitalMode(
             "sonde-rs41",
@@ -383,6 +373,16 @@ class Modes(object):
             requirements=["sonders"],
             service=True,
             squelch=False,
+        ),
+        # Server-side audio recording is a background service only.
+        # See JavaScript code for client-side audio recording.
+        ServiceOnlyMode(
+            "audio",
+            "Audio Recorder",
+            underlying=["am", "usb", "lsb", "nfm", "sam", "cw"],
+            requirements=["mp3"],
+            service=True,
+            squelch=True
         ),
         # SatDump-based weather satellite reception is not real-time
         # and thus only works as background services.
