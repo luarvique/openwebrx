@@ -681,18 +681,6 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "ais":
             from csdr.chain.digimodes import PacketDemodulator
             return PacketDemodulator(ais = True)
-        elif mod == "sonde-rs41":
-            from csdr.chain.sonde import Rs41Demodulator
-            return Rs41Demodulator()
-        elif mod == "sonde-dfm9":
-            from csdr.chain.sonde import Dfm9Demodulator
-            return Dfm9Demodulator()
-        elif mod == "sonde-dfm17":
-            from csdr.chain.sonde import Dfm17Demodulator
-            return Dfm17Demodulator()
-        elif mod == "sonde-mxx":
-            from csdr.chain.sonde import MxxDemodulator
-            return MxxDemodulator()
         elif mod == "pocsag":
             from csdr.chain.digiham import PocsagDemodulator
             return PocsagDemodulator()
@@ -775,6 +763,18 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "uat":
             from csdr.chain.aircraft import UatDemodulator
             return UatDemodulator()
+        elif mod == "sonde-rs41":
+            from csdr.chain.sonde import Rs41Demodulator
+            return Rs41Demodulator()
+        elif mod == "sonde-dfm9":
+            from csdr.chain.sonde import Dfm9Demodulator
+            return Dfm9Demodulator()
+        elif mod == "sonde-dfm17":
+            from csdr.chain.sonde import Dfm17Demodulator
+            return Dfm17Demodulator()
+        elif mod == "sonde-mxx":
+            from csdr.chain.sonde import MxxDemodulator
+            return MxxDemodulator()
         elif mod == "audio":
             # this should only run as a service though
             from csdr.chain.toolbox import AudioRecorder
