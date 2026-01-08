@@ -108,7 +108,7 @@ class FeatureDetector(object):
         "rigcontrol": ["hamlib"],
         "skimmer": ["csdr_skimmer"],
 #        "sondedxl": ["sonde_dxl"],
-        "sonders": ["sonde_rs"],
+        "sonde": ["sonde_rs"],
         "mp3": ["lame"],
     }
 
@@ -876,7 +876,7 @@ class FeatureDetector(object):
 
 #    def has_sonde_dxl(self):
 #        """
-#        OpenWebRX uses the [dxlaprs](https://github.com/oe5hpm/dxlAPRS)
+#        OpenWebRX uses the [dxlAPRS](https://github.com/oe5hpm/dxlAPRS)
 #        toolchain to decode radiosonde data. This software has to be
 #        built and installed manually.
 #        """
@@ -884,7 +884,7 @@ class FeatureDetector(object):
 
     def has_sonde_rs(self):
         """
-        OpenWebRX uses Zilog decoders in [radiosonde_auto_rx](https://github.com/projecthorus/radiosonde_auto_rx)
+        OpenWebRX uses Zilog decoders in [Project Horus](https://github.com/projecthorus/radiosonde_auto_rx)
         to decode radiosonde data. This software has to be built and
         installed manually.
         """

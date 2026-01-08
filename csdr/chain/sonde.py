@@ -1,5 +1,6 @@
+from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
+from csdr.module.sonde import Rs41Module, Dfm9Module, Dfm17Module, M10Module, M20Module
 from owrx.sonde import SondeParser
-from csdr.module.sonde import Rs41Module, Dfm9Module, Dfm17Module, MxxModule
 
 
 class SondeDemodulator(ServiceDemodulator, DialFrequencyReceiver):
@@ -22,23 +23,29 @@ class SondeDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 class Rs41Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 48000, service: bool = False):
         module = Rs41Module(sampleRate, iq = True, jsonOutput = True)
-        super.__init_(module, sampleRate, service)
+        super().__init__(module, sampleRate, service)
 
 
 class Dfm9Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 48000, service: bool = False):
         module = Dfm9Module(sampleRate, iq = True, jsonOutput = True)
-        super.__init_(module, sampleRate, service)
+        super().__init__(module, sampleRate, service)
 
 
 class Dfm17Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 48000, service: bool = False):
         module = Dfm17Module(sampleRate, iq = True, jsonOutput = True)
-        super.__init_(module, sampleRate, service)
+        super().__init__(module, sampleRate, service)
 
 
-class MxxDemodulator(SondeDemodulator):
+class M10Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 48000, service: bool = False):
-        module = MxxModule(sampleRate, iq = True, jsonOutput = True)
-        super.__init_(module, sampleRate, service)
+        module = M10Module(sampleRate, iq = True, jsonOutput = True)
+        super().__init__(module, sampleRate, service)
+
+
+class M20Demodulator(SondeDemodulator):
+    def __init__(self, sampleRate: int = 48000, service: bool = False):
+        module = M20Module(sampleRate, iq = True, jsonOutput = True)
+        super().__init__(module, sampleRate, service)
 
