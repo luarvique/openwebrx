@@ -1009,7 +1009,7 @@ SondeMessagePanel = function(el) {
 SondeMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 SondeMessagePanel.prototype.supportsMessage = function(message) {
-    return message['mode'].startsWith('sonde-') || (message['mode'] === 'sonde');
+    return message['mode'] === 'SONDE';
 };
 
 SondeMessagePanel.prototype.render = function() {
