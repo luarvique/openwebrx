@@ -681,6 +681,18 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "ais":
             from csdr.chain.digimodes import PacketDemodulator
             return PacketDemodulator(ais = True)
+        elif mod == "sonde-rs41":
+            from csdr.chain.digimodes import SondeDemodulator
+            return SondeDemodulator(sondetype = "rs41", iq = True)
+        elif mod == "sonde-dfm9":
+            from csdr.chain.digimodes import SondeDemodulator
+            return SondeDemodulator(sondetype = "dfm9", iq = True)
+        elif mod == "sonde-dfm17":
+            from csdr.chain.digimodes import SondeDemodulator
+            return SondeDemodulator(sondetype = "dfm17", iq = True)
+        elif mod == "sonde-mxx":
+            from csdr.chain.digimodes import SondeDemodulator
+            return SondeDemodulator(sondetype = "mxx", iq = True)
         elif mod == "pocsag":
             from csdr.chain.digiham import PocsagDemodulator
             return PocsagDemodulator()

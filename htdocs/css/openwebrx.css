@@ -1246,6 +1246,35 @@ img.openwebrx-mirror-img
     text-align: center;
 }
 
+#openwebrx-panel-sonde-message .message {
+    width: 410px;
+    max-width: 410px;
+}
+
+#openwebrx-panel-sonde-message .raw {
+    width: 600px;
+    max-width: 600px;
+}
+
+#openwebrx-panel-sonde-message .time {
+    width: 70px;
+}
+
+#openwebrx-panel-sonde-message .id {
+    width: 80px;
+}
+
+#openwebrx-panel-sonde-message .coord {
+    width: 40px;
+    text-align: center;
+}
+
+#openwebrx-panel-sonde-message .alt{
+    width: 40px;
+    text-align: center;
+}
+
+
 #openwebrx-panel-pocsag-message .address {
     width: 100px;
 }
@@ -1597,6 +1626,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="jt9"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft4"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="packet"]  #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ais"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="pocsag"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="page"]    #openwebrx-digimode-content-container,
@@ -1623,6 +1653,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="jt9"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="ft4"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="packet"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="ais"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="pocsag"]  #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="page"]    #openwebrx-digimode-select-channel,
@@ -1655,6 +1686,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="jt9"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="ft4"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="packet"]  #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="ais"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="pocsag"]  #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="page"]    #openwebrx-digimode-canvas-container,

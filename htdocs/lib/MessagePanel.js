@@ -290,6 +290,101 @@ $.fn.pocsagMessagePanel = function() {
     return this.data('panel');
 };
 
+SondeMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    // Add "raw" taoggle.
+    this.rawToggle = $( '<div class="openwebrx-button" style="position: absolute; top: 10px; right: 80px;">' +
+            'Raw: <input type="checkbox" id="rawToggle">' +
+        '</div>'
+    );
+    $(this.el).append(this.rawToggle);
+    // Bind the toggle event.
+    // When checked, hide the normal table and show the raw table; otherwise, vice versa.
+    $('#rawToggle').change(function() {
+        if ($(this).is(':checked')) {
+            $('#normalTable').hide();
+            $('#rawTable').show();
+        } else {
+            $('#rawTable').hide();
+            $('#normalTable').show();
+        }
+    });
+    this.initClearTimer();
+}
+
+SondeMessagePanel.prototype = Object.create(MessagePanel.prototype);
+
+SondeMessagePanel.prototype.supportsMessage = function(message) {
+    return (message['mode'].startsWith('sonde-')) || (message['mode'] === 'sonde');
+};
+
+SondeMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table id="normalTable">' +
+            '<thead><tr>' +
+                '<th class="time">UTC</th>' +
+                '<th class="id">ID</th>' +
+                '<th class="coord">Coord</th>' +
+	        '<th class="alt">Alt</th>' +
+                '<th class="message">Comment</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+    // Create the raw table, hidden initially
+    $(this.el).append($(
+        '<table id="rawTable" style="display:none;">' +
+            '<thead><tr><th class="raw">Raw data</th></tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+SondeMessagePanel.prototype.pushMessage = function(msg) {
+    var $b = $(this.el).find('#normalTable tbody');
+    var $rawBody = $(this.el).find('#rawTable tbody');
+
+
+    if(msg.raw) {
+	$rawBody.append($(
+	    '<tr>' +
+	    '<td class="raw">' + Utils.htmlEscape(msg.raw) + '</dt>' +
+	    '</tr>'
+	));
+        $rawBody.scrollTop($rawBody[0].scrollHeight);
+    }
+    if(msg.id || msg.timestamp || msg.coord) {
+        var source = msg.id;
+        var timestamp = msg.datetime? Utils.HHMMSS(msg.datetime) : '';
+        var coord = msg.lat+","+msg.lon
+        var message = [ msg.type,
+	    '#'+msg.frame,
+	    'bat'+msg.batt+'V',
+	    "Sats:"+msg.sats,
+	    msg.subtype||msg.type
+        ].join(' ')
+        $b.append($(
+            '<tr>' +
+            '<td class="time">' + timestamp + '</td>' +
+            '<td class="id">' + source + '</td>' +
+            '<td class="coord">' + coord + '</td>' +
+	    '<td class="alt">' + msg.alt + 'm</td>' +
+            '<td class="message">' + Utils.htmlEscape(message) + '</td>' +
+            '</tr>'
+        ));
+	// this.scrollToBottom();
+        $b.scrollTop($b[0].scrollHeight);
+    }
+
+};
+
+$.fn.sondeMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new SondeMessagePanel(this));
+    }
+    return this.data('panel');
+};
+
 PageMessagePanel = function(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
