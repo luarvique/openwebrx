@@ -1,0 +1,44 @@
+from owrx.sonde import SondeParser
+from csdr.module.sonde import Rs41Module, Dfm9Module, Dfm17Module, MxxModule
+
+
+class SondeDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, module, sampleRate: int = 48000, service: bool = False):
+        self.sampleRate = sampleRate
+        self.parser = SondeParser(service)
+        workers = [ module, self.parser ]
+        super().__init__(workers)
+
+    def supportsSquelch(self) -> bool:
+        return False
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
+
+
+class Rs41Demodulator(SondeDemodulator):
+    def __init__(self, sampleRate: int = 48000, service: bool = False):
+        module = Rs41Module(sampleRate, iq = True, jsonOutput = True)
+        super.__init_(module, sampleRate, service)
+
+
+class Dfm9Demodulator(SondeDemodulator):
+    def __init__(self, sampleRate: int = 48000, service: bool = False):
+        module = Dfm9Module(sampleRate, iq = True, jsonOutput = True)
+        super.__init_(module, sampleRate, service)
+
+
+class Dfm17Demodulator(SondeDemodulator):
+    def __init__(self, sampleRate: int = 48000, service: bool = False):
+        module = Dfm17Module(sampleRate, iq = True, jsonOutput = True)
+        super.__init_(module, sampleRate, service)
+
+
+class MxxDemodulator(SondeDemodulator):
+    def __init__(self, sampleRate: int = 48000, service: bool = False):
+        module = MxxModule(sampleRate, iq = True, jsonOutput = True)
+        super.__init_(module, sampleRate, service)
+

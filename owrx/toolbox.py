@@ -85,31 +85,6 @@ class TextParser(LineBasedModule, DataRecorder):
         return out if out and not self.service else None
 
 
-## Parse JSON output of radiosonde_autorx demod/mod/XXXmod output
-class SondeZilogParser(TextParser):
-    def __init__(self, service: bool = False):
-        super().__init__(filePrefix="Sonde", service=service)
-
-    def parse(self, msg: bytes):
-        # Do not parse in service mode
-        if self.service:
-            return None
-        # Expect JSON data in text form
-        # Keep it simple for now
-        try:
-            data = json.loads(msg)
-            data["mode"] = "sonde"
-        except Exception:
-            # Raw data....
-            logger.debug("Not JSON, assuming raw data...")
-            data = {}
-            data["raw"] = msg.decode("utf-8")
-            pass
-        data["mode"] = "sonde"
-        logger.debug(data)
-        return data
-
-
 class RdsParser(TextParser):
     def __init__(self, service: bool = False):
         # Data will be accumulated here
