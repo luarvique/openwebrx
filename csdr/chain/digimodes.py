@@ -10,6 +10,8 @@ from owrx.sstv import SstvParser
 from owrx.fax import FaxParser
 from owrx.marine import DscParser, NavtexParser
 from owrx.config import Config
+from owrx.toolbox import SondeZilogParser
+from csdr.module.toolbox import SondeZilogModule
 
 
 class AudioChopperDemodulator(ServiceDemodulator, DialFrequencyReceiver):
@@ -51,6 +53,27 @@ class PacketDemodulator(ServiceDemodulator, DialFrequencyReceiver):
             DirewolfModule(service=service, ais=ais),
             KissDeframer(),
             Ax25Parser(),
+            self.parser,
+        ]
+        super().__init__(workers)
+
+    def supportsSquelch(self) -> bool:
+        return False
+
+    def getFixedAudioRate(self) -> int:
+        return 48000
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
+
+
+# Zilog RS tools:
+# They take 48kbps 32bit float I/Q input directly (with --iq and --IQ options)...
+class SondeDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, service: bool = False, sondetype: str = "rs41", iq: bool = True):
+        self.parser = SondeZilogParser()
+        workers = [
+            SondeZilogModule(sondetype = sondetype, iq = iq),
             self.parser,
         ]
         super().__init__(workers)

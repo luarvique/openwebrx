@@ -85,6 +85,8 @@ class FeatureDetector(object):
         "wsjt-x-2-3": ["wsjtx_2_3"],
         "wsjt-x-2-4": ["wsjtx_2_4"],
         "msk144": ["msk144decoder"],
+        "sondedxl": ["sonde_dxl"],
+        "sonders": ["sonde_rs"],
         "packet": ["direwolf", "aprs_symbols"],
         "pocsag": ["digiham"],
         "js8call": ["js8", "js8py"],
@@ -473,6 +475,22 @@ class FeatureDetector(object):
         `m17-demod` package from the OpenWebRX repositories.
         """
         return self.command_is_runnable("m17-demod", 0)
+
+    def has_sonde_dxl(self):
+        """
+        OpenWebRX uses the [dxlaprs](https://github.com/oe5hpm/dxlAPRS)
+        toolchain to decode radiosonde data. This software has to be
+        built and installed manually.
+        """
+        return self.command_is_runnable("sondeudp -h")
+
+    def has_sonde_rs(self):
+        """
+        OpenWebRX uses the Zilog decoders in [radiosonde_auto_rx](https://github.com/projecthorus/radiosonde_auto_rx)
+        to decode radiosonde data. This software has to be built and
+        installed manually.
+        """
+        return self.command_is_runnable("rs41mod -h")
 
     def has_direwolf(self):
         """
