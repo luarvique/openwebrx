@@ -3,19 +3,6 @@ from pycsdr.types import Format
 from csdr.module import PopenModule
 from owrx.config import Config
 
-class SondeZilogModule(ExecModule):
-    def __init__(self, sampleRate: int = 48000, iq: bool = True, sondetype: str = "rs41", jsonOutput: bool = False):
-        cmd = [ ]
-        if sondetype == 'rs41':
-            cmd = [ 'rs41mod', "-", "48000", "32", "--IQ", "0", "-v", "--json", ]
-        elif sondetype == 'dfm9':
-            cmd = [ 'dfm09mod', "-", "48000", "32", "--IQ", "0", "-v", "--json"]
-        elif sondetype == 'dfm17':
-            cmd = [ 'dfm09mod', "-", "48000", "32", "--IQ", "0", "-v", "-i", "--json"]
-        elif sondetype == 'mxx':
-            cmd = [ 'mxxmod', "-", "48000", "32", "--IQ", "0", "--json", ]
-        super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
-
 
 class Rtl433Module(ExecModule):
     def __init__(self, sampleRate: int = 250000, jsonOutput: bool = False):
