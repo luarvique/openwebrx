@@ -1,5 +1,6 @@
 **1.2.104**
 - Fixed battery display showing with no battery.
+- Fixed radioid.net name lookups [Yiannis Sam].
 - Fixed graying out relayed locator reports.
 - Delayed initial WiFi check by 30 seconds.
 - Made latest Malahit-R1 driver work.
