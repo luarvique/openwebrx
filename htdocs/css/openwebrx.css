@@ -1642,10 +1642,14 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="fax"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ism"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="wmbus"]   #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="sonde"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="dsc"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft8"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wspr"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt65"]    #openwebrx-digimode-select-channel,
@@ -1669,12 +1673,16 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="fax"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="ism"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wmbus"]   #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="sonde"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="selcall"] #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="zvei"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="eas"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-select-channel
+#openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-select-channel
 {
     display: none;
 }
@@ -1702,10 +1710,14 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="fax"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="ism"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="wmbus"]   #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="sonde"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="dsc"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-canvas-container
 {
     height: 200px;
     margin: -10px;
