@@ -35,7 +35,8 @@ function MarkerManager() {
         'ADSB'      : '&#9992;',
         'ACARS'     : '&#9992;',
         'UAT'       : '&#9992;',
-        'HDR'       : '&#9836;'
+        'HDR'       : '&#9836;',
+        'SONDE'     : '&#127880;'
     };
 
     // Marker type shown/hidden status
