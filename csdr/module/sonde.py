@@ -28,11 +28,11 @@ class Dfm17Module(SondeModule):
 
 
 class M10Module(SondeModule):
-    def __init__(self, sampleRate: int = 48000, iq: bool = True, jsonOutput: bool = False):
+    def __init__(self, sampleRate: int = 76800, iq: bool = True, jsonOutput: bool = False):
         super().__init__("m10mod", sampleRate, iq, jsonOutput)
 
 
 class M20Module(SondeModule):
-    def __init__(self, sampleRate: int = 48000, iq: bool = True, jsonOutput: bool = False):
+    def __init__(self, sampleRate: int = 76800, iq: bool = True, jsonOutput: bool = False):
         super().__init__("m20mod", sampleRate, iq, jsonOutput)
 

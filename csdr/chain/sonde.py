@@ -39,13 +39,13 @@ class Dfm17Demodulator(SondeDemodulator):
 
 
 class M10Demodulator(SondeDemodulator):
-    def __init__(self, sampleRate: int = 48000, service: bool = False):
+    def __init__(self, sampleRate: int = 76800, service: bool = False):
         module = M10Module(sampleRate, iq = True, jsonOutput = True)
         super().__init__(module, sampleRate, service)
 
 
 class M20Demodulator(SondeDemodulator):
-    def __init__(self, sampleRate: int = 48000, service: bool = False):
+    def __init__(self, sampleRate: int = 76800, service: bool = False):
         module = M20Module(sampleRate, iq = True, jsonOutput = True)
         super().__init__(module, sampleRate, service)
 
