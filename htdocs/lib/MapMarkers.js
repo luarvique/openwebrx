@@ -413,6 +413,8 @@ AprsMarker.prototype.update = function(update) {
     this.directivity = update.location.directivity;
     this.country  = update.location.country;
     this.ccode    = update.location.ccode;
+    // SONDE
+    this.battery  = update.location.battery;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -590,6 +592,10 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     if (this.directivity) {
         detailsString += Utils.makeListItem('Direction', this.directivity);
+    }
+
+    if (this.battery) {
+        detailsString += Utils.makeListItem('Battery', this.battery + ' V');
     }
 
     // Combine course and speed if both present

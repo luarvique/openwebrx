@@ -60,15 +60,15 @@ class SondeParser(TextParser):
         }
 
         # Copy main attributes
-        for x in ["id", "type", "subtype", "sats", "lat", "lon", "humidity", "pressure"]:
+        for x in ["aprsid", "sats", "lat", "lon"]:
             if x in data:
                 out[x] = data[x]
 
         # Convert some attributes
+        if "id" in data:
+            out["callsign"] = data["id"]
         if "alt" in data:
             out["altitude"] = data["alt"]
-        if "temp" in data:
-            out["temperature"] = data["temp"]
         if "heading" in data:
             out["course"] = data["heading"]
         if "batt" in data:
@@ -84,6 +84,30 @@ class SondeParser(TextParser):
         elif "raw" in data:
             out["message"] = data["raw"]
 
+        # Add device model
+        device = ""
+        if "rs41_mainboard" in data:
+            device = data["rs41_mainboard"]
+            if "rs41_mainboard_fw" in data:
+                device += " " + data["rs41_mainboard_fw"]
+        elif "type" in data:
+            device = data["type"]
+            if "subtype" in data:
+                device += " " + data["subtype"]
+        if len(device) > 0:
+            out["device"] = device
+
+        # Add weather
+        weather = {}
+        if "temp" in data:
+            weather["temperature"] = data["temp"]
+        if "pressure" in data:
+            weather["pressure"] = data["pressure"]
+        if "humidity" in data:
+            weather["humidity"] = data["humidity"]
+        if weather:
+            out["weather"] = weather
+
         # Add communications frequency, if missing but known
         if "freq" in data:
             out["freq"] = data["freq"]
@@ -91,9 +115,9 @@ class SondeParser(TextParser):
             out["freq"] = self.frequency
 
         # Update location on the map
-        if "lat" in out and "lon" in out and "id" in out:
+        if "lat" in out and "lon" in out and "callsign" in out:
             loc = SondeLocation(out)
-            Map.getSharedInstance().updateLocation(out["id"], loc, out["mode"])
+            Map.getSharedInstance().updateLocation(out["callsign"], loc, out["mode"])
 
         # Report message
         ReportingEngine.getSharedInstance().spot(out)
