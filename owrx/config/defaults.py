@@ -370,6 +370,7 @@ defaultConfig = PropertyLayer(
     map_prefer_recent_reports=True,
     map_ignore_indirect_reports=False,
     callsign_url="https://www.qrzcq.com/call/{}",
+    sonde_url="https://sondehub.org/{}",
     vessel_url="https://www.vesselfinder.com/vessels/details/{}",
     flight_url="https://flightaware.com/live/flight/{}",
     modes_url="https://flightaware.com/live/modes/{}/redirect",

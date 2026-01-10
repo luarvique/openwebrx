@@ -216,7 +216,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     }
 
     // Compose comment
-    var comment = msg.comment || msg.message || '';
+    var comment = msg.comment || msg.message || msg.hardware || '';
     if (comment !== '') {
         // Escape all special characters
         comment = Utils.htmlEscape(comment);
@@ -228,9 +228,11 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         comment = Lookup.mmsi2country(source);
     }
 
-    // Linkify source based on what it is (vessel or HAM callsign)
-    source = msg.mode === 'AIS'?
-        Utils.linkifyVessel(source) : Utils.linkifyCallsign(source);
+    // Linkify source based on what it is (sonde, vessel, or HAM callsign)
+    source =
+        msg.mode === 'SONDE'? Utils.linkifySonde(source)
+      : msg.mode === 'AIS'?   Utils.linkifyVessel(source)
+      : Utils.linkifyCallsign(source);
 
     $b.append($(
         '<tr>' +

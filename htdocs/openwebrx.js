@@ -981,6 +981,10 @@ function on_ws_recv(evt) {
                             Utils.setVesselUrl(config['vessel_url']);
                         }
 
+                        if ('sonde_url' in config) {
+                            Utils.setSondeUrl(config['sonde_url']);
+                        }
+
                         // Load user interface settings from local storage
                         UI.loadSettings();
                         Chat.loadSettings();

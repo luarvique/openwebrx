@@ -352,6 +352,13 @@ class GeneralSettingsController(SettingsFormController):
                     + "allowing to look up aircraft by their Mode-S codes. Place curly "
                     + "brackets ({}) where aircraft Mode-S code is supposed to be.",
                 ),
+                TextInput(
+                    "sonde_url",
+                    "Radiosonde database URL",
+                    infotext="Specifies radiosonde lookup URL, such as SONDEHUB.ORG, "
+                    + "allowing to look up sonde information by its ID number. "
+                    + "Place curly brackets ({}) where ID is supposed to be.",
+                ),
             ),
             Section(
                 "Change password for '{0}'".format(self.user.name),
