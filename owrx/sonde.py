@@ -24,14 +24,9 @@ class SondeLocation(LatLngLocation):
         # Complete radiosonde data
         self.data = data
 
-    def getSymbol(self):
-        # Add an balloon symbol
-        return getSymbolData("O", "/")
-
     def __dict__(self):
         res = super(SondeLocation, self).__dict__()
-        res["symbol"] = self.getSymbol()
-        for key in ["comment", "course", "speed", "vspeed", "altitude", "weather", "device", "battery", "freq"]:
+        for key in ["symbol", "comment", "course", "speed", "vspeed", "altitude", "weather", "device", "battery", "freq"]:
             if key in self.data:
                 res[key] = self.data[key]
         return res
@@ -57,6 +52,7 @@ class SondeParser(TextParser):
         out = {
             "mode"      : "SONDE",
             "timestamp" : round(datetime.now().timestamp() * 1000),
+            "symbol"    : getSymbolData("O", "/"),
             "data"      : data
         }
 
