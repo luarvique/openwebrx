@@ -30,9 +30,10 @@ class SondeLocation(LatLngLocation):
 
     def __dict__(self):
         res = super(SondeLocation, self).__dict__()
-        # Keep all the data + an APRS-like symbol
         res["symbol"] = self.getSymbol()
-        res.append(self.data)
+        for key in ["comment", "course", "speed", "vspeed", "altitude", "weather", "device", "battery", "freq"]:
+            if key in self.data:
+                res[key] = self.data[key]
         return res
 
 
@@ -80,9 +81,9 @@ class SondeParser(TextParser):
 
         # Prefer auxiliary text, else use raw text
         if "aux" in data:
-            out["message"] = data["aux"]
+            out["comment"] = data["aux"]
         elif "raw" in data:
-            out["message"] = data["raw"]
+            out["comment"] = data["raw"]
 
         # Add device model
         device = ""
@@ -113,6 +114,8 @@ class SondeParser(TextParser):
             out["freq"] = data["freq"]
         elif self.frequency != 0:
             out["freq"] = self.frequency
+
+        logger.debug("decoded radiosonde data: %s", out)
 
         # Update location on the map
         if "lat" in out and "lon" in out and "callsign" in out:

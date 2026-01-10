@@ -340,7 +340,7 @@ class Modes(object):
         # Radiosonde modes
         DigitalMode(
             "sonde-rs41",
-            "Sonde-RS41",
+            "Sonde RS41",
             underlying=["empty"],
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
@@ -349,7 +349,7 @@ class Modes(object):
         ),
         DigitalMode(
             "sonde-dfm9",
-            "Sonde-DFM9",
+            "Sonde DFM9",
             underlying=["empty"],
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
@@ -358,7 +358,7 @@ class Modes(object):
         ),
         DigitalMode(
             "sonde-dfm17",
-            "Sonde-DFM17",
+            "Sonde DFM17",
             underlying=["empty"],
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
@@ -367,7 +367,7 @@ class Modes(object):
         ),
         DigitalMode(
             "sonde-m10",
-            "Sonde-M10",
+            "Sonde M10",
             underlying=["empty"],
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
@@ -376,7 +376,7 @@ class Modes(object):
         ),
         DigitalMode(
             "sonde-m20",
-            "Sonde-M20",
+            "Sonde M20",
             underlying=["empty"],
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],

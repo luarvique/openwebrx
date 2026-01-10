@@ -135,12 +135,13 @@ $.fn.wsjtMessagePanel = function(){
 function PacketMessagePanel(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
+    this.modes = ['APRS', 'AIS', 'SONDE'];
 }
 
 PacketMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 PacketMessagePanel.prototype.supportsMessage = function(message) {
-    return (message['mode'] === 'APRS') || (message['mode'] === 'AIS');
+    return this.modes.indexOf(message['mode']) >= 0;
 };
 
 PacketMessagePanel.prototype.render = function() {
