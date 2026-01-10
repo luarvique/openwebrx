@@ -60,7 +60,7 @@ class SondeParser(TextParser):
         }
 
         # Copy main attributes
-        for x in ["id", "type", "subtype", "sats", "lat", "lon"]:
+        for x in ["id", "type", "subtype", "sats", "lat", "lon", "humidity", "pressure"]:
             if x in data:
                 out[x] = data[x]
 
