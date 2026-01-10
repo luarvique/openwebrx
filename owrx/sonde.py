@@ -60,13 +60,15 @@ class SondeParser(TextParser):
         }
 
         # Copy main attributes
-        for x in ["id", "type", "subtype", "lat", "lon"]:
+        for x in ["id", "type", "subtype", "sats", "lat", "lon"]:
             if x in data:
                 out[x] = data[x]
 
         # Convert some attributes
         if "alt" in data:
             out["altitude"] = data["alt"]
+        if "temp" in data:
+            out["temperature"] = data["temp"]
         if "heading" in data:
             out["course"] = data["heading"]
         if "batt" in data:
