@@ -1,4 +1,5 @@
 from owrx.toolbox import TextParser
+from owrx.reporting import ReportingEngine
 from owrx.map import Map, LatLngLocation
 from datetime import datetime
 import json
@@ -91,6 +92,12 @@ class SondeParser(TextParser):
         if "lat" in out and "lon" in out and "id" in out:
             loc = SondeLocation(out)
             Map.getSharedInstance().updateLocation(out["id"], loc, out["mode"])
+
+        # Report message
+        ReportingEngine.getSharedInstance().spot(out)
+        # Remove original data from the message
+        if "data" in out:
+            del out["data"]
 
         # Done
         return out
