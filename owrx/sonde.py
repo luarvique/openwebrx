@@ -45,9 +45,8 @@ class SondeParser(TextParser):
         try:
             data = json.loads(msg)
         except Exception:
-            data = { "raw" : msg.decode("utf-8") }
-            if len(data["raw"]) == 0:
-                return None
+            logger.debug("Discarding raw message: '%s'", msg.decode("utf-8")))
+            return None
 
         # Ignore "datetime" field for now ("%04d-%02d-%02dT%02d:%02d:%06.3fZ")
         out = {
@@ -64,7 +63,7 @@ class SondeParser(TextParser):
 
         # Convert some attributes
         if "id" in data:
-            out["callsign"] = data["id"]
+            out["source"] = data["id"]
         if "alt" in data:
             out["altitude"] = data["alt"]
         if "heading" in data:
@@ -75,23 +74,22 @@ class SondeParser(TextParser):
             out["vspeed"] = data["vel_v"]
         if "vel_h" in data:
             out["speed"] = data["vel_h"]
-
-        # Prefer auxiliary text, else use raw text
         if "aux" in data:
             out["comment"] = data["aux"]
-        elif "raw" in data:
-            out["comment"] = data["raw"]
 
         # Add device model
         device = ""
         if "rs41_mainboard" in data:
             device = data["rs41_mainboard"]
             if "rs41_mainboard_fw" in data:
-                device += " " + str(data["rs41_mainboard_fw"])
+                device += " FW v" + str(data["rs41_mainboard_fw"])
         elif "type" in data:
             device = data["type"]
-            if "subtype" in data and data["subtype"] != device:
-                device += " " + data["subtype"]
+            if "subtype" in data:
+                if data["subtype"].startswith(device):
+                    device = data["subtype"]
+                elif data["subtype"] != device:
+                    device += " " + data["subtype"]
         if len(device) > 0:
             out["device"] = device
 
@@ -112,12 +110,12 @@ class SondeParser(TextParser):
         elif self.frequency != 0:
             out["freq"] = self.frequency
 
-        logger.info("decoded radiosonde data: %s", out)
+        logger.debug("Decoded data: %s", out)
 
         # Update location on the map
-        if "lat" in out and "lon" in out and "callsign" in out:
+        if "lat" in out and "lon" in out and "source" in out:
             loc = SondeLocation(out)
-            Map.getSharedInstance().updateLocation(out["callsign"], loc, out["mode"])
+            Map.getSharedInstance().updateLocation(out["source"], loc, out["mode"])
 
         # Report message
         ReportingEngine.getSharedInstance().spot(out)
