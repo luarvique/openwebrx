@@ -1517,34 +1517,6 @@ img.openwebrx-mirror-img
     cursor: pointer;
 }
 
-#openwebrx-panel-sonde-message .message {
-    width: 410px;
-    max-width: 410px;
-}
-
-#openwebrx-panel-sonde-message .raw {
-    width: 600px;
-    max-width: 600px;
-}
-
-#openwebrx-panel-sonde-message .time {
-    width: 70px;
-}
-
-#openwebrx-panel-sonde-message .id {
-    width: 80px;
-}
-
-#openwebrx-panel-sonde-message .coord {
-    width: 40px;
-    text-align: center;
-}
-
-#openwebrx-panel-sonde-message .alt{
-    width: 40px;
-    text-align: center;
-}
-
 .aprs-symbol {
     display: inline-block;
     width: 15px;

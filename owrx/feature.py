@@ -107,7 +107,6 @@ class FeatureDetector(object):
         "hdradio": ["nrsc5"],
         "rigcontrol": ["hamlib"],
         "skimmer": ["csdr_skimmer"],
-#        "sondedxl": ["sonde_dxl"],
         "sonde": ["sonde_rs"],
         "mp3": ["lame"],
     }
@@ -873,14 +872,6 @@ class FeatureDetector(object):
         the `csdr-skimmer` package from the OpenWebRX+ repositories.
         """
         return self.command_is_runnable("csdr-rttyskimmer -h")
-
-#    def has_sonde_dxl(self):
-#        """
-#        OpenWebRX uses the [dxlAPRS](https://github.com/oe5hpm/dxlAPRS)
-#        toolchain to decode radiosonde data. This software has to be
-#        built and installed manually.
-#        """
-#        return self.command_is_runnable("sondeudp -h")
 
     def has_sonde_rs(self):
         """
