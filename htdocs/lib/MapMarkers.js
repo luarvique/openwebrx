@@ -36,7 +36,7 @@ function MarkerManager() {
         'ACARS'     : '&#9992;',
         'UAT'       : '&#9992;',
         'HDR'       : '&#9836;',
-        'SONDE'     : '&#127880;'
+        'SONDE'     : '&#9906;'
     };
 
     // Marker type shown/hidden status
@@ -415,6 +415,7 @@ AprsMarker.prototype.update = function(update) {
     this.ccode    = update.location.ccode;
     // SONDE
     this.battery  = update.location.battery;
+    this.vspeed   = update.location.vspeed;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -614,7 +615,10 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     }
 
     if (this.altitude) {
-        detailsString += Utils.makeListItem('Altitude', this.altitude.toFixed(0) + ' m');
+        var vs = '';
+        if (this.vspeed > 0) vs = '&uarr;' + this.vspeed + ' m/s ';
+        if (this.vspeed < 0) vs = '&darr;' + (-this.vspeed) + ' m/s ';
+        detailsString += Utils.makeListItem('Altitude', vs + this.altitude.toFixed(0) + ' m');
     }
 
     if (this.country) {

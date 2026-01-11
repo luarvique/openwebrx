@@ -98,7 +98,7 @@ class SondeParser(TextParser):
         if "temp" in data:
             weather["temperature"] = data["temp"]
         if "pressure" in data:
-            weather["pressure"] = data["pressure"]
+            weather["barometricpressure"] = data["pressure"]
         if "humidity" in data:
             weather["humidity"] = data["humidity"]
         if weather:

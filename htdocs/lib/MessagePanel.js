@@ -216,11 +216,33 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     }
 
     // Compose comment
-    var comment = msg.comment || msg.message || msg.device || '';
+    var comment = msg.comment || msg.message || '';
     if (comment !== '') {
         // Escape all special characters
         comment = Utils.htmlEscape(comment);
-    } else if (msg.country) {
+    } else if (msg.weather) {
+        // Add weather readings
+        if (msg.weather.temperature) {
+            comment += 'TMP ' + msg.weather.temperature.toFixed(1) + '&deg;C';
+        }
+        if (msg.weather.humidity) {
+            comment += (comment? ', ':'') + 'HUM ' + msg.weather.humidity + '%';
+        }
+        if (msg.weather.barometricpressure) {
+            comment += (comment? ', ':'') + 'PRS ' + msg.weather.barometricpressure.toFixed(1) + ' mbar';
+        }
+    } else if (msg.altitude || msg.speed) {
+        // Add position readings
+        if (msg.altitude) {
+            comment += 'ALT ' + msg.altitude.toFixed(0) + ' m';
+            if (msg.vspeed > 0) comment += ' &uarr;' + msg.vspeed + ' m/s';
+            if (msg.vspeed < 0) comment += ' &darr;' + (-msg.vspeed) + ' m/s';
+        }
+        if (msg.speed) {
+            comment += (comment? ', ':'') + 'SPD ' + msg.speed.toFixed(1) + ' km/h';
+            if (msg.course) comment += ' ' + Utils.degToCompass(msg.course);
+        }
+   } else if (msg.country) {
         // Add country flag and name in lieu of comment
         comment = Lookup.cdata2country([msg.ccode, msg.country]);
     } else if (msg.mode === 'AIS') {
