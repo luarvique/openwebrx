@@ -216,7 +216,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     }
 
     // Compose comment
-    var comment = msg.comment || msg.message || msg.hardware || '';
+    var comment = msg.comment || msg.message || msg.device || '';
     if (comment !== '') {
         // Escape all special characters
         comment = Utils.htmlEscape(comment);
