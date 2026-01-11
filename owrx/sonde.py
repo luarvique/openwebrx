@@ -37,6 +37,10 @@ class SondeParser(TextParser):
         super().__init__(filePrefix="SONDE", service=service)
 
     def parse(self, msg: bytes):
+        # Do not parse in service mode
+        if self.service:
+            return None
+
         # Expect JSON data in text form
         try:
             data = json.loads(msg)
@@ -119,5 +123,5 @@ class SondeParser(TextParser):
         if "data" in out:
             del out["data"]
 
-        # Do not return anything when in service mode
-        return None if self.service else out
+        # Done
+        return out

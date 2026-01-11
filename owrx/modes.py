@@ -345,7 +345,7 @@ class Modes(object):
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
             service=True,
-            squelch=False
+            squelch=False,
         ),
         DigitalMode(
             "sonde-dfm9",
@@ -354,7 +354,7 @@ class Modes(object):
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
             service=True,
-            squelch=False
+            squelch=False,
         ),
         DigitalMode(
             "sonde-dfm17",
@@ -363,7 +363,7 @@ class Modes(object):
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
             service=True,
-            squelch=False
+            squelch=False,
         ),
         DigitalMode(
             "sonde-m10",
@@ -372,7 +372,7 @@ class Modes(object):
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
             service=True,
-            squelch=False
+            squelch=False,
         ),
         DigitalMode(
             "sonde-m20",
@@ -381,7 +381,7 @@ class Modes(object):
             bandpass=Bandpass(-6250, 6250),
             requirements=["sonde"],
             service=True,
-            squelch=False
+            squelch=False,
         ),
         # Server-side audio recording is a background service only.
         # See JavaScript code for client-side audio recording.
