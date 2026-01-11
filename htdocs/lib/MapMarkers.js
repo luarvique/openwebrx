@@ -275,7 +275,7 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     if (this.device) {
         detailsString += Utils.makeListItem('Device', this.device.manufacturer?
-            this.device.device + ' by ' + this.device.manufacturer : this.device
+            this.device.manufacturer + ' ' + this.device.device : this.device
         );
     }
 
@@ -575,7 +575,7 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     if (this.device) {
         detailsString += Utils.makeListItem('Device', this.device.manufacturer?
-          this.device.device + ' by ' + this.device.manufacturer : this.device
+            this.device.manufacturer + ' ' + this.device.device : this.device
         );
     }
 
