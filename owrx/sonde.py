@@ -45,7 +45,7 @@ class SondeParser(TextParser):
         try:
             data = json.loads(msg)
         except Exception:
-            logger.debug("Discarding raw message: '%s'", msg.decode("utf-8")))
+            logger.debug("Discarding raw message: '%s'", msg.decode("utf-8"))
             return None
 
         # Ignore "datetime" field for now ("%04d-%02d-%02dT%02d:%02d:%06.3fZ")
