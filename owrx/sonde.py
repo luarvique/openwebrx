@@ -45,8 +45,9 @@ class SondeParser(TextParser):
         try:
             data = json.loads(msg)
         except Exception:
-            logger.debug("Not JSON, assuming raw data...")
             data = { "raw" : msg.decode("utf-8") }
+            if len(data["raw"]) == 0:
+                return None
 
         # Ignore "datetime" field for now ("%04d-%02d-%02dT%02d:%02d:%06.3fZ")
         out = {
@@ -86,10 +87,10 @@ class SondeParser(TextParser):
         if "rs41_mainboard" in data:
             device = data["rs41_mainboard"]
             if "rs41_mainboard_fw" in data:
-                device += " " + data["rs41_mainboard_fw"]
+                device += " " + str(data["rs41_mainboard_fw"])
         elif "type" in data:
             device = data["type"]
-            if "subtype" in data:
+            if "subtype" in data and data["subtype"] != device:
                 device += " " + data["subtype"]
         if len(device) > 0:
             out["device"] = device
@@ -111,7 +112,7 @@ class SondeParser(TextParser):
         elif self.frequency != 0:
             out["freq"] = self.frequency
 
-        logger.debug("decoded radiosonde data: %s", out)
+        logger.info("decoded radiosonde data: %s", out)
 
         # Update location on the map
         if "lat" in out and "lon" in out and "callsign" in out:
