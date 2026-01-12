@@ -37,10 +37,6 @@ class SondeParser(TextParser):
         super().__init__(filePrefix="SONDE", service=service)
 
     def parse(self, msg: bytes):
-        # Do not parse in service mode
-        if self.service:
-            return None
-
         # Expect JSON data in text form
         try:
             data = json.loads(msg)
@@ -112,16 +108,17 @@ class SondeParser(TextParser):
 
         logger.debug("Decoded data: %s", out)
 
+        # Report message
+        ReportingEngine.getSharedInstance().spot(out)
+
+        # Remove original data from the message
+        if "data" in out:
+            del out["data"]
+
         # Update location on the map
         if "lat" in out and "lon" in out and "source" in out:
             loc = SondeLocation(out)
             Map.getSharedInstance().updateLocation(out["source"], loc, out["mode"])
 
-        # Report message
-        ReportingEngine.getSharedInstance().spot(out)
-        # Remove original data from the message
-        if "data" in out:
-            del out["data"]
-
-        # Done
-        return out
+        # Do not return anything when in service mode
+        return None if self.service else out

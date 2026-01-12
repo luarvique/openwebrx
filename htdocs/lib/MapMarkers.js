@@ -646,11 +646,7 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     }
 
     // Linkify title based on what it is (station, vessel, or HAM callsign)
-    var title =
-      this.mode === 'SONDE'? Utils.linkifySonde(name)
-    : this.mode === 'AIS'?   Utils.linkifyVessel(name)
-    : this.mode === 'HDR'?   Utils.linkifyFM(name)
-    : Utils.linkifyCallsign(name);
+    var title = Utils.linkifyByMode(this.mode, name);
 
     // Combine everything into info box contents
     return '<h3>' + title + distance + '</h3>'

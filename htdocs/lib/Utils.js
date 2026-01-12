@@ -104,6 +104,18 @@ Utils.linkify = function(id, url = null, content = null, tip = null) {
     }
 };
 
+// Linkify name by mode
+Utils.linkifyByMode = function(mode, name) {
+    switch (mode) {
+        case 'SONDE': return this.linkifySonde(name);
+        case 'AIS':   return this.linkifyVessel(name);
+        case 'HDR':   return this.linkifyFM(name);
+    }
+
+    // Default is HAM callsign
+    return this.linkifyCallsign(name);
+};
+
 // Create link to an FM station
 Utils.linkifyFM = function(name) {
     return this.linkify(name, this.fm_url);

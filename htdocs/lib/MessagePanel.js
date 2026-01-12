@@ -255,10 +255,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     }
 
     // Linkify source based on what it is (sonde, vessel, or HAM callsign)
-    source =
-        msg.mode === 'SONDE'? Utils.linkifySonde(source)
-      : msg.mode === 'AIS'?   Utils.linkifyVessel(source)
-      : Utils.linkifyCallsign(source);
+    source = Utils.linkifyByMode(msg.mode, source);
 
     $b.append($(
         '<tr>' +
