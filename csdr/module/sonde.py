@@ -14,25 +14,25 @@ class SondeModule(ExecModule):
 
 class Rs41Module(SondeModule):
     def __init__(self, sampleRate: int = 48000, iq: bool = True, jsonOutput: bool = False):
-        super().__init__("rs41mod", sampleRate, iq, jsonOutput)
+        super().__init__("rs41mod", sampleRate, iq, jsonOutput, ["--ptu2"])
 
 
 class Dfm9Module(SondeModule):
     def __init__(self, sampleRate: int = 48000, iq: bool = True, jsonOutput: bool = False):
-        super().__init__("dfm09mod", sampleRate, iq, jsonOutput)
+        super().__init__("dfm09mod", sampleRate, iq, jsonOutput, ["--ptu"])
 
 
 class Dfm17Module(SondeModule):
     def __init__(self, sampleRate: int = 48000, iq: bool = True, jsonOutput: bool = False):
-        super().__init__("dfm09mod", sampleRate, iq, jsonOutput, ["-v", "-i"])
+        super().__init__("dfm09mod", sampleRate, iq, jsonOutput, ["-i", "--ptu"])
 
 
 class M10Module(SondeModule):
     def __init__(self, sampleRate: int = 76800, iq: bool = True, jsonOutput: bool = False):
-        super().__init__("m10mod", sampleRate, iq, jsonOutput)
+        super().__init__("m10mod", sampleRate, iq, jsonOutput, ["--ptu"])
 
 
 class M20Module(SondeModule):
     def __init__(self, sampleRate: int = 76800, iq: bool = True, jsonOutput: bool = False):
-        super().__init__("m20mod", sampleRate, iq, jsonOutput)
+        super().__init__("m20mod", sampleRate, iq, jsonOutput, ["--ptu"])
 
