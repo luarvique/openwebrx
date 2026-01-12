@@ -22,30 +22,30 @@ class SondeDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 
 class Rs41Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 48000, service: bool = False):
-        module = Rs41Module(sampleRate, iq = True, jsonOutput = True)
+        module = Rs41Module(sampleRate, jsonOutput = True)
         super().__init__(module, sampleRate, service)
 
 
 class Dfm9Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 48000, service: bool = False):
-        module = Dfm9Module(sampleRate, iq = True, jsonOutput = True)
+        module = Dfm9Module(sampleRate, jsonOutput = True)
         super().__init__(module, sampleRate, service)
 
 
 class Dfm17Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 48000, service: bool = False):
-        module = Dfm17Module(sampleRate, iq = True, jsonOutput = True)
+        module = Dfm17Module(sampleRate, jsonOutput = True)
         super().__init__(module, sampleRate, service)
 
 
 class M10Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 76800, service: bool = False):
-        module = M10Module(sampleRate, iq = True, jsonOutput = True)
+        module = M10Module(sampleRate, jsonOutput = True)
         super().__init__(module, sampleRate, service)
 
 
 class M20Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 76800, service: bool = False):
-        module = M20Module(sampleRate, iq = True, jsonOutput = True)
+        module = M20Module(sampleRate, jsonOutput = True)
         super().__init__(module, sampleRate, service)
 
