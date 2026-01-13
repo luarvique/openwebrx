@@ -337,6 +337,52 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
+        # Radiosonde modes
+        DigitalMode(
+            "sonde-rs41",
+            "Sonde RS41",
+            underlying=["empty"],
+            bandpass=Bandpass(-6250, 6250),
+            requirements=["sonde"],
+            service=True,
+            squelch=False
+        ),
+        DigitalMode(
+            "sonde-dfm9",
+            "Sonde DFM9",
+            underlying=["empty"],
+            bandpass=Bandpass(-6250, 6250),
+            requirements=["sonde"],
+            service=True,
+            squelch=False
+        ),
+        DigitalMode(
+            "sonde-dfm17",
+            "Sonde DFM17",
+            underlying=["empty"],
+            bandpass=Bandpass(-6250, 6250),
+            requirements=["sonde"],
+            service=True,
+            squelch=False
+        ),
+        DigitalMode(
+            "sonde-m10",
+            "Sonde M10",
+            underlying=["empty"],
+            bandpass=Bandpass(-6250, 6250),
+            requirements=["sonde"],
+            service=True,
+            squelch=False
+        ),
+        DigitalMode(
+            "sonde-m20",
+            "Sonde M20",
+            underlying=["empty"],
+            bandpass=Bandpass(-6250, 6250),
+            requirements=["sonde"],
+            service=True,
+            squelch=False
+        ),
         # Server-side audio recording is a background service only.
         # See JavaScript code for client-side audio recording.
         ServiceOnlyMode(

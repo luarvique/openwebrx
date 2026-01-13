@@ -135,12 +135,13 @@ $.fn.wsjtMessagePanel = function(){
 function PacketMessagePanel(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
+    this.modes = ['APRS', 'AIS', 'SONDE'];
 }
 
 PacketMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 PacketMessagePanel.prototype.supportsMessage = function(message) {
-    return (message['mode'] === 'APRS') || (message['mode'] === 'AIS');
+    return this.modes.indexOf(message['mode']) >= 0;
 };
 
 PacketMessagePanel.prototype.render = function() {
@@ -219,6 +220,32 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     if (comment !== '') {
         // Escape all special characters
         comment = Utils.htmlEscape(comment);
+    } else if (msg.weather) {
+        // Add weather readings
+        if (msg.weather.temperature) {
+            comment += 'Temperature ' + msg.weather.temperature.toFixed(1) + '&deg;C';
+        }
+        if (msg.weather.humidity) {
+            comment += (comment? ', ':'') + 'Humidity ' + msg.weather.humidity + '%';
+        }
+        if (msg.weather.barometricpressure) {
+            comment += (comment? ', ':'') + 'Pressure ' + msg.weather.barometricpressure.toFixed(1) + ' mbar';
+        }
+    } else if (msg.altitude || msg.speed) {
+        // Add position readings
+        if (msg.altitude) {
+            comment += 'Altitude ' + msg.altitude.toFixed(0) + ' m';
+            if (msg.vspeed > 0) comment += ' &uarr;' + msg.vspeed + ' m/s';
+            if (msg.vspeed < 0) comment += ' &darr;' + (-msg.vspeed) + ' m/s';
+        }
+        if (msg.speed) {
+            comment += (comment? ', ':'') + 'Speed ' + msg.speed.toFixed(1) + ' km/h';
+            if (msg.course) comment += ' ' + Utils.degToCompass(msg.course);
+        }
+    } else if (msg.device) {
+        // Add device model and manufacturer
+        comment = msg.device.manufacturer?
+            msg.device.manufacturer + ' ' + msg.device.device : msg.device;
     } else if (msg.country) {
         // Add country flag and name in lieu of comment
         comment = Lookup.cdata2country([msg.ccode, msg.country]);
@@ -227,9 +254,8 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         comment = Lookup.mmsi2country(source);
     }
 
-    // Linkify source based on what it is (vessel or HAM callsign)
-    source = msg.mode === 'AIS'?
-        Utils.linkifyVessel(source) : Utils.linkifyCallsign(source);
+    // Linkify source based on what it is (sonde, vessel, or HAM callsign)
+    source = Utils.linkifyByMode(msg.mode, source);
 
     $b.append($(
         '<tr>' +

@@ -107,6 +107,7 @@ class FeatureDetector(object):
         "hdradio": ["nrsc5"],
         "rigcontrol": ["hamlib"],
         "skimmer": ["csdr_skimmer"],
+        "sonde": ["sonde_rs"],
         "mp3": ["lame"],
     }
 
@@ -871,6 +872,14 @@ class FeatureDetector(object):
         the `csdr-skimmer` package from the OpenWebRX+ repositories.
         """
         return self.command_is_runnable("csdr-rttyskimmer -h")
+
+    def has_sonde_rs(self):
+        """
+        OpenWebRX uses Zilog decoders in [Project Horus](https://github.com/projecthorus/radiosonde_auto_rx)
+        to decode radiosonde data. This software has to be built and
+        installed manually.
+        """
+        return self.command_is_runnable("rs41mod -h")
 
     def has_lame(self):
         """

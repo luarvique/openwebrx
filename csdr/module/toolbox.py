@@ -3,6 +3,7 @@ from pycsdr.types import Format
 from csdr.module import PopenModule
 from owrx.config import Config
 
+
 class Rtl433Module(ExecModule):
     def __init__(self, sampleRate: int = 250000, jsonOutput: bool = False):
         cmd = [

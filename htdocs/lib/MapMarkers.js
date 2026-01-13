@@ -35,7 +35,8 @@ function MarkerManager() {
         'ADSB'      : '&#9992;',
         'ACARS'     : '&#9992;',
         'UAT'       : '&#9992;',
-        'HDR'       : '&#9836;'
+        'HDR'       : '&#9836;',
+        'SONDE'     : '&#9906;'
     };
 
     // Marker type shown/hidden status
@@ -274,7 +275,7 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     if (this.device) {
         detailsString += Utils.makeListItem('Device', this.device.manufacturer?
-            this.device.device + ' by ' + this.device.manufacturer : this.device
+            this.device.manufacturer + ' ' + this.device.device : this.device
         );
     }
 
@@ -412,6 +413,9 @@ AprsMarker.prototype.update = function(update) {
     this.directivity = update.location.directivity;
     this.country  = update.location.country;
     this.ccode    = update.location.ccode;
+    // SONDE
+    this.battery  = update.location.battery;
+    this.vspeed   = update.location.vspeed;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -571,7 +575,7 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     if (this.device) {
         detailsString += Utils.makeListItem('Device', this.device.manufacturer?
-          this.device.device + ' by ' + this.device.manufacturer : this.device
+            this.device.manufacturer + ' ' + this.device.device : this.device
         );
     }
 
@@ -591,6 +595,10 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         detailsString += Utils.makeListItem('Direction', this.directivity);
     }
 
+    if (this.battery) {
+        detailsString += Utils.makeListItem('Battery', this.battery + ' V');
+    }
+
     // Combine course and speed if both present
     if (this.course && this.speed) {
         detailsString += Utils.makeListItem('Course',
@@ -607,7 +615,10 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     }
 
     if (this.altitude) {
-        detailsString += Utils.makeListItem('Altitude', this.altitude.toFixed(0) + ' m');
+        var vs = '';
+        if (this.vspeed > 0) vs = '&uarr;' + this.vspeed + ' m/s ';
+        if (this.vspeed < 0) vs = '&darr;' + (-this.vspeed) + ' m/s ';
+        detailsString += Utils.makeListItem('Altitude', vs + this.altitude.toFixed(0) + ' m');
     }
 
     if (this.country) {
@@ -635,10 +646,7 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     }
 
     // Linkify title based on what it is (station, vessel, or HAM callsign)
-    var title =
-      this.mode === 'HDR'? Utils.linkifyFM(name)
-    : this.mode === 'AIS'? Utils.linkifyVessel(name)
-    : Utils.linkifyCallsign(name);
+    var title = Utils.linkifyByMode(this.mode, name);
 
     // Combine everything into info box contents
     return '<h3>' + title + distance + '</h3>'

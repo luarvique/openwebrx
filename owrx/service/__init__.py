@@ -372,6 +372,21 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "rttyskimmer":
             from csdr.chain.toolbox import RttySkimmerDemodulator
             return RttySkimmerDemodulator(service=True)
+        elif mod == "sonde-rs41":
+            from csdr.chain.sonde import Rs41Demodulator
+            return Rs41Demodulator(service=True)
+        elif mod == "sonde-dfm9":
+            from csdr.chain.sonde import Dfm9Demodulator
+            return Dfm9Demodulator(service=True)
+        elif mod == "sonde-dfm17":
+            from csdr.chain.sonde import Dfm17Demodulator
+            return Dfm17Demodulator(service=True)
+        elif mod == "sonde-m10":
+            from csdr.chain.sonde import M10Demodulator
+            return M10Demodulator(service=True)
+        elif mod == "sonde-m20":
+            from csdr.chain.sonde import M20Demodulator
+            return M20Demodulator(service=True)
         elif mod == "meteor-lrpt":
             from csdr.chain.satellite import MeteorLrptDemodulator
             return MeteorLrptDemodulator(service=True)

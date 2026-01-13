@@ -452,7 +452,7 @@ MapManager.prototype.processUpdates = function(updates) {
                         case 'ACARS': case 'UAT':
                             marker = new LAircraftMarker();
                             break;
-                        case 'APRS': case 'AIS': case 'HDR':
+                        case 'APRS': case 'AIS': case 'HDR': case 'SONDE':
                             marker = new LAprsMarker();
                             break;
                         case 'KiwiSDR': case 'WebSDR': case 'OpenWebRX':

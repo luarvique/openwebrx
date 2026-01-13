@@ -6,6 +6,7 @@ function Utils() {}
 
 Utils.fm_url = 'https://www.google.com/search?q={}+FM';
 Utils.callsign_url = null;
+Utils.sonde_url = null;
 Utils.vessel_url = null;
 Utils.flight_url = null;
 Utils.icao_url = null;
@@ -24,6 +25,11 @@ Utils.getReceiverPos = function() {
 // Set URL for linkifying callsigns
 Utils.setCallsignUrl = function(url) {
     this.callsign_url = url;
+};
+
+// Set URL for linkifying radiosonde IDs
+Utils.setSondeUrl = function(url) {
+    this.sonde_url = url;
 };
 
 // Set URL for linkifying AIS vessel IDs
@@ -98,6 +104,18 @@ Utils.linkify = function(id, url = null, content = null, tip = null) {
     }
 };
 
+// Linkify name by mode
+Utils.linkifyByMode = function(mode, name) {
+    switch (mode) {
+        case 'SONDE': return this.linkifySonde(name);
+        case 'AIS':   return this.linkifyVessel(name);
+        case 'HDR':   return this.linkifyFM(name);
+    }
+
+    // Default is HAM callsign
+    return this.linkifyCallsign(name);
+};
+
 // Create link to an FM station
 Utils.linkifyFM = function(name) {
     return this.linkify(name, this.fm_url);
@@ -109,6 +127,11 @@ Utils.linkifyCallsign = function(callsign) {
     var id = callsign.replace(/[-/].*$/, '');
     // Add country name as a tooltip
     return this.linkify(id, this.callsign_url, callsign, Lookup.call2cname(id));
+};
+
+// Create link to a radiosonde
+Utils.linkifySonde = function(id) {
+    return this.linkify(id, this.sonde_url, id);
 };
 
 // Create link to a maritime vessel, with country tooltip, etc.
