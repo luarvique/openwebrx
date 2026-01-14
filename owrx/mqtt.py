@@ -1,6 +1,7 @@
 from owrx.aircraft import AircraftManager
 from owrx.client import ClientRegistry
 from owrx.map import Map, LocatorLocation
+from owrx.sonde import SondeParser
 from owrx.aprs import AprsParser
 from owrx.bands import Bandplan
 from owrx.config import Config
@@ -35,6 +36,8 @@ class MqttSubscriber(object):
             mqttReporter.addWatch("APRS", self._handleAPRS)
         if pm["mqtt_ais"]:
             mqttReporter.addWatch("AIS", self._handleAPRS)
+        if pm["mqtt_sonde"]:
+            mqttReporter.addWatch("SONDE", self._handleSONDE)
 
     def _handleChat(self, source, data):
         # Relay received chat messages to all connected users
@@ -83,3 +86,15 @@ class MqttSubscriber(object):
             ts = datetime.fromtimestamp(data["timestamp"] / 1000, timezone.utc)
         # Put APRS/AIS marker on the map
         AprsParser.updateMap(data, band, ts)
+
+    def _handleSONDE(self, source, data):
+        band = None
+        ts   = None
+        # Determine band by frequency
+        if "freq" in data:
+            band = Bandplan.getSharedInstance().findBand(data["freq"])
+        # Get timestamp, if available
+        if "timestamp" in data:
+            ts = datetime.fromtimestamp(data["timestamp"] / 1000, timezone.utc)
+        # Put radiosonde marker on the map
+        SondeParser.updateMap(data, band, ts)

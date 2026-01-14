@@ -162,6 +162,10 @@ class ReportingController(SettingsFormController):
                     "mqtt_wsjt",
                     "Receive WSJT decodes over MQTT",
                 ),
+                CheckboxInput(
+                    "mqtt_sonde",
+                    "Receive radiosonde reports over MQTT",
+                ),
             ),
             Section(
                 "RigControl settings",
