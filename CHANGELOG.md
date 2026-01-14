@@ -1,5 +1,9 @@
 **1.2.104**
+- Added support for several radiosonde decoders.
+- Added setting for radiosonde lookup website.
+- Displaying more received info in PACKET panel.
 - Fixed battery display showing with no battery.
+- Fixed radioid.net name lookups [Yiannis Sam].
 - Fixed graying out relayed locator reports.
 - Delayed initial WiFi check by 30 seconds.
 - Made latest Malahit-R1 driver work.
