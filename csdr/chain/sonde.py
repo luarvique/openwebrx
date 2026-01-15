@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.sonde import Rs41Module, Dfm9Module, Dfm17Module, M10Module, M20Module
+from csdr.module.sonde import Mts01Module, Rs41Module, Dfm9Module, Dfm17Module, M10Module, M20Module
 from owrx.sonde import SondeParser
 
 
@@ -18,6 +18,12 @@ class SondeDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 
     def setDialFrequency(self, frequency: int) -> None:
         self.parser.setDialFrequency(frequency)
+
+
+class Mts01Demodulator(SondeDemodulator):
+    def __init__(self, sampleRate: int = 48000, service: bool = False):
+        module = Mts01Module(sampleRate, jsonOutput = True)
+        super().__init__(module, sampleRate, service)
 
 
 class Rs41Demodulator(SondeDemodulator):
@@ -48,4 +54,3 @@ class M20Demodulator(SondeDemodulator):
     def __init__(self, sampleRate: int = 76800, service: bool = False):
         module = M20Module(sampleRate, jsonOutput = True)
         super().__init__(module, sampleRate, service)
-

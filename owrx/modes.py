@@ -366,6 +366,15 @@ class Modes(object):
             squelch=False
         ),
         DigitalMode(
+            "sonde-mts01",
+            "Sonde MTS01",
+            underlying=["empty"],
+            bandpass=Bandpass(-6250, 6250),
+            requirements=["sonde"],
+            service=True,
+            squelch=False
+        ),
+        DigitalMode(
             "sonde-m10",
             "Sonde M10",
             underlying=["empty"],

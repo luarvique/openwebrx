@@ -10,6 +10,11 @@ class SondeModule(ExecModule):
         super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
 
 
+class Mts01Module(SondeModule):
+    def __init__(self, sampleRate: int = 48000, jsonOutput: bool = False):
+        super().__init__("mts01mod", sampleRate, jsonOutput)
+
+
 class Rs41Module(SondeModule):
     def __init__(self, sampleRate: int = 48000, jsonOutput: bool = False):
         super().__init__("rs41mod", sampleRate, jsonOutput, ["--ptu2"])

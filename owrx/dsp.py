@@ -763,6 +763,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "uat":
             from csdr.chain.aircraft import UatDemodulator
             return UatDemodulator()
+        elif mod == "sonde-mts01":
+            from csdr.chain.sonde import Mts01Demodulator
+            return Mts01Demodulator()
         elif mod == "sonde-rs41":
             from csdr.chain.sonde import Rs41Demodulator
             return Rs41Demodulator()

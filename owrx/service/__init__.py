@@ -381,6 +381,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "sonde-dfm17":
             from csdr.chain.sonde import Dfm17Demodulator
             return Dfm17Demodulator(service=True)
+        elif mod == "sonde-mts01":
+            from csdr.chain.sonde import Mts01Demodulator
+            return Mts01Demodulator(service=True)
         elif mod == "sonde-m10":
             from csdr.chain.sonde import M10Demodulator
             return M10Demodulator(service=True)
