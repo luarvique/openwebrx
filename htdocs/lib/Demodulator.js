@@ -5,8 +5,10 @@ function Filter(demodulator) {
 
 Filter.prototype.getLimits = function() {
     var max_bw;
-    if (['pocsag', 'page', 'packet', 'ais', 'acars', 'sonde-rs41', 'sonde-mts01', 'sonde-m10', 'sonde-m20', 'sonde-dfm9', 'sonde-dfm17'].indexOf(this.demodulator.get_secondary_demod()) >= 0) {
+    if (['pocsag', 'page', 'packet', 'ais', 'acars', 'sonde-rs41', 'sonde-mts01', 'sonde-dfm9', 'sonde-dfm17'].indexOf(this.demodulator.get_secondary_demod()) >= 0) {
         max_bw = 12500;
+    } else if (['vdl2', 'sonde-m10', 'sonde-m20'].indexOf(this.demodulator.get_secondary_demod()) >= 0) {
+        max_bw = 25000;
     } else if (['dmr', 'dstar', 'nxdn', 'ysf', 'm17'].indexOf(this.demodulator.get_modulation()) >= 0) {
         max_bw = 6250;
     } else if (['lsbd', 'usbd'].indexOf(this.demodulator.get_modulation()) >= 0) {

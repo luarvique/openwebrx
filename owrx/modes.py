@@ -378,7 +378,7 @@ class Modes(object):
             "sonde-m10",
             "Sonde M10",
             underlying=["empty"],
-            bandpass=Bandpass(-6250, 6250),
+            bandpass=Bandpass(-12500, 12500),
             requirements=["sonde"],
             service=True,
             squelch=False
@@ -387,7 +387,7 @@ class Modes(object):
             "sonde-m20",
             "Sonde M20",
             underlying=["empty"],
-            bandpass=Bandpass(-6250, 6250),
+            bandpass=Bandpass(-12500, 12500),
             requirements=["sonde"],
             service=True,
             squelch=False
