@@ -27,7 +27,7 @@ class MqttReporter(Reporter):
         self.subscriptions = [
             pm.wireProperty("mqtt_topic", self._setTopic),
             pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect),
-            pm.filter("mqtt_chat", "mqtt_wsjt", "mqtt_aircraft", "mqtt_aprs", "mqtt_ais").wire(self._resubscribe)
+            pm.filter("mqtt_chat", "mqtt_wsjt", "mqtt_aircraft", "mqtt_aprs", "mqtt_ais", "mqtt_sonde").wire(self._resubscribe)
         ]
 
     def _getClient(self):

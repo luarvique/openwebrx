@@ -449,6 +449,7 @@ defaultConfig = PropertyLayer(
     mqtt_wsjt=False,
     mqtt_aprs=False,
     mqtt_ais=False,
+    mqtt_sonde=False,
     wifi_enable_ap=False,
     wifi_name_ap="openwebrx",
     wifi_pass_ap="openwebrx",
