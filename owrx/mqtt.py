@@ -42,7 +42,7 @@ class MqttSubscriber(object):
     def _handleChat(self, source, data):
         # Relay received chat messages to all connected users
         if data["state"] == "ChatMessage":
-            ClientRegistry.getSharedInstance().RelayChatMessage(
+            ClientRegistry.getSharedInstance().relayChatMessage(
                 data["name"] + "@" + source, data["message"]
             )
 
