@@ -46,6 +46,9 @@ class MalahitRrDeviceDescription(SoapyConnectorDeviceDescription):
             ),
         ]
 
+    def hasAgc(self):
+        return False
+
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["biasT", "highZ", "lna", "attenuator"]
 
