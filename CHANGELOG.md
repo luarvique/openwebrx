@@ -1,3 +1,11 @@
+**1.2.105**
+- Added receiving sonde spots over MQTT.
+- Added profile-specific Malahit-R1 options.
+- Added MTS01 sonde support [Yiannis Sam].
+- Extended M10/M20 bandpass filter to 25kHz.
+- Converted sonde speed from m/s to km/h.
+- Optimized UI bandpass limits calculation.
+
 **1.2.104**
 - Added support for several radiosonde decoders.
 - Added setting for radiosonde lookup website.
