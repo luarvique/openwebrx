@@ -53,7 +53,7 @@ class MalahitRrDeviceDescription(SoapyConnectorDeviceDescription):
         return super().getDeviceOptionalKeys() + ["biasT", "highZ", "lna", "attenuator"]
 
     def getProfileOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["biasT", "highZ", "lna", "attenuator"]
+        return super().getProfileOptionalKeys() + ["biasT", "highZ", "lna", "attenuator"]
 
     def getSampleRateRanges(self) -> List[Range]:
         return [ Range(744192) ]
