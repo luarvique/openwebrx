@@ -54,6 +54,7 @@ Recommends: python3-digiham (>= 0.6),
             nrsc5,
             libhamlib-utils,
             csdr-skimmer,
+            sonde-decoders,
             lame,
             dream
 Description: multi-user web sdr
