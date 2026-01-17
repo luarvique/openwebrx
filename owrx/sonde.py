@@ -81,17 +81,19 @@ class SondeParser(TextParser):
         if "vel_v" in data:
             out["vspeed"] = data["vel_v"]
         if "vel_h" in data:
-            out["speed"] = data["vel_h"]
-        if "aux" in data:
+            out["speed"] = data["vel_h"] * 3600 / 1000
+
+        # Add comment field
+        if "rs41_mainboard" in data:
+            out["comment"] = data["rs41_mainboard"]
+            if "rs41_mainboard_fw" in data:
+                out["comment"] += " FW v" + str(data["rs41_mainboard_fw"])
+        elif "aux" in data:
             out["comment"] = data["aux"]
 
         # Add device model
         device = ""
-        if "rs41_mainboard" in data:
-            device = data["rs41_mainboard"]
-            if "rs41_mainboard_fw" in data:
-                device += " FW v" + str(data["rs41_mainboard_fw"])
-        elif "type" in data:
+        if "type" in data:
             device = data["type"]
             if "subtype" in data:
                 if data["subtype"].startswith(device):
