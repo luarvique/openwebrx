@@ -14,7 +14,7 @@ class SkimmerParser(TextParser):
     def __init__(self, mode: str, service: bool = False):
         # Looking for 4+ character callsigns, since 3 character
         # ones are often decoding errors
-        self.reLine = re.compile(r"^([0-9]+):(.+)$")
+        self.reLine = re.compile(r"^([0-9]+):((-?[0-9]+):)?(.+)$")
         self.reCqCall = re.compile(r"(.*CQ +([A-Z]{2,}) +([0-9A-Z]{4,})) .*")
         self.reDeCall = re.compile(r"(.*(DE|TEST|DX|CW|CWT|SST|MST|QRP|POTA|SOTA) +([0-9A-Z]{4,})) .*")
         self.reTuCall = re.compile(r"(.*TU +([0-9A-Z]{4,}) +([0-9A-Z]{4,})) .*")
@@ -33,14 +33,15 @@ class SkimmerParser(TextParser):
         r = self.reLine.match(msg)
         if r is not None:
             freq = int(r.group(1)) + self.frequency
-            text = r.group(2)
+            snr  = int(r.group(3)) if r.group(2) else 0
+            text = r.group(4)
             if len(text) > 0:
                 # Look for and report callsigns
-                self._reportCallsign(freq, text)
+                self._reportCallsign(freq, text, snr)
                 # In interactive mode...
                 if not self.service:
                     # Compose result
-                    out = { "mode": self.mode, "text": text, "freq": freq }
+                    out = { "mode": self.mode, "text": text, "freq": freq, "db": snr }
                     # Report frequency changes
                     if self.freqChanged:
                         self.freqChanged = False
@@ -50,7 +51,7 @@ class SkimmerParser(TextParser):
         # No result
         return None
 
-    def _reportCallsign(self, freq: int, text: str) -> None:
+    def _reportCallsign(self, freq: int, text: str, snr: int) -> None:
         # No callsign yet
         callsign = None
         callee   = None
@@ -107,7 +108,8 @@ class SkimmerParser(TextParser):
                 "timestamp" : round(datetime.now().timestamp() * 1000),
                 "freq"      : freq,
                 "callsign"  : callsign,
-                "msg"       : r.group(1)
+                "msg"       : r.group(1),
+                "db"        : snr
             }
             if country[0]:
                 out["ccode"] = country[0]
