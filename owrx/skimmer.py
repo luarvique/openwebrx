@@ -14,7 +14,7 @@ class SkimmerParser(TextParser):
     def __init__(self, mode: str, service: bool = False):
         # Looking for 4+ character callsigns, since 3 character
         # ones are often decoding errors
-        self.reLine = re.compile(r"^([0-9]+):((-?[0-9]+):)?(.+)$")
+        self.reLine = re.compile(r"^([0-9]+)(:(-?[0-9]+))?:(.*)$")
         self.reCqCall = re.compile(r"(.*CQ +([A-Z]{2,}) +([0-9A-Z]{4,})) .*")
         self.reDeCall = re.compile(r"(.*(DE|TEST|DX|CW|CWT|SST|MST|QRP|POTA|SOTA) +([0-9A-Z]{4,})) .*")
         self.reTuCall = re.compile(r"(.*TU +([0-9A-Z]{4,}) +([0-9A-Z]{4,})) .*")
@@ -31,7 +31,7 @@ class SkimmerParser(TextParser):
         # Parse incoming messages by frequency
         msg = msg.decode("utf-8", "replace")
         r = self.reLine.match(msg)
-        if r is not None:
+        if r is not None and r.group(4):
             freq = int(r.group(1)) + self.frequency
             snr  = int(r.group(3)) if r.group(2) else 0
             text = r.group(4)
