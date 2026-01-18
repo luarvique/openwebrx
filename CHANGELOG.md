@@ -1,5 +1,6 @@
 **1.2.105**
 - Added receiving sonde spots over MQTT.
+- Added SnR readings to the skimmer reports.
 - Added profile-specific Malahit-R1 options.
 - Added MTS01 sonde support [Yiannis Sam].
 - Extended M10/M20 bandpass filter to 25kHz.
