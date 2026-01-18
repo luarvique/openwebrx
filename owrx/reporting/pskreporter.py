@@ -246,7 +246,7 @@ class Uploader(object):
     def getSenderShortInformationHeader(self):
         return bytes(
             # id, length
-            [0x00, 0x02, 0x00, 0x2D]
+            [0x00, 0x02, 0x00, 0x34]
             + Uploader.senderDelimiter
             # number of fields
             + [0x00, 0x06]
