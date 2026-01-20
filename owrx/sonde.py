@@ -94,12 +94,13 @@ class SondeParser(TextParser):
         # Add device model
         device = ""
         if "type" in data:
-            device = data["type"]
+            device = str(data["type"])
             if "subtype" in data:
-                if data["subtype"].startswith(device):
-                    device = data["subtype"]
-                elif data["subtype"] != device:
-                    device += " " + data["subtype"]
+                subtype = str(data["subtype"])
+                if subtype.startswith(device):
+                    device = subtype
+                elif subtype != device:
+                    device += " " + subtype
         if len(device) > 0:
             out["device"] = device
 
