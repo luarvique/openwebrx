@@ -179,9 +179,9 @@ class WiFi(object):
             if ssid is not None:
                 logger.info("Found active connection to '{0}'.".format(ssid))
             else:
-                logger.info("No active connection, becoming hotspot...")
                 pm = Config.get()
                 if pm["wifi_enable_ap"]:
+                    logger.info("No active connection, becoming hotspot...")
                     self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
         # Thread completed
         self.thread = None

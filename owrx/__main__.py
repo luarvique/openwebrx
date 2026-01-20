@@ -134,7 +134,7 @@ Support and info:       https://groups.io/g/openwebrx
     Config.validateConfig()
 
     # Check for WiFi connection and become hotspot if none
-    WiFi.getSharedInstance().startConnectionCheck(30)
+    WiFi.getSharedInstance().startConnectionCheck(15)
 
     featureDetector = FeatureDetector()
     failed = featureDetector.get_failed_requirements("core")
