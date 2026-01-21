@@ -616,8 +616,8 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     if (this.altitude) {
         var vs = '';
-        if (this.vspeed > 0) vs = '&uarr;' + this.vspeed + ' m/s ';
-        if (this.vspeed < 0) vs = '&darr;' + (-this.vspeed) + ' m/s ';
+        if (this.vspeed > 0) vs = '&uarr;' + this.vspeed.toFixed(1) + ' m/s ';
+        if (this.vspeed < 0) vs = '&darr;' + (-this.vspeed).tofixed(1) + ' m/s ';
         detailsString += Utils.makeListItem('Altitude', vs + this.altitude.toFixed(0) + ' m');
     }
 

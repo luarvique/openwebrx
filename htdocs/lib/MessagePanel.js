@@ -235,8 +235,8 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         // Add position readings
         if (msg.altitude) {
             comment += 'Altitude ' + msg.altitude.toFixed(0) + ' m';
-            if (msg.vspeed > 0) comment += ' &uarr;' + msg.vspeed + ' m/s';
-            if (msg.vspeed < 0) comment += ' &darr;' + (-msg.vspeed) + ' m/s';
+            if (msg.vspeed > 0) comment += ' &uarr;' + msg.vspeed.toFixed(1) + ' m/s';
+            if (msg.vspeed < 0) comment += ' &darr;' + (-msg.vspeed).toFixed(1) + ' m/s';
         }
         if (msg.speed) {
             comment += (comment? ', ':'') + 'Speed ' + msg.speed.toFixed(1) + ' km/h';
