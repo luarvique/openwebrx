@@ -454,6 +454,7 @@ Demodulator.prototype.set_secondary_demod = function(secondary_demod) {
         return;
     }
     this.secondary_demod = secondary_demod;
+    this.filter = new Filter(this);
     this.set();
 };
 
