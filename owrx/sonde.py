@@ -42,7 +42,7 @@ class SondeParser(TextParser):
     def updateMap(data, band = None, timestamp = None):
         if "lat" in data and "lon" in data and "source" in data:
             loc = SondeLocation(data)
-            Map.getSharedInstance().updateLocation(data["source"], loc, data["mode"], band, timestamp)
+            Map.getSharedInstance().updateLocation(data["source"], loc, data["mode"], band, timestamp=timestamp)
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
