@@ -302,7 +302,7 @@ class RigControl():
 
     # Mapping from OpenWebRX modulations to Rigctl modulations
     MODES = {
-        "nfm"  : "FM",     "wfm"  : "WFM",
+        "nfm"  : "FM",     "wfm"  : "WFM",    "bcfm"  : "WFM",
         "am"   : "AM",     "sam"  : "SAM",
         "lsb"  : "LSB",    "usb"  : "USB",
         "lsbd" : "PKTLSB", "usbd" : "PKTUSB",
