@@ -361,7 +361,7 @@ M17MetaPanel.prototype.clear = function() {
 
 function WfmMetaPanel(el) {
     MetaPanel.call(this, el);
-    this.modes = ['WFM'];
+    this.modes = ['WFM', 'BCFM'];
     this.enabled = false;
     this.timeout = false;
     this.clear();

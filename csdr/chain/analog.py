@@ -1,7 +1,7 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio, \
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio, Stereo, \
     FixedAudioRateChain, DeemphasisTauChain, MetaProvider, RdsChain
-from pycsdr.modules import AmDemod, DcBlock, FmDemod, Limit, NfmDeemphasis, Agc, Afc, \
-    WfmDeemphasis, FractionalDecimator, RealPart, Writer, Buffer
+from pycsdr.modules import AmDemod, DcBlock, FmDemod, BCFmDemod, Limit, NfmDeemphasis, Agc, Afc, \
+    WfmDeemphasis, FractionalDecimator, StereoFractionalDecimator, RealPart, Writer, Buffer
 from pycsdr.types import Format, AgcProfile
 from csdr.chain.toolbox import RdsDemodulator
 from typing import Optional
@@ -80,6 +80,77 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
         self.sampleRate = sampleRate
         self.replace(2, FractionalDecimator(Format.FLOAT, 200000.0 / self.sampleRate, prefilter=True))
         self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
+
+    def setMetaWriter(self, writer: Writer) -> None:
+        if not FeatureDetector().is_available("rds"):
+            return
+        if self.metaChain is None:
+            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
+            self.metaChain.setReader(self.metaTapBuffer.getReader())
+        self.metaWriter = writer
+        self.metaChain.setWriter(self.metaWriter)
+
+    def stop(self):
+        super().stop()
+        if self.metaChain is not None:
+            self.metaChain.stop()
+            self.metaChain = None
+            self.metaWriter = None
+
+    def setRdsRbds(self, rdsRbds: bool) -> None:
+        self.rdsRbds = rdsRbds
+        if self.metaChain is not None:
+            self.metaChain.stop()
+            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
+            self.metaChain.setReader(self.metaTapBuffer.getReader())
+            self.metaChain.setWriter(self.metaWriter)
+
+
+class BCFm(BaseDemodulatorChain, FixedIfSampleRateChain, Stereo, MetaProvider):
+    def __init__(self, sampleRate: int, tau: float, rdsRbds: bool):
+        self.sampleRate = sampleRate
+        self.StereoMPXRate = 192000
+        self.outputRate = self.StereoMPXRate
+        self.DecimPolyPoints = 12
+        self.tau = tau
+        self.rdsRbds = rdsRbds
+        self.limit = Limit()
+        # this buffer is used to tap into the raw audio stream for redsea RDS decoding
+        self.metaTapBuffer = Buffer(Format.FLOAT)
+        workers = [
+            BCFmDemod(),
+            self.limit,
+            StereoFractionalDecimator(Format.FLOAT, self.StereoMPXRate, self.StereoMPXRate / self.sampleRate, self.tau, numPolyPoints=self.DecimPolyPoints, prefilter=False),
+        ]
+        self.metaChain = None
+        self.metaWriter = None
+        super().__init__(workers)
+
+    def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
+        if w1 is self.limit:
+            buffer = self.metaTapBuffer
+        super()._connect(w1, w2, buffer)
+
+    def getFixedIfSampleRate(self):
+        return self.StereoMPXRate
+    
+    def getOutputSampleRate(self):
+        return self.sampleRate
+    
+    def getFixedAudioRate(self) -> int:
+        return self.outputRate
+
+    def setDeemphasisTau(self, tau: float) -> None:
+        if tau == self.tau:
+            return
+        self.tau = tau
+        self.replace(2, StereoFractionalDecimator(Format.FLOAT, self.StereoMPXRate, self.StereoMPXRate / self.sampleRate, self.tau, numPolyPoints=self.DecimPolyPoints, prefilter=False))
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.replace(2, StereoFractionalDecimator(Format.FLOAT, self.StereoMPXRate, self.StereoMPXRate / self.sampleRate, self.tau, numPolyPoints=self.DecimPolyPoints, prefilter=False))
 
     def setMetaWriter(self, writer: Writer) -> None:
         if not FeatureDetector().is_available("rds"):

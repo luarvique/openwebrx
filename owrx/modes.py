@@ -137,6 +137,7 @@ class Modes(object):
     mappings = [
         AnalogMode("nfm", "FM", bandpass=Bandpass(-4000, 4000)),
         AnalogMode("wfm", "WFM", bandpass=Bandpass(-75000, 75000)),
+        AnalogMode("bcfm", "BCFM", bandpass=None, ifRate=192000),
         AnalogMode("am", "AM", bandpass=Bandpass(-4000, 4000)),
         AnalogMode("lsb", "LSB", bandpass=Bandpass(-2750, -150)),
         AnalogMode("usb", "USB", bandpass=Bandpass(150, 2750)),
