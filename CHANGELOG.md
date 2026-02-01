@@ -1,5 +1,4 @@
 **1.2.106**
-- Added stereo FM decoder by Csongor Dobre.
 - Added more sampling rates for Malahit-R1.
 - Insured IOC576 won't take precedence over IOC288.
 - Slowed AGC attack response to avoid clicking.
