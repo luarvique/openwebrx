@@ -1,3 +1,17 @@
+openwebrx (1.2.106) bullseye jammy; urgency=low
+
+  * Added stereo FM decoder by Csongor Dobre.
+  * Added more sampling rates for Malahit-R1.
+  * Insured IOC576 won't take precedence over IOC288.
+  * Slowed AGC attack response to avoid clicking.
+  * Fixed updateLocation() bug in the sonde decoder.
+  * Fixed error parsing sonde type and subtype.
+  * Truncated ascent/descent speeds to one decimal.
+  * Recreating filter when secondary demodulator set.
+  * Decreased initial WiFi check delay.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 2 Feb 2026 16:12:00 +0000
+
 openwebrx (1.2.105) bullseye jammy; urgency=low
 
   * Added receiving sonde spots over MQTT.

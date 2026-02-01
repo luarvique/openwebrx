@@ -1,3 +1,14 @@
+**1.2.106**
+- Added stereo FM decoder by Csongor Dobre.
+- Added more sampling rates for Malahit-R1.
+- Insured IOC576 won't take precedence over IOC288.
+- Slowed AGC attack response to avoid clicking.
+- Fixed updateLocation() bug in the sonde decoder.
+- Fixed error parsing sonde type and subtype.
+- Truncated ascent/descent speeds to one decimal.
+- Recreating filter when secondary demodulator set.
+- Decreased initial WiFi check delay.
+
 **1.2.105**
 - Added receiving sonde spots over MQTT.
 - Added SnR readings to the skimmer reports.
