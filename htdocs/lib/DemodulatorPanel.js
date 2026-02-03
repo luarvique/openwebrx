@@ -188,7 +188,7 @@ DemodulatorPanel.prototype.updatePanels = function() {
     // ISM modes share the same panel
     toggle_panel("openwebrx-panel-ism-message", ['ism', 'wmbus'].indexOf(modulation) >= 0);
     // Skimmer modes share the same panel
-    toggle_panel("openwebrx-panel-cwskimmer-message", ['cwskimmer', 'rttyskimmer'].indexOf(modulation) >= 0);
+    toggle_panel("openwebrx-panel-skimmer-message", ['cwskimmer', 'rttyskimmer'].indexOf(modulation) >= 0);
     // These modes come with their own panels
     ['js8', 'page', 'pocsag', 'sstv', 'fax', 'dsc', 'adsb'].forEach(function(m) {
         toggle_panel('openwebrx-panel-' + m + '-message', modulation === m);

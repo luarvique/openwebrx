@@ -928,7 +928,7 @@ $.fn.faxMessagePanel = function() {
     return this.data('panel');
 };
 
-CwSkimmerMessagePanel = function(el) {
+SkimmerMessagePanel = function(el) {
     MessagePanel.call(this, el);
     this.texts = [];
 
@@ -937,13 +937,13 @@ CwSkimmerMessagePanel = function(el) {
     this.clearButton.on('click', function() { me.texts = []; });
 }
 
-CwSkimmerMessagePanel.prototype = Object.create(MessagePanel.prototype);
+SkimmerMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
-CwSkimmerMessagePanel.prototype.supportsMessage = function(message) {
+SkimmerMessagePanel.prototype.supportsMessage = function(message) {
     return (message['mode'] === 'CW') || (message['mode'] === 'RTTY');
 };
 
-CwSkimmerMessagePanel.prototype.render = function() {
+SkimmerMessagePanel.prototype.render = function() {
     $(this.el).append($(
         '<table width="100%">' +
             '<thead><tr>' +
@@ -955,31 +955,33 @@ CwSkimmerMessagePanel.prototype.render = function() {
     ));
 };
 
-CwSkimmerMessagePanel.prototype.pushMessage = function(msg) {
+SkimmerMessagePanel.prototype.pushMessage = function(msg) {
     // Must have some text
     if (!msg.text) return;
 
     // Clear cache if requested
 //    if (msg.changed) this.texts = [];
 
-    // Current time
+    // Current time and SnR
     var now = Date.now();
+    var snr = msg.db || 0;
 
     // Modify or add a new entry
     var j = this.texts.findIndex(function(x) { return x.freq >= msg.freq });
     if (j < 0) {
         // Append a new entry
         if (msg.text.trim().length > 0) {
-            this.texts.push({ freq: msg.freq, text: msg.text, ts: now });
+            this.texts.push({ freq: msg.freq, text: msg.text, db: snr, ts: now });
         }
     } else if (this.texts[j].freq == msg.freq) {
         // Update existing entry
         this.texts[j].text = (this.texts[j].text + msg.text).slice(-64);
+        this.texts[j].db   = snr;
         this.texts[j].ts   = now;
     } else {
         // Insert a new entry
         if (msg.text.trim().length > 0) {
-            this.texts.splice(j, 0, { freq: msg.freq, text: msg.text, ts: now });
+            this.texts.splice(j, 0, { freq: msg.freq, text: msg.text, db: snr, ts: now });
         }
     }
 
@@ -992,9 +994,12 @@ CwSkimmerMessagePanel.prototype.pushMessage = function(msg) {
             this.texts.splice(j--, 1);
         } else {
             var f = Math.floor(this.texts[j].freq / 100.0) / 10.0;
+            var d = Math.floor(Math.max(0, Math.min(100, 100.0 * this.texts[j].db / 30.0)));
+            var fqspan = '<span>' + f.toFixed(1) + '</span>';
+            var dbspan = '<span class="db" style="width:' + d + '%;">&nbsp;</span>';
             body +=
                 '<tr style="color:black;background-color:' + (j&1? '#E0FFE0':'#FFFFFF') +
-                ';"><td class="freq">' + f.toFixed(1) +
+                ';"><td class="freq">' + fqspan + dbspan +
                 '</td><td class="text">' + this.texts[j].text + '</td></tr>\n';
         }
     }
@@ -1003,9 +1008,9 @@ CwSkimmerMessagePanel.prototype.pushMessage = function(msg) {
     $(this.el).find('tbody').html(body);
 };
 
-$.fn.cwskimmerMessagePanel = function() {
+$.fn.skimmerMessagePanel = function() {
     if (!this.data('panel')) {
-        this.data('panel', new CwSkimmerMessagePanel(this));
+        this.data('panel', new SkimmerMessagePanel(this));
     }
     return this.data('panel');
 };

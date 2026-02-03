@@ -1376,27 +1376,44 @@ img.openwebrx-mirror-img
     text-align: right;
 }
 
-#openwebrx-panel-cwskimmer-message {
+#openwebrx-panel-skimmer-message {
     height: 310px;
 }
 
-#openwebrx-panel-cwskimmer-message tbody {
+#openwebrx-panel-skimmer-message tbody {
     height: 280px;
 }
 
-#openwebrx-panel-cwskimmer-message .freq {
+#openwebrx-panel-skimmer-message .freq {
     width: 70px;
 }
 
-#openwebrx-panel-cwskimmer-message td.freq {
+#openwebrx-panel-skimmer-message td.freq {
     text-align: right;
+    position: relative;
 }
 
-#openwebrx-panel-cwskimmer-message .text {
+#openwebrx-panel-skimmer-message span.freq {
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    top: 0;
+}
+
+#openwebrx-panel-skimmer-message span.db {
+    background-color:#0000FF;
+    opacity: 20%;
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: 0;
+}
+
+#openwebrx-panel-skimmer-message .text {
     width: 500px;
 }
 
-#openwebrx-panel-cwskimmer-message td.text {
+#openwebrx-panel-skimmer-message td.text {
     font-family: monospace;
     white-space: nowrap;
 }
@@ -1618,7 +1635,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="sonde-mts01"]  #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-mts01"] #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-content-container,
@@ -1652,7 +1669,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="sonde-mts01"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-mts01"] #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-select-channel,
@@ -1688,7 +1705,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="sonde-mts01"]   #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-mts01"] #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-canvas-container,
