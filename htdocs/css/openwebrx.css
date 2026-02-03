@@ -1395,16 +1395,15 @@ img.openwebrx-mirror-img
 
 #openwebrx-panel-skimmer-message span.freq {
     position: absolute;
-    z-index: 1;
     left: 0;
     top: 0;
 }
 
 #openwebrx-panel-skimmer-message span.db {
-    background-color:#0000FF;
+    transition: width 1.0s ease-out;
+    background-color: #0000FF;
     opacity: 20%;
     position: absolute;
-    z-index: 2;
     left: 0;
     top: 0;
 }
