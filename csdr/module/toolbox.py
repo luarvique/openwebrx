@@ -60,40 +60,10 @@ class WavFileModule(PopenModule):
         self.process.stdin.write(header)
 
 
-class AleModule(WavFileModule):
+class AleModule(ExecModule):
     def __init__(self):
-        self.sampleRate = 8000
-        super().__init__()
-
-    def getCommand(self):
-        return [ "LinuxALE", "-f", "/dev/stdin" ]
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
-
-
-class AleModule(WavFileModule):
-    def __init__(self):
-        self.sampleRate = 8000
-        super().__init__()
-
-    def getCommand(self):
-        return [ "LinuxALE", "-f", "/dev/stdin" ]
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
-
-
-class AleModule(WavFileModule):
-    def __init__(self):
-        self.sampleRate = 8000
-        super().__init__()
-
-    def getCommand(self):
-        return [ "LinuxALE", "-f", "/dev/stdin" ]
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
+        cmd = ["LinuxALE", "-f", "/dev/stdin"]
+        super().__init__(Format.SHORT, Format.CHAR, cmd)
 
 
 class CwSkimmerModule(ExecModule):
