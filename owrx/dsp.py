@@ -760,6 +760,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "adsb":
             from csdr.chain.aircraft import AdsbDemodulator
             return AdsbDemodulator()
+<<<<<<< HEAD
         elif mod == "uat":
             from csdr.chain.aircraft import UatDemodulator
             return UatDemodulator()
