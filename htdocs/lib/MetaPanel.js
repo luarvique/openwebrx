@@ -860,20 +860,25 @@ DrmMetaPanel.prototype.update = function(data) {
                     '<span class="drm-value">' + codec + '</span>';
             }
 
-            programs +=
-                ' | <span class="drm-label">Bitrate:&nbsp;</span>' +
-                '<span class="drm-value">' + entry.bitrate_kbps + ' kbps</span>' +
-                ' | <span class="drm-label">Protection:&nbsp;</span>' +
-                '<span class="drm-value">' + entry.protection_mode + '</span>';
+            if (entry.bitrate_kbps) {
+                programs +=
+                    ' | <span class="drm-label">Bitrate:&nbsp;</span>' +
+                    '<span class="drm-value">' + entry.bitrate_kbps + ' kbps</span>';
+            }
 
-            if (entry.country) {
+            if (entry.protection_mode) {
+                programs +=
+                    ' | <span class="drm-label">Protection:&nbsp;</span>' +
+                    '<span class="drm-value">' + entry.protection_mode + '</span>';
+            }
+
+            if (entry.country && entry.country.name) {
                 programs +=
                     ' | <span class="drm-label">Country:&nbsp;</span>' +
                     '<span class="drm-value">' + entry.country.name + '</span>';
-
             }
 
-            if (entry.language) {
+            if (entry.language && entry.language.name) {
                 programs +=
                     ' | <span class="drm-label">Language:&nbsp;</span>' +
                     '<span class="drm-value">' + entry.language.name + '</span>';
