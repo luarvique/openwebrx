@@ -1,3 +1,11 @@
+**1.2.107**
+- Added SnR levels display to the skimmer.
+- Added AGC settings for AM and NFM modes.
+- Fixed DRM metadata display to skip missing items.
+- Fixed sonde speed display on the map.
+- Optimized skimmer window rendering.
+- Renamed CwSkimmer JS class to Skimmer.
+
 **1.2.106**
 - Added more sampling rates for Malahit-R1.
 - Insured IOC576 won't take precedence over IOC288.
