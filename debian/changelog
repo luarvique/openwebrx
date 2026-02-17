@@ -1,3 +1,14 @@
+openwebrx (1.2.107) bullseye jammy; urgency=low
+
+  * Added SnR levels display to the skimmer.
+  * Added AGC settings for AM and NFM modes.
+  * Fixed DRM metadata display to skip missing items.
+  * Fixed sonde speed display on the map.
+  * Optimized skimmer window rendering.
+  * Renamed CwSkimmer JS class to Skimmer.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 16 Feb 2026 16:12:00 +0000
+
 openwebrx (1.2.106) bullseye jammy; urgency=low
 
   * Added more sampling rates for Malahit-R1.
