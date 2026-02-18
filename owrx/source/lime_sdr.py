@@ -14,3 +14,6 @@ class LimeSdrDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getSampleRateRanges(self) -> List[Range]:
         return [Range(100000, 65000000)]
+
+    def getGainStages(self):
+        return ["TIA", "LNA", "PGA"]
