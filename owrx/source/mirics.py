@@ -96,3 +96,12 @@ class MiricsDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "offset_tune", "bufflen" "buffers", "asyncbuffers"]
+
+    def getGainStages(self):
+        return [
+            "Automatic",
+            "LNA",
+            "Baseband",
+            "Mixer",
+            "Mixbuffer",
+        ]
