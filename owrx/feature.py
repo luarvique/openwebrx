@@ -79,7 +79,7 @@ class FeatureDetector(object):
         "runds": ["runds_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "codecserver_ambe"],
-        "digital_voice_freedv": ["freedv_rx"],
+        "digital_voice_freedv": ["webrx_rade_decode"],
         "digital_voice_m17": ["m17_demod"],
         "wsjt-x": ["wsjtx"],
         "wsjt-x-2-3": ["wsjtx_2_3"],
@@ -585,18 +585,15 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("rockprog")
 
-    def has_freedv_rx(self):
+    def has_webrx_rade_decode(self):
         """
-        The `freedv_rx` executable is required to demodulate FreeDV digital
-        transmissions. It comes as part of the `codec2` library build, but is
-        not installed by default or contained inside the `codec2` packages.
+        The `webrx_rade_decode` executable is required to demodulate FreeDV digital
+        transmissions.
 
-        To obtain it, you will have to compile 'codec2' from the sources and
-        then manually install `freedv_rx`. The detailed installation
-        instructions are available from the
-        [OpenWebRX Wiki](https://github.com/jketterl/openwebrx/wiki/FreeDV-demodulator-notes).
+        To obtain it, you will have to compile 'radae_decoder' from the [sources](https://github.com/peterbmarks/radae_decoder) and
+        then manually install `tools/webrx_rade_decode`.
         """
-        return self.command_is_runnable("freedv_rx")
+        return self.command_is_runnable("webrx_rade_decode -h")
 
     def has_dream(self):
         """

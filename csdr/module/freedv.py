@@ -7,5 +7,5 @@ class FreeDVModule(ExecModule):
         super().__init__(
             Format.SHORT,
             Format.SHORT,
-            ["freedv_rx", "1600", "-", "-"]
+            ["webrx_rade_decode"]
         )
