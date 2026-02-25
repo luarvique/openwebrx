@@ -1,3 +1,10 @@
+openwebrx (1.2.108) bullseye jammy; urgency=low
+
+  * Added SoapyMiri gain stages [Sergei Korolev].
+  * Added LimeSDR gain stages [Sergei Korolev].
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 2 Mar 2026 16:12:00 +0000
+
 openwebrx (1.2.107) bullseye jammy; urgency=low
 
   * Added SnR levels display to the skimmer.
