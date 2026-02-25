@@ -80,6 +80,7 @@ class FeatureDetector(object):
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "codecserver_ambe"],
         "digital_voice_freedv": ["freedv_rx"],
+        "digital_voice_rade": ["webrx_rade_decode"],
         "digital_voice_m17": ["m17_demod"],
         "wsjt-x": ["wsjtx"],
         "wsjt-x-2-3": ["wsjtx_2_3"],
@@ -597,6 +598,17 @@ class FeatureDetector(object):
         [OpenWebRX Wiki](https://github.com/jketterl/openwebrx/wiki/FreeDV-demodulator-notes).
         """
         return self.command_is_runnable("freedv_rx")
+
+    def has_webrx_rade_decode(self):
+        """
+        The `webrx_rade_decode` executable is required to demodulate more
+        modern FreeDV RADE digital transmissions.
+
+        To obtain it, you will have to compile 'radae_decoder' from
+        [sources](https://github.com/peterbmarks/radae_decoder)
+        and then manually install the `tools/webrx_rade_decode` executable.
+        """
+        return self.command_is_runnable("webrx_rade_decode")
 
     def has_dream(self):
         """
