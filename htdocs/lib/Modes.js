@@ -1,4 +1,4 @@
-var Modes = {
+   var Modes = {
     modes: [],
     features: {},
     panels: [],
@@ -39,14 +39,14 @@ var Mode = function(json){
     this.name = json.name;
     this.type = json.type;
     this.squelch = json.squelch;
+    this.secondaryFft = json.secondaryFft;
     if (json.bandpass) {
         this.bandpass = json.bandpass;
     }
     if (json.ifRate) {
         this.ifRate = json.ifRate;
     }
-    if (this.type === 'digimode') {
+    if (json.underlying) {
         this.underlying = json.underlying;
-        this.secondaryFft = json.secondaryFft;
     }
 };
