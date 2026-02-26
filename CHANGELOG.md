@@ -1,3 +1,8 @@
+**1.2.108**
+- Added FreeDV RADEv1 digital voice support.
+- Added SoapyMiri gain stages [Sergei Korolev].
+- Added LimeSDR gain stages [Sergei Korolev].
+
 **1.2.107**
 - Added SnR levels display to the skimmer.
 - Added AGC settings for AM and NFM modes.
