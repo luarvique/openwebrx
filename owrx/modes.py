@@ -11,14 +11,16 @@ class Bandpass(object):
 
 
 class Mode:
-    def __init__(self, modulation: str, name: str, bandpass: Bandpass = None, ifRate=None, requirements=None, service=False, squelch=True):
+    def __init__(self, modulation: str, name: str, underlying=None, bandpass: Bandpass=None, ifRate=None, requirements=None, service=False, squelch=True, secondaryFft=False):
         self.modulation = modulation
         self.name = name
+        self.underlying = underlying
         self.requirements = requirements if requirements is not None else []
         self.service = service
         self.bandpass = bandpass
         self.ifRate = ifRate
         self.squelch = squelch
+        self.secondaryFft = secondaryFft
 
     def is_available(self):
         fd = FeatureDetector()
@@ -27,11 +29,20 @@ class Mode:
     def is_service(self):
         return self.service
 
-    def get_bandpass(self):
-        return self.bandpass
+    def get_underlying_mode(self):
+        if self.underlying is not None:
+            mode = Modes.findByModulation(self.underlying[0])
+            return mode if mode is not None else EmptyMode
+        else:
+            return None
 
-    def get_modulation(self):
-        return self.modulation
+    def get_bandpass(self):
+        if self.bandpass is not None:
+            return self.bandpass
+        elif self.underlying is not None:
+            return self.get_underlying_mode().get_bandpass()
+        else:
+            return None
 
     def get_bandwidth(self):
         bandwidth = 0
@@ -39,7 +50,22 @@ class Mode:
             bandwidth = 2 * max(abs(self.bandpass.low_cut), abs(self.bandpass.high_cut))
         if self.ifRate is not None:
             bandwidth = max(bandwidth, self.ifRate)
+        if bandwidth == 0 and self.underlying is not None:
+            bandwidth = self.get_underlying_mode().get_bandwidth()
         return bandwidth
+
+    def get_modulation(self):
+        if self.underlying is not None:
+            return self.get_underlying_mode().get_modulation()
+        else:
+            return self.modulation
+
+    def for_underlying(self, underlying: str):
+        if underlying not in self.underlying:
+            raise ValueError("{} is not a valid underlying mode for {}".format(underlying, self.modulation))
+        return Mode(
+            self.modulation, self.name, [underlying], self.bandpass, self.ifRate, self.requirements, self.service, self.squelch
+        )
 
 
 EmptyMode = Mode("empty", "Empty")
@@ -50,48 +76,8 @@ class AnalogMode(Mode):
 
 
 class DigitalMode(Mode):
-    def __init__(
-        self,
-        modulation,
-        name,
-        underlying,
-        bandpass: Bandpass = None,
-        ifRate=None,
-        requirements=None,
-        service=False,
-        squelch=True,
-        secondaryFft=True
-    ):
-        super().__init__(modulation, name, bandpass, ifRate, requirements, service, squelch)
-        self.underlying = underlying
-        self.secondaryFft = secondaryFft
-
-    def get_underlying_mode(self):
-        mode = Modes.findByModulation(self.underlying[0])
-        if mode is None:
-            mode = EmptyMode
-        return mode
-
-    def get_bandpass(self):
-        if self.bandpass is not None:
-            return self.bandpass
-        return self.get_underlying_mode().get_bandpass()
-
-    def get_bandwidth(self):
-        bandwidth = super().get_bandwidth()
-        if bandwidth > 0:
-            return bandwidth
-        return self.get_underlying_mode().get_bandwidth()
-
-    def get_modulation(self):
-        return self.get_underlying_mode().get_modulation()
-
-    def for_underlying(self, underlying: str):
-        if underlying not in self.underlying:
-            raise ValueError("{} is not a valid underlying mode for {}".format(underlying, self.modulation))
-        return DigitalMode(
-            self.modulation, self.name, [underlying], self.bandpass, self.ifRate, self.requirements, self.service, self.squelch
-        )
+    def __init__(self, modulation: str, name: str, underlying, bandpass: Bandpass=None, ifRate=None, requirements=None, service=False, squelch=True, secondaryFft=True):
+        super().__init__(modulation, name, underlying, bandpass, ifRate, requirements, service, squelch, secondaryFft)
 
 
 class ServiceOnlyMode(DigitalMode):
@@ -151,7 +137,7 @@ class Modes(object):
         AnalogMode("ysf", "YSF", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_digiham"], squelch=False),
         AnalogMode("m17", "M17", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_m17"], squelch=False),
         AnalogMode("freedv", "FreeDV", bandpass=Bandpass(300, 3000), requirements=["digital_voice_freedv"], squelch=False),
-        AnalogMode("rade", "RADE", bandpass=Bandpass(300, 3000), requirements=["digital_voice_rade"], squelch=False),
+        AnalogMode("rade", "RADE", underlying=["usb", "lsb"], requirements=["digital_voice_rade"], squelch=False),
         AnalogMode("drm", "DRM", bandpass=Bandpass(-5000, 5000), requirements=["drm"], squelch=False),
         AnalogMode("dab", "DAB", bandpass=None, ifRate=2048000, requirements=["dab"], squelch=False),
         AnalogMode("hdr", "HDR", bandpass=Bandpass(-200000, 200000), requirements=["hdradio"], squelch=False),
