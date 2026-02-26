@@ -604,7 +604,7 @@ class FeatureDetector(object):
         The `webrx_rade_decode` executable is required to demodulate more
         modern FreeDV RADE digital transmissions. To obtain it, you will
         have to compile the
-        [RADAE Decoder](https://github.com/peterbmarks/radae_decoder)
+        [RADAE Project](https://github.com/peterbmarks/radae_decoder)
         from sources and then manually install the `tools/webrx_rade_decode`
         executable.
         """
