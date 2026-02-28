@@ -1736,6 +1736,18 @@ img.openwebrx-mirror-img
     display: none;
 }
 
+.openwebrx-opacity-button svg.bumped {
+    display: none;
+}
+
+.openwebrx-opacity-button.bumped svg.bumped {
+    display: initial;
+}
+
+.openwebrx-opacity-button.bumped svg.unbumped {
+    display: none;
+}
+
 .bookmark .bookmark-actions .openwebrx-button svg {
     height: 14px;
 }

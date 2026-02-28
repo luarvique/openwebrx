@@ -44,7 +44,7 @@
     </head>
     <body onload="openwebrx_init();">
 
-<div id="webrx-page-container">
+<div id="webrx-page-container" onmousemove="UI.bumpOpacity();">
     ${header}
     <div class="openwebrx-waterfall-container">
         <div id="openwebrx-frequency-container">
@@ -301,8 +301,9 @@
                                 <option value="black">Black</option>
                                 <option value="night">Night</option>
                             </select>
-                            <div title="Reset opacity" id="openwebrx-opacity-reset" class="openwebrx-button openwebrx-slider-button" onclick="UI.setOpacity(100);">
-                                <svg viewBox="56 -900 835 835"><use xlink:href="static/gfx/svg-defs.svg#opacity"></use></svg>
+                            <div title="Toggle opacity bump" class="openwebrx-button openwebrx-slider-button openwebrx-opacity-button" onclick="UI.toggleOpacity();">
+                                <svg class="unbumped" viewBox="56 -900 835 835"><use xlink:href="static/gfx/svg-defs.svg#opacity"></use></svg>
+                                <svg class="bumped" viewBox="56 -900 835 835"><use xlink:href="static/gfx/svg-defs.svg#opacity-bump"></use></svg>
                             </div>
                             <input title="Opacity" id="openwebrx-opacity-slider" class="openwebrx-panel-slider" type="range" min="20" max="100" value="100" step="1" oninput="UI.setOpacity(this.value);">
                         </div>

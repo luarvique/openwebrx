@@ -18,6 +18,8 @@ UI.wheelSwap = false;
 UI.spectrum = false;
 UI.bandplan = false;
 UI.cwOffset = null;
+UI.opacityBump = false;
+UI.opBumped = null;
 
 // Foldable UI sections and their initial states
 UI.sections = {
@@ -31,6 +33,7 @@ UI.sections = {
 UI.loadSettings = function() {
     this.setTheme(LS.has('ui_theme')? LS.loadStr('ui_theme') : this.theme0);
     this.setOpacity(LS.has('ui_opacity')? LS.loadInt('ui_opacity') : 100);
+    this.toggleOpacity(LS.has('ui_opacityBump')? LS.loadBool('ui_opacityBump') : false);
     this.toggleFrame(LS.has('ui_frame')? LS.loadBool('ui_frame') : false);
     this.toggleWheelSwap(LS.has('ui_wheel')? LS.loadBool('ui_wheel') : false);
     this.toggleSpectrum(LS.has('ui_spectrum')? LS.loadBool('ui_spectrum') : false);
@@ -449,17 +452,48 @@ UI.setOpacity = function(x) {
     if (this.opacity != x) {
         this.opacity = x;
         LS.save('ui_opacity', x);
-        $('.openwebrx-panel').css('opacity', x/100);
+        $('.openwebrx-panel').css('opacity', x / 100);
         $('#openwebrx-opacity-slider')
             .attr('title', 'Opacity (' + Math.round(x) + '%)')
             .val(x);
     }
 };
 
-// Set initial user interface theme
+// Set temporary user interface 100% opacity bump.
+UI.toggleOpacity = function(on) {
+    if (typeof(on) === 'undefined') on = !this.opacityBump;
+
+    if (this.opacityBump != on) {
+        this.opacityBump = on;
+        LS.save('ui_opacityBump', on);
+        var $bumpButton = $('.openwebrx-opacity-button');
+        if (on) {
+            $bumpButton.addClass('bumped');
+            this.bumpOpacity();
+        } else {
+            $bumpButton.removeClass('bumped');
+            $('.openwebrx-panel').css('opacity', this.opacity / 100);
+        }
+    }
+};
+
+// Bump user interface opacity to 100%, for a while.
+UI.bumpOpacity = function() {
+    if (this.opacityBump && this.opBumped === null && this.opacity < 100) {
+        // Bump opacity to 100%
+        $('.openwebrx-panel').css('opacity', 1);
+        // Return back to transparency after a while
+        this.opBumped = setTimeout(function(that) {
+            $('.openwebrx-panel').css('opacity', that.opacity / 100);
+            that.opBumped = null;
+        }, 3000, this);
+    }
+};
+
+// Set initial user interface theme.
 UI.setDefaultTheme = function(theme) {
     this.theme0 = theme;
-}
+};
 
 // Set user interface theme.
 UI.setTheme = function(theme) {

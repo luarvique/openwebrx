@@ -1,4 +1,5 @@
 **1.2.108**
+- Added 100% UI opacity bump option.
 - Added FreeDV RADEv1 digital voice support.
 - Added SoapyMiri gain stages [Sergei Korolev].
 - Added LimeSDR gain stages [Sergei Korolev].
