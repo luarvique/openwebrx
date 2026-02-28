@@ -1736,18 +1736,6 @@ img.openwebrx-mirror-img
     display: none;
 }
 
-.openwebrx-opacity-button svg.bumped {
-    display: none;
-}
-
-.openwebrx-opacity-button.bumped svg.bumped {
-    display: initial;
-}
-
-.openwebrx-opacity-button.bumped svg.unbumped {
-    display: none;
-}
-
 .bookmark .bookmark-actions .openwebrx-button svg {
     height: 14px;
 }
@@ -2056,6 +2044,18 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-squelch-auto.highlighted .squelch {
+    display: none;
+}
+
+.openwebrx-opacity-button .bumped {
+    display: none;
+}
+
+.openwebrx-opacity-button.bumped .bumped {
+    display: initial;
+}
+
+.openwebrx-opacity-button.bumped .unbumped {
     display: none;
 }
 
