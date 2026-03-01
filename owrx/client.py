@@ -1,4 +1,5 @@
 from owrx.config import Config
+from owrx.config.core import CoreConfig
 from owrx.color import ColorCache
 from datetime import datetime, timedelta
 from ipaddress import ip_address
@@ -162,10 +163,13 @@ class ClientRegistry(object):
 
     # Get client IP address from the handler.
     def getIp(self, handler):
+        coreConfig = CoreConfig()
         ip = handler.client_address[0]
-        # If address private and there is X-Forwarded-For header...
-        if ip_address(ip).is_private and hasattr(handler, "headers"):
-            if "x-forwarded-for" in handler.headers:
+        trusted_proxy = coreConfig.get_web_trusted_proxies()
+        # Parse X-Forwarded-For header when incoming connection is from a trusted proxy, or
+        # a local IP as fallback
+        if ip_address(ip).is_private or (trusted_proxy is not None and ip in trusted_proxy):
+            if hasattr(handler, "headers") and "x-forwarded-for" in handler.headers:
                 ip = handler.headers['x-forwarded-for'].split(',')[0]
         # Done
         return ip
