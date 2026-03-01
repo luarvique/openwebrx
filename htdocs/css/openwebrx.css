@@ -477,6 +477,7 @@ input[type=range]:disabled {
 	-moz-border-radius: 15px;
 	margin: 5.9px;
 	box-sizing: content-box;
+	transition: opacity 0.5s ease-out;
 }
 
 .openwebrx-panel a
