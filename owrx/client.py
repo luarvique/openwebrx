@@ -163,12 +163,11 @@ class ClientRegistry(object):
 
     # Get client IP address from the handler.
     def getIp(self, handler):
-        coreConfig = CoreConfig()
+        trusted = CoreConfig().get_web_trusted_proxies()
         ip = handler.client_address[0]
-        trusted_proxy = coreConfig.get_web_trusted_proxies()
-        # Parse X-Forwarded-For header when incoming connection is from a trusted proxy, or
-        # a local IP as fallback
-        if ip_address(ip).is_private or (trusted_proxy is not None and ip in trusted_proxy):
+        # Parse X-Forwarded-For header when incoming connection is
+        # from a local address or a trusted proxy
+        if ip_address(ip).is_private or (trusted is not None and ip in trusted):
             if hasattr(handler, "headers") and "x-forwarded-for" in handler.headers:
                 ip = handler.headers['x-forwarded-for'].split(',')[0]
         # Done
