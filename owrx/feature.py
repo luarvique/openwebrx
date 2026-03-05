@@ -830,8 +830,8 @@ class FeatureDetector(object):
     def has_acarsdec(self):
         """
         OpenWebRX supports decoding ACARS airplane communications by using the
-        [AcarsDec](https://github.com/TLeconte/acarsdec) decoder. You can
-        install the `acarsdec` package from the OpenWebRX repositories.
+        [AcarsDec](https://github.com/f00b4r0/acarsdec) decoder. You can
+        install the `acarsdec` package from the OpenWebRX+ repositories.
         """
         return self._has_acarsdec_version(LooseVersion("4"))
 
