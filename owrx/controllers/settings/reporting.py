@@ -62,6 +62,24 @@ class ReportingController(SettingsFormController):
                 DropdownInput("aprs_igate_dir", "Antenna direction", AprsAntennaDirections),
             ),
             Section(
+                "AIS reporter settings",
+                CheckboxInput(
+                    "aisreporter_enabled",
+                    "Enable sending AIS data to VesselFinder",
+                ),
+                TextInput(
+                    "aisreporter_udp_host",
+                    "AIS UDP host",
+                    infotext="Hostname or IP address of the AIS UDP receiver (default: ais.vesselfinder.com)",
+                ),
+                NumberInput(
+                    "aisreporter_udp_port",
+                    "AIS UDP port",
+                    infotext="UDP port of the AIS receiver (default: 5482)",
+                    converter=IntConverter(),
+                ),
+            ),
+            Section(
                 "PSKReporter settings",
                 CheckboxInput(
                     "pskreporter_enabled",

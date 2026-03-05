@@ -1,6 +1,7 @@
 import threading
 from owrx.config import Config
 from owrx.reporting.reporter import Reporter, FilteredReporter
+from owrx.reporting.aisreporter import AisReporter
 from owrx.reporting.pskreporter import PskReporter
 from owrx.reporting.wsprnet import WsprnetReporter
 from owrx.feature import FeatureDetector
@@ -16,6 +17,7 @@ class ReportingEngine(object):
     # concrete classes if they can be imported without the risk of optional dependencies
     # tuples if the import needs to be detected by a feature check
     reporterClasses = {
+        "aisreporter": AisReporter,
         "pskreporter": PskReporter,
         "wsprnet": WsprnetReporter,
         "mqtt": ("owrx.reporting.mqtt", "MqttReporter")
