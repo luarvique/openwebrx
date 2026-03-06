@@ -70,7 +70,7 @@ class AisReporter(FilteredReporter):
             logger.debug("AisReporter received spot: %s", spot)
 
             if self.uploader is None:
-                logger.error("AisReporter has no uploader; spots cannot be forwarded until the configuration is corrected")
+                logger.debug("AisReporter has no uploader; spots cannot be forwarded until the configuration is corrected")
                 return
 
             if not isinstance(spot, dict):
@@ -105,7 +105,6 @@ class AisReporter(FilteredReporter):
                 return
 
             self.uploader.upload(normalised)
-            logger.info("Spot reported succesfully")
 
             if self.sentCounter:
                 self.sentCounter.inc()
@@ -229,18 +228,28 @@ class Uploader:
         try:
             # Both keys are guaranteed present by defaults.py, so direct
             # subscript access is correct; no fallback logic is needed here.
-            host = pm["aisreporter_udp_host"]
-            port = pm["aisreporter_udp_port"]
+            hosts = str(pm["aisreporter_udp_hosts"])
+            ports = str(pm["aisreporter_udp_ports"])
 
-            if not isinstance(host, str) or not host:
-                raise ValueError(f"Invalid aisreporter_udp_host: {host!r}")
+            self.hosts = [_h for h in hosts.split(',') if (_h := h.strip())]
+            
+            try:
+                self.ports = [int(_p) for p in ports.split(',') if (_p := p.strip())]
+            except ValueError as e:
+                raise ValueError(f"aisreporter_udp_ports must be coercible to integers: {e}") from e
 
-            port = int(port)
-            if not (0 < port < 65536):
-                raise ValueError(f"Invalid aisreporter_udp_port: {port!r}")
+            if not self.hosts:
+                raise ValueError("aisreporter_udp_hosts cannot be empty")
+            
+            if not self.ports:
+                raise ValueError("aisreporter_udp_ports cannot be empty")
 
-            self.host = host
-            self.port = port
+            for port in self.ports:
+                if not (0 < port < 65536):
+                    raise ValueError(f"Invalid aisreporter_udp_ports: {port!r}")
+
+            if len(self.hosts) != len(self.ports):
+                raise ValueError(f"Comma separated aisreporter_udp_hosts and aisreporter_udp_ports unequal length")
 
             # A plain UDP socket.  sendto() on an unconnected UDP socket does
             # not block waiting for a reply, so no timeout is needed or useful.
@@ -276,8 +285,9 @@ class Uploader:
                     )
                     return
 
-                self.socket.sendto(data, (self.host, self.port))
-                logger.debug("AIS sentence sent to %s:%d: %r", self.host, self.port, sentence)
+                for host, port in zip(self.hosts, self.ports):
+                    self.socket.sendto(data, (host, port))
+                    logger.debug("AIS sentence sent to %s:%d: %r", host, port, sentence)
 
             except OSError:
                 logger.exception("Socket error while sending AIS sentence")

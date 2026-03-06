@@ -68,15 +68,14 @@ class ReportingController(SettingsFormController):
                     "Enable sending AIS data to VesselFinder",
                 ),
                 TextInput(
-                    "aisreporter_udp_host",
-                    "AIS UDP host",
-                    infotext="Hostname or IP address of the AIS UDP receiver (default: ais.vesselfinder.com)",
+                    "aisreporter_udp_hosts",
+                    "AIS UDP host(s)",
+                    infotext="Comma separated hostnames or IP addresses of the AIS UDP receivers (default: ais.vesselfinder.com)",
                 ),
-                NumberInput(
-                    "aisreporter_udp_port",
-                    "AIS UDP port",
-                    infotext="UDP port of the AIS receiver (default: 5482)",
-                    converter=IntConverter(),
+                TextInput(
+                    "aisreporter_udp_ports",
+                    "AIS UDP port(s)",
+                    infotext="Comma separated UDP ports of the AIS UDP receivers (default: 5482)",
                 ),
             ),
             Section(
