@@ -24,6 +24,7 @@ GIT_ACARSDEC=https://github.com/luarvique/acarsdec.git
 GIT_REDSEA=https://github.com/windytan/redsea.git
 GIT_DUMP978=https://github.com/luarvique/dump978.git
 GIT_NRSC5=https://github.com/luarvique/nrsc5.git
+GIT_MULTIMON=https://github.com/luarvique/multimon-ng.git
 
 BUILD_DIR=./owrx-build/`uname -m`
 OUTPUT_DIR=./owrx-output/`uname -m`
@@ -55,6 +56,8 @@ if [ "${1:-}" == "--ask" ]; then
 	[[ "$ret" == [Yy]* ]] && BUILD_DUMP978=y || BUILD_DUMP978=n
 	echo;read -n1 -p "Build nrsc5? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_NRSC5=y || BUILD_NRSC5=n
+	echo;read -n1 -p "Build multimon-ng? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_MULTIMON=y || BUILD_MULTIMON=n
 	echo;read -n1 -p "Build csdr-skimmer? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_SKIMMER=y || BUILD_SKIMMER=n
 	echo;read -n1 -p "Build SoapySDRPlay3? [yN] " ret
@@ -80,6 +83,7 @@ else
 	BUILD_ACARSDEC=y
 	BUILD_DUMP978=y
 	BUILD_NRSC5=y
+	BUILD_MULTIMON=y
 	BUILD_SKIMMER=y
 	CLEAN_OUTPUT=y
 fi
@@ -276,6 +280,17 @@ if [ "${BUILD_NRSC5:-}" == "y" ]; then
 	# Not installing nrsc5 here since there are no further
 	# build steps depending on it
 	#sudo dpkg -i *nrsc5*.deb
+fi
+
+if [ "${BUILD_MULTIMON:-}" == "y" ]; then
+	echo "##### Building multimon-ng... #####"
+	git clone -b master "$GIT_MULTIMON"
+	pushd multimon-ng
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing multimon-ng here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *multimon-ng*.deb
 fi
 
 if [ "${BUILD_SKIMMER:-}" == "y" ]; then
