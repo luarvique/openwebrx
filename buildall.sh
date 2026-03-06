@@ -22,7 +22,8 @@ GIT_SOAPYSDRPLAY3=https://github.com/luarvique/SoapySDRPlay3.git
 GIT_OPENWEBRX=https://github.com/luarvique/openwebrx.git
 GIT_ACARSDEC=https://github.com/luarvique/acarsdec.git
 GIT_REDSEA=https://github.com/windytan/redsea.git
-GIT_DUMP978=https://github.com/flightaware/dump978.git
+GIT_DUMP978=https://github.com/luarvique/dump978.git
+GIT_NRSC5=https://github.com/luarvique/nrsc5.git
 
 BUILD_DIR=./owrx-build/`uname -m`
 OUTPUT_DIR=./owrx-output/`uname -m`
@@ -52,6 +53,8 @@ if [ "${1:-}" == "--ask" ]; then
 	[[ "$ret" == [Yy]* ]] && BUILD_ACARSDEC=y || BUILD_ACARSDEC=n
 	echo;read -n1 -p "Build dump978? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_DUMP978=y || BUILD_DUMP978=n
+	echo;read -n1 -p "Build nrsc5? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_NRSC5=y || BUILD_NRSC5=n
 	echo;read -n1 -p "Build csdr-skimmer? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_SKIMMER=y || BUILD_SKIMMER=n
 	echo;read -n1 -p "Build SoapySDRPlay3? [yN] " ret
@@ -76,6 +79,7 @@ else
 	BUILD_REDSEA=y
 	BUILD_ACARSDEC=y
 	BUILD_DUMP978=y
+	BUILD_NRSC5=y
 	BUILD_SKIMMER=y
 	CLEAN_OUTPUT=y
 fi
@@ -261,6 +265,17 @@ if [ "${BUILD_DUMP978:-}" == "y" ]; then
 	# Not installing dump978 here since there are no further
 	# build steps depending on it
 	#sudo dpkg -i *dump978*.deb
+fi
+
+if [ "${BUILD_NRSC5:-}" == "y" ]; then
+	echo "##### Building nrsc5... #####"
+	git clone -b master "$GIT_NRSC5"
+	pushd nrsc5
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing nrsc5 here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *nrsc5*.deb
 fi
 
 if [ "${BUILD_SKIMMER:-}" == "y" ]; then
