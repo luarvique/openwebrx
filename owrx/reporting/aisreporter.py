@@ -34,6 +34,12 @@ class AisReporter(FilteredReporter):
         except Exception:
             logger.exception("AisReporter: failed to create uploader; spots will not be forwarded")
 
+        # Watch for host/port config changes and rebuild the uploader live.
+        self._configSub = Config.get().filter(
+            "aisreporter_udp_hosts",
+            "aisreporter_udp_ports",
+        ).wire(self._onConfigChange)
+
         self.sentCounter = None
         self.errorCounter = None
 
@@ -52,9 +58,27 @@ class AisReporter(FilteredReporter):
         except Exception:
             logger.exception("Failed to register AisReporter metrics")
 
+    def _onConfigChange(self, *args):
+        with self._state_lock:
+            if self._stopped:
+                return
+            logger.debug("AisReporter: config changed, rebuilding uploader")
+            old = self.uploader
+            self.uploader = None
+            if old is not None:
+                try:
+                    old.close()
+                except Exception:
+                    logger.exception("Error closing old uploader during config reload")
+            try:
+                self.uploader = Uploader()
+            except Exception:
+                logger.exception("AisReporter: failed to rebuild uploader after config change")
+
     def stop(self):
         with self._state_lock:
             self._stopped = True
+            self._configSub.cancel()
             if self.uploader is not None:
                 try:
                     self.uploader.close()
@@ -232,7 +256,7 @@ class Uploader:
             ports = str(pm["aisreporter_udp_ports"])
 
             self.hosts = [_h for h in hosts.split(',') if (_h := h.strip())]
-            
+
             try:
                 self.ports = [int(_p) for p in ports.split(',') if (_p := p.strip())]
             except ValueError as e:
@@ -240,7 +264,7 @@ class Uploader:
 
             if not self.hosts:
                 raise ValueError("aisreporter_udp_hosts cannot be empty")
-            
+
             if not self.ports:
                 raise ValueError("aisreporter_udp_ports cannot be empty")
 
@@ -249,7 +273,7 @@ class Uploader:
                     raise ValueError(f"Invalid aisreporter_udp_ports: {port!r}")
 
             if len(self.hosts) != len(self.ports):
-                raise ValueError(f"Comma separated aisreporter_udp_hosts and aisreporter_udp_ports unequal length")
+                raise ValueError("Comma separated aisreporter_udp_hosts and aisreporter_udp_ports unequal length")
 
             # A plain UDP socket.  sendto() on an unconnected UDP socket does
             # not block waiting for a reply, so no timeout is needed or useful.
