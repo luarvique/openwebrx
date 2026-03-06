@@ -625,7 +625,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "freedv":
             from csdr.chain.freedv import FreeDV
             return FreeDV()
-        elif demod == "rade":
+        elif demod in ["radel", "radeu"]:
             from csdr.chain.freedv import RADE
             return RADE()
         elif demod == "dab":
