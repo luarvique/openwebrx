@@ -20,11 +20,14 @@ GIT_JS8PY=https://github.com/jketterl/js8py.git
 GIT_SKIMMER=https://github.com/luarvique/csdr-skimmer.git
 GIT_SOAPYSDRPLAY3=https://github.com/luarvique/SoapySDRPlay3.git
 GIT_OPENWEBRX=https://github.com/luarvique/openwebrx.git
-GIT_ACARSDEC=https://github.com/luarvique/acarsdec.git
 GIT_REDSEA=https://github.com/windytan/redsea.git
 GIT_DUMP978=https://github.com/luarvique/dump978.git
 GIT_NRSC5=https://github.com/luarvique/nrsc5.git
 GIT_MULTIMON=https://github.com/luarvique/multimon-ng.git
+GIT_LIBACARS=https://github.com/luarvique/libacars.git
+GIT_ACARSDEC=https://github.com/luarvique/acarsdec.git
+GIT_DUMPVDL2=https://github.com/luarvique/dumpvdl2.git
+GIT_DUMPHFDL=https://github.com/luarvique/dumphfdl.git
 
 BUILD_DIR=./owrx-build/`uname -m`
 OUTPUT_DIR=./owrx-output/`uname -m`
@@ -50,8 +53,14 @@ if [ "${1:-}" == "--ask" ]; then
 	[[ "$ret" == [Yy]* ]] && BUILD_JS8PY=y || BUILD_JS8PY=n
 	echo;read -n1 -p "Build Redsea? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_REDSEA=y || BUILD_REDSEA=n
+	echo;read -n1 -p "Build libacars? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_LIBACARS=y || BUILD_LIBACARS=n
 	echo;read -n1 -p "Build acarsdec? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_ACARSDEC=y || BUILD_ACARSDEC=n
+	echo;read -n1 -p "Build dumpvdl2? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_DUMPVDL2=y || BUILD_DUMPVDL2=n
+	echo;read -n1 -p "Build dumphfdl? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_DUMPHFDL=y || BUILD_DUMPHFDL=n
 	echo;read -n1 -p "Build dump978? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_DUMP978=y || BUILD_DUMP978=n
 	echo;read -n1 -p "Build nrsc5? [yN] " ret
@@ -80,7 +89,10 @@ else
 	BUILD_PYCSDR_ETI=y
 	BUILD_JS8PY=y
 	BUILD_REDSEA=y
+	BUILD_LIBACARS=y
 	BUILD_ACARSDEC=y
+	BUILD_DUMPVDL2=y
+	BUILD_DUMPHFDL=y
 	BUILD_DUMP978=y
 	BUILD_NRSC5=y
 	BUILD_MULTIMON=y
@@ -107,6 +119,9 @@ fi
 if [ "${BUILD_PYCSDR:-}" == "y" ] || [ "${BUILD_OWRXCONNECTOR:-}" == "y" ] || [ "${BUILD_CSDR_ETI:-}" == "y" || [ "${BUILD_SKIMMER:-}" == "y" ] ]; then
 	BUILD_CSDR=y
 fi
+if [ "${BUILD_ACARSDEC:-}" == "y" ] || [ "${BUILD_DUMPVDL2:-}" == "y" ] || [ "${BUILD_DUMPHFDL:-}" == "y" ]; then
+	BUILD_LIBACARS=y
+fi
 
 echo ======================================
 echo "Building:"
@@ -120,11 +135,16 @@ echo "csdr-eti: $BUILD_CSDR_ETI"
 echo "pycsdr-eti: $BUILD_PYCSDR_ETI"
 echo "js8py: $BUILD_JS8PY"
 echo "redsea: $BUILD_REDSEA"
+echo "acarslib: $BUILD_ACARSLIB"
 echo "acarsdec: $BUILD_ACARSDEC"
+echo "dumpvdl2: $BUILD_DUMPVDL2"
+echo "dumphfdl: $BUILD_DUMPHFDL"
+echo "nrsc5: $BUILD_NRSC5"
+echo "multimon-ng: $BUILD_MULTIMON"
 echo "dump978: $BUILD_DUMP978"
 echo "csdr-skimmer: $BUILD_SKIMMER"
 echo "SoapySDRPlay3: $BUILD_SOAPYSDRPLAY3"
-echo "OpenWebRx: $BUILD_OWRX"
+echo "OpenWebRX: $BUILD_OWRX"
 echo "Clean OUTPUT folder: $CLEAN_OUTPUT"
 echo ======================================
 
@@ -249,6 +269,16 @@ if [ "${BUILD_REDSEA:-}" == "y" ]; then
 	#sudo dpkg -i *redsea*.deb
 fi
 
+if [ "${BUILD_LIBACARS:-}" == "y" ]; then
+	echo "##### Building libacars... #####"
+	git clone -b master "$GIT_LIBACARS"
+	pushd libacars
+	dpkg-buildpackage -us -uc
+	popd
+	# AcarsDec, DumpVDL2, DumpHFDL will need this library
+	sudo dpkg -i libacars*.deb
+fi
+
 if [ "${BUILD_ACARSDEC:-}" == "y" ]; then
 	echo "##### Building acarsdec... #####"
 	git clone -b master "$GIT_ACARSDEC"
@@ -258,6 +288,28 @@ if [ "${BUILD_ACARSDEC:-}" == "y" ]; then
 	# Not installing acarsdec here since there are no further
 	# build steps depending on it
 	#sudo dpkg -i *acarsdec*.deb
+fi
+
+if [ "${BUILD_DUMPVDL2:-}" == "y" ]; then
+	echo "##### Building dumpvdl2... #####"
+	git clone -b master "$GIT_DUMPVDL2"
+	pushd dumpvdl2
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing dumpvdl2 here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *dumpvdl2*.deb
+fi
+
+if [ "${BUILD_DUMPHFDL:-}" == "y" ]; then
+	echo "##### Building dumphfdl... #####"
+	git clone -b master "$GIT_DUMPHFDL"
+	pushd dumphfdl
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing dumphfdl here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *dumphfdl*.deb
 fi
 
 if [ "${BUILD_DUMP978:-}" == "y" ]; then
