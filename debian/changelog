@@ -1,3 +1,13 @@
+openwebrx (1.2.109) bullseye jammy; urgency=low
+
+  * Added separate RADEL and RADEU modes.
+  * Added trusted proxies config [Giulio Fieramosca].
+  * Updated feature installation instructions.
+  * Updated integration with latest NRSC5.
+  * Updated AcarsDec version check.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 9 Mar 2026 16:12:00 +0000
+
 openwebrx (1.2.108) bullseye jammy; urgency=low
 
   * Added 100% UI opacity bump option.
