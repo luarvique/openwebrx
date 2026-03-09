@@ -46,6 +46,8 @@ class PacketDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, service: bool = False, ais: bool = False):
         self.parser = AprsParser()
         workers = [
+            # Default analog NFM demodulator includes a few extra blocks
+            FmDemod(),
             Convert(Format.FLOAT, Format.SHORT),
             DirewolfModule(service=service, ais=ais),
             KissDeframer(),

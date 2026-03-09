@@ -38,8 +38,7 @@ class MultimonDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         self.sampleRate = 22050
         self.parser = parser
         workers = [
-            # Multimon does not like the default analog NFM demodulator
-            # that includes a few extra blocks
+            # Default analog NFM demodulator includes a few extra blocks
             FmDemod(),
             Convert(Format.FLOAT, Format.SHORT),
             MultimonModule(decoders),
