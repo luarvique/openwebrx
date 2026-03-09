@@ -1,6 +1,6 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
-from pycsdr.modules import Convert, Agc, RealPart, SnrSquelch
+from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
 from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
@@ -38,6 +38,9 @@ class MultimonDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         self.sampleRate = 22050
         self.parser = parser
         workers = [
+            # Multimon does not like the default analog NFM demodulator
+            # that includes a few extra blocks
+            FmDemod(),
             Convert(Format.FLOAT, Format.SHORT),
             MultimonModule(decoders),
             self.parser,
