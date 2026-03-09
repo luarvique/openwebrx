@@ -1,6 +1,6 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
-from pycsdr.modules import FmDemod, Convert, Agc, Squelch, RealPart, SnrSquelch
+from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
 from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
@@ -34,30 +34,16 @@ class IsmDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 
 
 class MultimonDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, decoders: list[str], parser, withSquelch: bool = False):
+    def __init__(self, decoders: list[str], parser):
         self.sampleRate = 22050
-        self.squelch = None
         self.parser = parser
         workers = [
+            # Default analog NFM demodulator includes a few extra blocks
             FmDemod(),
             Convert(Format.FLOAT, Format.SHORT),
             MultimonModule(decoders),
             self.parser,
         ]
-        # If using squelch, insert Squelch() at the start
-        if withSquelch:
-            self.measurementsPerSec = 16
-            self.readingsPerSec = 4
-            blockLength  = int(self.sampleRate / self.measurementsPerSec)
-            self.squelch = Squelch(Format.COMPLEX_FLOAT,
-                length      = blockLength,
-                decimation  = 5,
-                hangLength  = 2 * blockLength,
-                flushLength = 5 * blockLength,
-                reportInterval = int(self.measurementsPerSec / self.readingsPerSec)
-            )
-            workers.insert(0, self.squelch)
-
         # Connect all the workers
         super().__init__(workers)
 
@@ -65,7 +51,7 @@ class MultimonDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         return self.sampleRate
 
     def supportsSquelch(self) -> bool:
-        return self.squelch != None
+        return True
 
     def setDialFrequency(self, frequency: int) -> None:
         self.parser.setDialFrequency(frequency)
@@ -73,22 +59,20 @@ class MultimonDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def _convertToLinear(self, db: float) -> float:
         return float(math.pow(10, db / 10))
 
-    def setSquelchLevel(self, level: float) -> None:
-        if self.squelch:
-            self.squelch.setSquelchLevel(self._convertToLinear(level))
-
 
 class PageDemodulator(MultimonDemodulator):
     def __init__(self, service: bool = False):
         super().__init__(
             ["FLEX", "POCSAG512", "POCSAG1200", "POCSAG2400"],
-            PageParser(service=service),
+            PageParser(service=service)
             # Enabling squelch in background mode just to make sure
             # multimon-ng is fed data in large chunks (>=512 samples).
             # POCSAG mode will not work otherwise, due to some issue
             # in multimon-ng. In the interactive mode, similar effect
             # is achieved by the Squelch() module in the main chain.
-            withSquelch = service
+            # THIS HAS BEEN FIXED:
+            # https://github.com/EliasOenal/multimon-ng/pull/214
+            #withSquelch = service
         )
 
 
@@ -96,8 +80,7 @@ class SelCallDemodulator(MultimonDemodulator):
     def __init__(self, service: bool = False):
         super().__init__(
             ["DTMF", "EEA", "EIA", "CCIR"],
-            SelCallParser(service=service),
-            withSquelch = True
+            SelCallParser(service=service)
         )
 
 
@@ -105,8 +88,7 @@ class EasDemodulator(MultimonDemodulator):
     def __init__(self, service: bool = False):
         super().__init__(
             ["EAS"],
-            EasParser(service=service),
-            withSquelch = True
+            EasParser(service=service)
         )
 
 
@@ -114,8 +96,7 @@ class ZveiDemodulator(MultimonDemodulator):
     def __init__(self, service: bool = False):
         super().__init__(
             ["ZVEI1", "ZVEI2", "ZVEI3", "DZVEI", "PZVEI"],
-            SelCallParser(service=service),
-            withSquelch = True
+            SelCallParser(service=service)
         )
 
 
