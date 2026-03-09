@@ -1,6 +1,7 @@
 **1.2.109**
 - Added separate RADEL and RADEU modes.
 - Added trusted proxies config [Giulio Fieramosca].
+- Added back sound for digital modes.
 - Updated feature installation instructions.
 - Updated integration with latest NRSC5.
 - Updated AcarsDec version check.
