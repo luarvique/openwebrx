@@ -85,9 +85,5 @@ class PerseussdrDeviceDescription(DirectSourceDeviceDescription):
 
     def getSampleRateRanges(self) -> List[Range]:
         return [
-            Range(125000),
-            Range(250000),
-            Range(500000),
-            Range(1000000),
-            Range(2000000),
+            Range(48000, 2000000),
         ]
