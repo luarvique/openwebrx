@@ -1,7 +1,8 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form.input import Input, CheckboxInput
+from owrx.form.input import Input, CheckboxInput, NumberInput
 from owrx.form.input.validator import Range
 from typing import List
+
 
 class SddcSoapySource(SoapyConnectorSource):
     def getSoapySettingsMappings(self):
@@ -9,7 +10,8 @@ class SddcSoapySource(SoapyConnectorSource):
         mappings.update(
             {
                 "bias_tee_hf": "UpdBiasT_HF",
-                "bias_tee_vhf": "UpdBiasT_VHF"
+                "bias_tee_vhf": "UpdBiasT_VHF",
+                "adc_frequency": "adc_frequency"
             }
         )
         return mappings
@@ -17,9 +19,10 @@ class SddcSoapySource(SoapyConnectorSource):
     def getDriver(self):
         return "SDDC"
 
+
 class SddcSoapyDeviceDescription(SoapyConnectorDeviceDescription):
     def getName(self):
-        return "BBRF103 / RX666 / RX888 (SDDC) device (via SoapySDR)"
+        return "BBRF103 / RX666 / RX888 / RX888 mkII (SDDC) device (via SoapySDR)"
 
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
@@ -31,11 +34,16 @@ class SddcSoapyDeviceDescription(SoapyConnectorDeviceDescription):
                 "bias_tee_vhf",
                 "Enable BIAS-T for VHF antenna port"
             ),
+            NumberInput(
+                "adc_frequency",
+                "ADC Frequency (Hz)",
+                infotext="ADC sampling frequency in Hz. Default 128000000 for RX-888 mkII, 64000000 for other devices. Range: 50000000-140000000 (high-ADC), 50000000-64000000 (standard)."
+            ),
         ]
 
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + [
-            "bias_tee_hf", "bias_tee_vhf"
+            "bias_tee_hf", "bias_tee_vhf", "adc_frequency"
         ]
 
     def getGainStages(self):
@@ -51,4 +59,5 @@ class SddcSoapyDeviceDescription(SoapyConnectorDeviceDescription):
             Range(8000000),
             Range(16000000),
             Range(32000000),
+            Range(64000000),
         ]
