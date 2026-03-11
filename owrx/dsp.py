@@ -841,8 +841,15 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         self.chain.setHighCut(None if highCut is PropertyDeleted else highCut)
 
     def start(self):
+        logger.debug("dsp: start(self) called")
         if self.sdrSource.isAvailable():
-            self.chain.setReader(self.sdrSource.getBuffer().getReader())
+            logger.debug("dsp: self.sdrSource.isAvailable")
+            if self.chain:
+                 logger.debug("self.chain is available")
+                 self.chain.setReader(self.sdrSource.getBuffer().getReader())
+            else:
+                logger.debug("self.chain is NOT available, calling __init__")
+                self.__init__(self.handler, self.sdrSource)
         else:
             self.startOnAvailable = True
 
