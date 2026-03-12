@@ -1,3 +1,10 @@
+**1.2.110**
+- Added AIS reporting to VesselFinder [Ari Cooper Davis].
+- Added 48kHz-2MHz sample rates for PerseusSDR [oettlalb].
+- Added 128MHz ADC support for RX-888mkII [SteamedFish].
+- Added 64MHz sample rate for RX-888mkII [SteamedFish].
+- No longer removing chain when stopping DSP.
+
 **1.2.109**
 - Added separate RADEL and RADEU modes.
 - Added trusted proxies config [Giulio Fieramosca].

@@ -1,3 +1,13 @@
+openwebrx (1.2.110) bullseye jammy; urgency=low
+
+  * Added AIS reporting to VesselFinder [Ari Cooper Davis].
+  * Added 48kHz-2MHz sample rates for PerseusSDR [oettlalb].
+  * Added 128MHz ADC support for RX-888mkII [SteamedFish].
+  * Added 64MHz sample rate for RX-888mkII [SteamedFish].
+  * No longer removing chain when stopping DSP.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 16 Mar 2026 16:12:00 +0000
+
 openwebrx (1.2.109) bullseye jammy; urgency=low
 
   * Added separate RADEL and RADEU modes.
