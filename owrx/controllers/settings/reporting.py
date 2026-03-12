@@ -62,23 +62,6 @@ class ReportingController(SettingsFormController):
                 DropdownInput("aprs_igate_dir", "Antenna direction", AprsAntennaDirections),
             ),
             Section(
-                "AIS reporter settings",
-                CheckboxInput(
-                    "aisreporter_enabled",
-                    "Enable sending AIS data to VesselFinder",
-                ),
-                TextInput(
-                    "aisreporter_udp_hosts",
-                    "AIS UDP host(s)",
-                    infotext="Comma separated hostnames or IP addresses of the AIS UDP receivers (default: ais.vesselfinder.com)",
-                ),
-                TextInput(
-                    "aisreporter_udp_ports",
-                    "AIS UDP port(s)",
-                    infotext="Comma separated UDP ports of the AIS UDP receivers (default: 5482)",
-                ),
-            ),
-            Section(
                 "PSKReporter settings",
                 CheckboxInput(
                     "pskreporter_enabled",
@@ -112,6 +95,23 @@ class ReportingController(SettingsFormController):
                     "wsprnet_callsign",
                     "wsprnet callsign",
                     infotext="This callsign will be used to send spots to wsprnet.org",
+                ),
+            ),
+            Section(
+                "AIS reporter settings",
+                CheckboxInput(
+                    "aisreporter_enabled",
+                    "Enable sending AIS data to VesselFinder",
+                ),
+                TextInput(
+                    "aisreporter_udp_hosts",
+                    "AIS UDP host(s)",
+                    infotext="Comma separated list of AIS receiver hostnames.",
+                ),
+                TextInput(
+                    "aisreporter_udp_ports",
+                    "AIS UDP port(s)",
+                    infotext="Comma separated list of AIS receiver UDP ports",
                 ),
             ),
             Section(

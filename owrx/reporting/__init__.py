@@ -17,9 +17,9 @@ class ReportingEngine(object):
     # concrete classes if they can be imported without the risk of optional dependencies
     # tuples if the import needs to be detected by a feature check
     reporterClasses = {
-        "aisreporter": AisReporter,
         "pskreporter": PskReporter,
         "wsprnet": WsprnetReporter,
+        "aisreporter": AisReporter,
         "mqtt": ("owrx.reporting.mqtt", "MqttReporter")
     }
 
