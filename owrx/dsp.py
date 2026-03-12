@@ -893,9 +893,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         return unpickler
 
     def stop(self):
-        if self.chain:
-            self.chain.stop()
-            self.chain = None
+        self.chain.stop()
         for reader in self.readers.values():
             reader.stop()
         self.readers = {}
