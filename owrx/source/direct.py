@@ -4,15 +4,26 @@ from csdr.chain import Chain
 from typing import Optional
 from pycsdr.modules import Buffer
 from pycsdr.types import Format
-
+from threading import Timer
 
 class DirectSource(SdrSource, metaclass=ABCMeta):
     def __init__(self, id, props):
         self._conversion = None
+        self.timer = None
         super().__init__(id, props)
 
     def onPropertyChange(self, changes):
-        self.logger.debug("restarting sdr source due to property changes: {0}".format(changes))
+        self.logger.debug("property change requires restart: {0}".format(changes))
+        # delay applying changes until they stop coming
+        if self.timer is not None:
+            self.timer.cancel()
+        self.timer = Timer(1.0, self._whenDoneWithPropertyChanges, [self])
+        self.timer.start()
+
+    def _whenDoneWithPropertyChanges(self)
+        # once there are no more changes for a while, restart source
+        self.logger.debug("restarting sdr source due to property changes...")
+        self.timer = None
         self.stop()
         self.sleepOnRestart()
         self.start()
