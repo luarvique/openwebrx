@@ -17,7 +17,7 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
         # delay applying changes until they stop coming
         if self.timer is not None:
             self.timer.cancel()
-        self.timer = Timer(1.0, self._whenDoneWithPropertyChanges, [self])
+        self.timer = Timer(2.0, self._whenDoneWithPropertyChanges, [self])
         self.timer.start()
 
     def _whenDoneWithPropertyChanges(self)
