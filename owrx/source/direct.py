@@ -17,10 +17,10 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
         # delay applying changes until they stop coming
         if self.timer is not None:
             self.timer.cancel()
-        self.timer = Timer(2.0, self._whenDoneWithPropertyChanges, [self])
+        self.timer = Timer(1.0, self._whenDoneWithPropertyChanges)
         self.timer.start()
 
-    def _whenDoneWithPropertyChanges(self)
+    def _whenDoneWithPropertyChanges(self):
         # once there are no more changes for a while, restart source
         self.logger.debug("restarting sdr source due to property changes...")
         self.timer = None
