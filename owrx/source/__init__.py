@@ -28,6 +28,7 @@ from pycsdr.modules import TcpSource, Buffer
 from pycsdr.types import Format
 
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -311,6 +312,8 @@ class SdrSource(ABC):
         with self.modificationLock:
             if self.tcpSource is None:
                 self.tcpSource = TcpSource(self.port, self._getTcpSourceFormat())
+        stack = "\n".join(traceback.format_stack())
+        logger.info(f"Got TcpSource {self.tcpSource} from {self}, stack:\n{stack}")
         return self.tcpSource
 
     def _cancelRestart(self):
