@@ -479,6 +479,11 @@ class SdrSource(ABC):
             # make sure we do not restart after stop
             self._cancelRestart()
 
+            # make sure TCP connection is down
+            if self.tcpSource is not None:
+                self.tcpSource.stop()
+
+            # if there is a process running...
             if self.process is not None:
                 self.setState(SdrSourceState.STOPPING)
                 try:
@@ -496,12 +501,14 @@ class SdrSource(ABC):
                 except AttributeError:
                     # self.process has been overwritten by the monitor since we checked it, which is fine
                     pass
+
+            # final check for the monitor
             if self.monitor:
                 self.monitor.join()
-            if self.tcpSource is not None:
-                self.tcpSource.stop()
-                self.tcpSource = None
-                self.buffer = None
+
+            # clean up TCP source and buffer
+            self.tcpSource = None
+            self.buffer = None
 
     def shutdown(self):
         self.stop()
