@@ -106,6 +106,8 @@ class WebAgent(object):
             else:
                 # Clear error count
                 self.errorCount = 0
+                # Optionally sort loaded data
+                data = self._sortData(data)
                 # Save parsed data into a file
                 self.saveData(self._getCachedDatabaseFile(), data)
                 # Update current database
@@ -139,6 +141,8 @@ class WebAgent(object):
             except Exception as e:
                 logger.error("loadData() exception: {0}".format(e))
                 result = []
+        # Optionally sort loaded data
+        result = self._sortData(result)
         # Done
         logger.info("Loaded {0} items from '{1}'...".format(len(result), file))
         return result
@@ -155,6 +159,11 @@ class WebAgent(object):
                 "state"     : "DataDownloaded"
             }
             ReportingEngine.getSharedInstance().spot(out)
+
+    # Optionally sort data after loading it
+    def _sortData(self, data):
+        # Fill in with your own method
+        return data
 
     # Scrape web site(s) for data
     def _loadFromWeb(self):

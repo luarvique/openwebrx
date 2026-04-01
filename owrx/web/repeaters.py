@@ -113,15 +113,12 @@ class Repeaters(WebAgent):
             self.location = location
             os.remove(file)
 
-    # Sort database after loading it from a JSON file
-    def loadData(self, file: str):
-        result = super().loadData(file)
-        result.sort(key=lambda entry: entry["freq"])
-        return result
+    # Sort database by frequency
+    def _sortData(self, data):
+        data.sort(key=lambda entry: entry["freq"])
+        return data
 
-    #
     # Load repeater databases from various sources
-    #
     def _loadFromWeb(self):
         # Try RepeaterBook first
         logger.info("Downloading RepeaterBook Repeater List...")
