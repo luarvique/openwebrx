@@ -1,3 +1,12 @@
+openwebrx (1.2.111) bullseye jammy; urgency=low
+
+  * Added support for the Amateur Repeater Directory (US only).
+  * Added selection of the actual PerseusSDR sample rates.
+  * Sorted repeaters data to speed up bookmarks generation.
+  * Sorted EIBI data to speed up bookmarks generation.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 6 Apr 2026 16:12:00 +0000
+
 openwebrx (1.2.110) bullseye jammy; urgency=low
 
   * Added AIS reporting to VesselFinder [Ari Cooper Davis].

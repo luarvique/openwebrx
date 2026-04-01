@@ -1,3 +1,9 @@
+**1.2.111**
+- Added support for the Amateur Repeater Directory (US only).
+- Added selection of the actual PerseusSDR sample rates.
+- Sorted repeaters data to speed up bookmarks generation.
+- Sorted EIBI data to speed up bookmarks generation.
+
 **1.2.110**
 - Added AIS reporting to VesselFinder [Ari Cooper Davis].
 - Added 48kHz-2MHz sample rates for PerseusSDR [oettlalb].
