@@ -3,6 +3,7 @@ from owrx.bookmarks import Bookmark
 from owrx.web import WebAgent
 from owrx.version import openwebrx_version
 
+import bisect
 import urllib
 import threading
 import logging
@@ -111,6 +112,12 @@ class Repeaters(WebAgent):
             logger.info("Receiver moved by {0}km, deleting '{1}'...".format(dist, file))
             self.location = location
             os.remove(file)
+
+    # Sort database after loading it from a JSON file
+    def loadData(self, file: str):
+        result = super().loadData(file)
+        result.sort(key=lambda entry: entry["freq"])
+        return result
 
     #
     # Load repeater databases from various sources
@@ -244,7 +251,7 @@ class Repeaters(WebAgent):
     def getBookmarks(self, frequencyRange, rangeKm: int = MAX_DISTANCE):
         # Make sure freq2>freq1
         (f1, f2) = frequencyRange
-        if f1>f2:
+        if f1 > f2:
             f = f1
             f1 = f2
             f2 = f
@@ -259,13 +266,14 @@ class Repeaters(WebAgent):
 
         # Search for repeaters within frequency and distance ranges
         with self.lock:
-            for entry in self.data:
+            start = bisect.bisect_left(self.data, f1, key=lambda entry: entry["freq"])
+            end   = bisect.bisect_left(self.data, f2, key=lambda entry: entry["freq"])
+            for entry in self.data[start : end]:
                 try:
                     f = entry["freq"]
-                    if f1 <= f <= f2:
-                        d = self.distKm(rxPos, (entry["lat"], entry["lon"]))
-                        if d <= rangeKm and (f not in result or d < result[f][1]):
-                            result[f] = (entry, d)
+                    d = self.distKm(rxPos, (entry["lat"], entry["lon"]))
+                    if d <= rangeKm and (f not in result or d < result[f][1]):
+                        result[f] = (entry, d)
 
                 except Exception as e:
                     logger.error("getBookmarks() exception: {0}".format(e))
