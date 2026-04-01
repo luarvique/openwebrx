@@ -7,8 +7,9 @@ import urllib
 import threading
 import logging
 import json
-import os
 import math
+import os
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -112,12 +113,22 @@ class Repeaters(WebAgent):
             os.remove(file)
 
     #
-    # Load repeater database from the RepeaterBook.com website.
+    # Load repeater databases from various sources
     #
     def _loadFromWeb(self):
-        return self.loadFromWeb("https://www.repeaterbook.com/api/{script}?qtype=prox&dunit=km&lat={lat}&lng={lon}&dist={range}", MAX_DISTANCE)
+        # Try RepeaterBook first
+        logger.info("Downloading RepeaterBook Repeater List...")
+        result = self.loadFromRepeaterBook("https://www.repeaterbook.com/api/{script}?qtype=prox&dunit=km&lat={lat}&lng={lon}&dist={range}", MAX_DISTANCE)
+        # If RepeaterBook fails, download list from ARD
+        if not result:
+            logger.info("Downloading ARD Repeater List...")
+            result = self.loadFromARD("https://raw.githubusercontent.com/Amateur-Repeater-Directory/ARD-RepeaterList/refs/heads/main/MasterList/MasterRepeater.json", MAX_DISTANCE)
+        return result
 
-    def loadFromWeb(self, url: str, rangeKm: int):
+    #
+    # Load repeater database from the RepeaterBook.com website.
+    #
+    def loadFromRepeaterBook(self, url: str, rangeKm: int):
         result = []
         try:
             pm   = Config.get()
@@ -158,11 +169,72 @@ class Repeaters(WebAgent):
                 }]
 
         except Exception as e:
-            logger.error("loadFromWeb() exception: {0}".format(e))
+            logger.error("loadFromRepeaterBook() exception: {0}".format(e))
             return None
 
         # Done
         self.report(url1, len(result))
+        return result
+
+    #
+    # Load latest Amateur Repeater Directory master list.
+    #
+    def loadFromARD(self, url: str, rangeKm: int):
+        pm   = Config.get()
+        itu  = pm["bandplan_region"]
+        ctry = pm["receiver_country"]
+        lat  = pm["receiver_gps"]["lat"]
+        lon  = pm["receiver_gps"]["lon"]
+        pos  = (lat, lon)
+
+        # ARD only contains American repeaters at the moment
+        if itu != 2 and ctry != "US" and ctry != "CA" and not (lat > 0 and lon < 0):
+            return None
+
+        # Download the list
+        try:
+            data = json.loads(self._openUrl(url).read().decode('utf-8'))
+        except Exception as e:
+            logger.error("loadFromARD() loading exception: {0}".format(e))
+            return None
+
+        # For every entry in the response...
+        result = []
+        for entry in data:
+            try:
+                if self.distKm(pos, (entry["latitude"], entry["longitude"])) <= rangeKm:
+                    # Compose comment
+                    comment = entry["state"]
+                    if "county" in entry:
+                        comment = entry["county"] + " County, " + comment
+                    if "nearestCity" in entry:
+                        comment = entry["nearestCity"] + ", " + comment
+                    # Compose status
+                    if not entry["isOperational"]:
+                        status = "Off-air"
+                    elif not entry["isOpen"]:
+                        status = "On-air"
+                    else:
+                        status = "Open"
+                    # Add new entry
+                    result += [{
+                        "name"     : entry["callsign"],
+                        "lat"      : entry["latitude"],
+                        "lon"      : entry["longitude"],
+                        "altitude" : int(entry["elevation"]),
+                        "freq"     : int(entry["outputFrequency"] * 1000000),
+                        "inFreq"   : int(entry["inputFrequency"] * 1000000),
+                        "mode"     : "nfm",
+                        "status"   : status,
+                        "updated"  : re.sub("T.*$", "", entry["updatedDate"]),
+                        "comment"  : comment
+                    }]
+
+            except Exception as e:
+                logger.error("loadFromARD() parsing exception: {0}".format(e))
+
+        # Done
+        self.report(url, len(result))
         return result
 
     #

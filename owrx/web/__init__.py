@@ -95,12 +95,10 @@ class WebAgent(object):
 
     # Refresh database from the web.
     def refresh(self):
-        # This file contains cached receivers database
-        file = self._getCachedDatabaseFile()
         # If cached database is stale...
         if self.errorCount < self.maxErrors and time.time() - self.lastDownloaded() >= self.refreshPeriod:
             logger.info("Updating {0} database from web (attempt {1}/{2})...".format(type(self).__name__, self.errorCount + 1, self.maxErrors))
-            # Load receivers list from the web
+            # Load database from the web
             data = self._loadFromWeb()
             if data is None:
                 # Count continuous errors
@@ -109,7 +107,7 @@ class WebAgent(object):
                 # Clear error count
                 self.errorCount = 0
                 # Save parsed data into a file
-                self.saveData(file, data)
+                self.saveData(self._getCachedDatabaseFile(), data)
                 # Update current database
                 with self.lock:
                     self.data = data
