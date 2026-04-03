@@ -94,6 +94,8 @@ class Repeaters(WebAgent):
 
     def __init__(self, dataName: str):
         super().__init__(dataName)
+        # Update repeater list weekly
+        self.refreshPeriod = 7*60*60*24
         # Update repeater list when receiver location changes
         pm = Config.get()
         self.location = (pm["receiver_gps"]["lat"], pm["receiver_gps"]["lon"])
