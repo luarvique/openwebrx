@@ -142,10 +142,18 @@ class Repeaters(WebAgent):
             ctry = pm["receiver_country"]
             lat  = pm["receiver_gps"]["lat"]
             lon  = pm["receiver_gps"]["lon"]
-            hdrs = { "User-Agent": "OpenWebRX/" + openwebrx_version + " (https://fms.komkon.org/OWRX/; luarvique@gmail.com)" }
-            # Add access token, if configured
-            if pm["repeaterbook_api_key"]:
-                hdrs["X-RB-App-Token"] = pm["repeaterbook_api_key"]
+            # If personal access token and admin email configured...
+            if pm["repeaterbook_api_key"] and pm["receiver_admin"]:
+                # Use peronalized authorization
+                hdrs = {
+                    "Authorization": "Bearer " + pm["repeaterbook_api_key"],
+                    "User-Agent": "OpenWebRX/" + openwebrx_version + " (https://fms.komkon.org/OWRX/; " + pm["receiver_admin"] + ")"
+                }
+            else:
+                # Use old application-specific method
+                hdrs = {
+                    "User-Agent": "(OpenWebRX+ " + openwebrx_version + ", luarvique@gmail.com)"
+                }
             # Start with US/Canada database for north-western quartersphere
             if itu == 2 or ctry == "US" or ctry == "CA" or (lat > 0 and lon < 0):
                 scps = ["export.php", "exportROW.php"]
