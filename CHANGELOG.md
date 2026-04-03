@@ -4,6 +4,7 @@
 - Added selection of the actual PerseusSDR sample rates.
 - Sorted repeaters data to speed up bookmarks generation.
 - Sorted EIBI data to speed up bookmarks generation.
+- Now updating repeater list on weekly, not daily.
 
 **1.2.110**
 - Added AIS reporting to VesselFinder [Ari Cooper Davis].
