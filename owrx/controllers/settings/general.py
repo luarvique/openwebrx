@@ -294,6 +294,13 @@ class GeneralSettingsController(SettingsFormController):
                     + '<a href="https://openweathermap.org/appid" target="_blank">'
                     + "their documentation</a> on how to obtain one.",
                 ),
+                TextInput(
+                    "repeaterbook_api_key",
+                    "RepeaterBook API key",
+                    infotext="RepeaterBook requires an API key, check out "
+                    + '<a href="https://www.repeaterbook.com/api/token_request.php" target="_blank">'
+                    + "their documentation</a> on how to obtain one.",
+                ),
                 NumberInput(
                     "map_position_retention_time",
                     "Map retention time",
