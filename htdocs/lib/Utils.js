@@ -177,13 +177,17 @@ Utils.linkToMap = function(id, content = null, attrs = "") {
 };
 
 // Print time in hours, minutes, and seconds.
-Utils.HHMMSS = function(t) {
+Utils.HHMMSS = function(t, local = false) {
     var pad = function (i) { return ('' + i).padStart(2, "0") };
 
     // Convert timestamps into dates
     if (!(t instanceof Date)) t = new Date(t);
 
-    return pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes()) + ':' + pad(t.getUTCSeconds());
+    if (local) {
+        return pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
+    } else {
+        return pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes()) + ':' + pad(t.getUTCSeconds());
+    }
 };
 
 // Snap given frequency to the nearest step.

@@ -26,7 +26,7 @@ Chat.recvMessage = function(nickname, text, color = 'white') {
     toggle_panel('openwebrx-panel-log', true);
 
     divlog(
-        Utils.HHMMSS(Date.now()) + '&nbsp;['
+        Utils.HHMMSS(Date.now(), true) + '&nbsp;['
       + '<span class="chatname" style="color:' + color + ';">'
       + Utils.htmlEscape(nickname) + '</span>]:&nbsp;'
       + '<span class="chatmessage">' + Utils.htmlEscape(text)
