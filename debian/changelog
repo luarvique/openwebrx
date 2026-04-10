@@ -6,9 +6,9 @@ openwebrx (1.2.111) bullseye jammy; urgency=low
   * Sorted repeaters data to speed up bookmarks generation.
   * Sorted EIBI data to speed up bookmarks generation.
   * Now showing local time in the chat rather than UTC.
-  * Now updating repeater list on weekly, not daily.
+  * Now updating repeater list weekly, not daily.
 
- -- Marat Fayzullin <luarvique@gmail.com>  Mon, 6 Apr 2026 16:12:00 +0000
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 13 Apr 2026 16:12:00 +0000
 
 openwebrx (1.2.110) bullseye jammy; urgency=low
 

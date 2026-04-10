@@ -5,7 +5,7 @@
 - Sorted repeaters data to speed up bookmarks generation.
 - Sorted EIBI data to speed up bookmarks generation.
 - Now showing local time in the chat rather than UTC.
-- Now updating repeater list on weekly, not daily.
+- Now updating repeater list weekly, not daily.
 
 **1.2.110**
 - Added AIS reporting to VesselFinder [Ari Cooper Davis].
