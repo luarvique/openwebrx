@@ -25,7 +25,7 @@ class WiFi(object):
         self.event = threading.Event()
         self.thread = None
 
-    def startConnectionCheck(self, delay: int = 1):
+    def startConnectionCheck(self, delay: int = 1, period: int = 0):
         # Stop existing connection check, if present
         if self.thread is not None:
             self.event.set()
@@ -33,6 +33,7 @@ class WiFi(object):
                 time.sleep(1)
         # This is how much we wait until the actual check
         self.checkDelay = delay
+        self.checkPeriod = period
         # Start delayed connection check
         self.thread = threading.Thread(target=self._connectionThread, name=type(self).__name__ + ".Check")
         self.thread.start()
@@ -165,23 +166,41 @@ class WiFi(object):
         if on > 0:
             self.enableRadio()
         # If no WiFi connections go up after a while, become hotspot
-        self.startConnectionCheck(60)
+        self.startConnectionCheck(60, 60)
 
     # Wait for a while, then check if WiFi connection is active
     # Start WiFi hotspot if there is no active WiFi connection
     def _connectionThread(self):
         logger.info("Will check for active connection in {0} seconds.".format(self.checkDelay))
+        pm = Config.get()
+
+        # Do initial delay, exit if interrupted
         self.event.wait(self.checkDelay)
         if self.event.is_set():
-            logger.info("Cancelled active connection check.")
-        else:
+            logger.info("Cancelled initial active connection check.")
+            self.thread = None
+            return
+
+        # Do initial check, start hotspot as needed
+        ssid = self.getCurrentSSID()
+        if ssid is not None:
+            logger.info("Found active connection to '{0}'.".format(ssid))
+        elif pm["wifi_enable_ap"]:
+            logger.info("No active connection, becoming hotspot...")
+            self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
+
+        # Keep checking periodically if enabled
+        while self.checkPeriod > 0 and not self.event.is_set():
+            # Do periodic delay, exit if interrupted
+            self.event.wait(self.checkPeriod)
+            if self.event.is_set():
+                logger.info("Cancelled periodic active connection check.")
+                break
+            # Do periodic check, start hotspot as needed
             ssid = self.getCurrentSSID()
-            if ssid is not None:
-                logger.info("Found active connection to '{0}'.".format(ssid))
-            else:
-                pm = Config.get()
-                if pm["wifi_enable_ap"]:
-                    logger.info("No active connection, becoming hotspot...")
-                    self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
+            if ssid is None and pm["wifi_enable_ap"]:
+                logger.info("No active connection, becoming hotspot...")
+                self.startHotspot(pm["wifi_name_ap"], pm["wifi_pass_ap"])
+
         # Thread completed
         self.thread = None
