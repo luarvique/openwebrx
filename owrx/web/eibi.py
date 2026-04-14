@@ -130,7 +130,7 @@ class EIBI(WebAgent):
         # Search for entries within given frequency and time ranges
         with self.lock:
             start = bisect.bisect_left(self.data, freq1, key=lambda entry: entry["freq"])
-            end   = bisect.bisect_left(self.data, freq2, key=lambda entry: entry["freq"])
+            end   = bisect.bisect_right(self.data, freq2, key=lambda entry: entry["freq"])
             for entry in self.data[start : end]:
                 if entry["time1"] <= time2 and entry["time2"] > time1:
                     result.append(entry)
@@ -224,7 +224,7 @@ class EIBI(WebAgent):
         # Search for current entries
         with self.lock:
             start = bisect.bisect_left(self.data, f1, key=lambda entry: entry["freq"])
-            end   = bisect.bisect_left(self.data, f2, key=lambda entry: entry["freq"])
+            end   = bisect.bisect_right(self.data, f2, key=lambda entry: entry["freq"])
             for entry in self.data[start : end]:
                 try:
                     # No distance or duration yet
