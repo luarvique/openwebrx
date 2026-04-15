@@ -3,7 +3,6 @@ from owrx.bookmarks import Bookmark
 from owrx.web import WebAgent
 from owrx.version import openwebrx_version
 
-import bisect
 import urllib
 import threading
 import logging
@@ -276,8 +275,8 @@ class Repeaters(WebAgent):
 
         # Search for repeaters within frequency and distance ranges
         with self.lock:
-            start = bisect.bisect_left(self.data, f1, key=lambda entry: entry["freq"])
-            end   = bisect.bisect_right(self.data, f2, key=lambda entry: entry["freq"])
+            start = self._bisect_left(f1)
+            end   = self._bisect_right(f2)
             for entry in self.data[start : end]:
                 try:
                     f = entry["freq"]

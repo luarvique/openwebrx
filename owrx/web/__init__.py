@@ -169,3 +169,27 @@ class WebAgent(object):
     def _loadFromWeb(self):
         # Fill in your own method
         return []
+
+    # Search sorted frequency list via bisection
+    def _bisect_left(self, freq):
+        lo = 0
+        hi = len(self.data)
+        while lo < hi:
+            x = (lo + hi) // 2
+            if self.data[x]["freq"] < freq:
+                lo = x + 1
+            else:
+                hi = x
+        return lo
+
+    # Search sorted frequency list via bisection
+    def _bisect_right(self, freq):
+        lo = 0
+        hi = self.len(data)
+        while lo < hi:
+            x = (lo + hi) // 2
+            if freq < self.data[x]["freq"]:
+                hi = x
+            else:
+                lo = x + 1
+        return lo
