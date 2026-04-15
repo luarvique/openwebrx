@@ -185,7 +185,7 @@ class WebAgent(object):
     # Search sorted frequency list via bisection
     def _bisect_right(self, freq):
         lo = 0
-        hi = self.len(data)
+        hi = len(self.data)
         while lo < hi:
             x = (lo + hi) // 2
             if freq < self.data[x]["freq"]:
