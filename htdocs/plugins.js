@@ -54,35 +54,39 @@ Plugins.load = async function (name) {
 
 
     // try to load the plugin
-    await Plugins._load_script(script_src).then(function () {
-        // plugin script loaded successfully
-        Plugins[name]._script_loaded = script_src;
-
-        // check if the plugin has init() method and execute it
-        if (typeof Plugins[name].init === 'function') {
-            if (!Plugins[name].init()) {
-                console.error(Plugins._banner(name) + 'cannot initialize.');
-                return;
-            }
-        }
-
-        // check if plugin has set the 'no_css', otherwise, load the plugin css style
-        if (!('no_css' in Plugins[name])) {
-            Plugins._load_style(style_src).then(function () {
-                Plugins[name]._style_loaded = style_src;
-                Plugins._debug(Plugins._banner(name) + 'loaded.');
-            }).catch(function () {
-                console.warn(Plugins._banner(name) + 'script loaded, but css not found.');
-            });
-        } else {
-            // plugin has no_css
-            Plugins._debug(Plugins._banner(name) + 'loaded.');
-        }
-
-    }).catch(function () {
+    try {
+        await Plugins._load_script(script_src);
+    } catch (e) {
         // plugin cannot be loaded
         Plugins._debug(Plugins._banner(name) + 'cannot be loaded (does not exist or has errors).');
-    });
+        return;
+    }
+
+    // plugin script loaded successfully
+    Plugins[name]._script_loaded = script_src;
+
+    // check if the plugin has init() method and execute it
+    // await handles both sync (returns bool) and async (returns Promise) init()
+    if (typeof Plugins[name].init === 'function') {
+        if (!await Plugins[name].init()) {
+            console.error(Plugins._banner(name) + 'cannot initialize.');
+            return;
+        }
+    }
+
+    // check if plugin has set the 'no_css', otherwise, load the plugin css style
+    // CSS is loaded in parallel — it does not block plugin functionality
+    if (!('no_css' in Plugins[name])) {
+        Plugins._load_style(style_src).then(function () {
+            Plugins[name]._style_loaded = style_src;
+            Plugins._debug(Plugins._banner(name) + 'loaded.');
+        }).catch(function () {
+            console.warn(Plugins._banner(name) + 'script loaded, but css not found.');
+        });
+    } else {
+        // plugin has no_css
+        Plugins._debug(Plugins._banner(name) + 'loaded.');
+    }
 }
 
 // Check if plugin is loaded
