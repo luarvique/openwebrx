@@ -1,3 +1,10 @@
+openwebrx (1.2.112) bullseye jammy; urgency=low
+
+  * Fixed bookmarks sorting with older Python versions.
+  * Improve JS plugin loader [Stanislav Lechev].
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 20 Apr 2026 16:12:00 +0000
+
 openwebrx (1.2.111) bullseye jammy; urgency=low
 
   * Added support for the Amateur Repeater Directory (US only).

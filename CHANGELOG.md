@@ -1,3 +1,7 @@
+**1.2.112**
+- Fixed bookmarks sorting with older Python versions.
+- Improve JS plugin loader [Stanislav Lechev].
+
 **1.2.111**
 - Added support for the Amateur Repeater Directory (US only).
 - Added selection of the actual PerseusSDR sample rates.
