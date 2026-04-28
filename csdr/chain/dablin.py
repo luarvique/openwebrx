@@ -96,6 +96,7 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
 
     def stop(self):
         self.processor.stop()
+        super().stop()
 
     def setMetaWriter(self, writer: Writer) -> None:
         self.processor.setWriter(writer)
