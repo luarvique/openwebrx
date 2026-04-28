@@ -493,12 +493,16 @@ class SdrSource(ABC):
                 except AttributeError:
                     # self.process has been overwritten by the monitor since we checked it, which is fine
                     pass
+
             if self.monitor:
                 self.monitor.join()
+                self.monitor = None
+
             if self.tcpSource is not None:
                 self.tcpSource.stop()
                 self.tcpSource = None
-                self.buffer = None
+
+            self.buffer = None
 
     def shutdown(self):
         self.stop()
