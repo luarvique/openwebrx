@@ -1,3 +1,13 @@
+openwebrx (1.2.113) bullseye jammy; urgency=low
+
+  * Greatly reduced memory footprint, eliminating leaks.
+  * Now dropping unused modules and buffers immediately.
+  * Fixed wrong audio rate when changing SDR source.
+  * Fixed markers update thread hanging on exit.
+  * Fixed ring buffers leaking from services.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Thu, 30 Apr 2026 16:12:00 +0000
+
 openwebrx (1.2.112) bullseye jammy; urgency=low
 
   * Fixed bookmarks sorting with older Python versions.

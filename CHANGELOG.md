@@ -1,3 +1,10 @@
+**1.2.113**
+- Greatly reduced memory footprint, eliminating leaks.
+- Now dropping unused modules and buffers immediately.
+- Fixed wrong audio rate when changing SDR source.
+- Fixed markers update thread hanging on exit.
+- Fixed ring buffers leaking from services.
+
 **1.2.112**
 - Fixed bookmarks sorting with older Python versions.
 - Improve JS plugin loader [Stanislav Lechev].
