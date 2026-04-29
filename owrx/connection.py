@@ -327,7 +327,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                     else:
                         if "action" in message and message["action"] == "start":
                             dsp.start()
-
                         if "params" in message:
                             params = message["params"]
                             dsp.setProperties(params)
@@ -439,7 +438,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def handleSdrAvailable(self):
         self.getDsp().setProperties(self.connectionProperties)
         self.stack.replaceLayer(0, self.sdr.getProps())
-
         self.sdr.addSpectrumClient(self)
 
     def handleNoSdrsAvailable(self):
@@ -470,6 +468,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         with self.dspLock:
             if self.dsp is None and self.sdr is not None:
                 self.dsp = DspManager(self, self.sdr)
+                self.dsp.setProperties(self.connectionProperties)
         return self.dsp
 
     def write_spectrum_data(self, data):
