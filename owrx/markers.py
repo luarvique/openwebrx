@@ -104,9 +104,8 @@ class Markers(object):
     def stopThread(self):
         if self.thread is not None:
             logger.info("Stopping marker database thread.")
-            self.event.set()
-            self.thread.join()
             self.thread = None
+            self.event.set()
 
     # This is the actual thread function
     def _refreshThread(self):
@@ -143,11 +142,12 @@ class Markers(object):
         # Main Loop
         #
 
-        while not self.event.is_set():
+        while self.thread is not None and not self.event.is_set():
             # Wait until the head of an hour
             self.event.wait((60 - datetime.utcnow().minute) * 60)
+
             # Check if we need to exit
-            if self.event.is_set():
+            if self.thread is None or self.event.is_set():
                 break
 
             # Load new transmitters schedule from the EIBI
@@ -156,21 +156,25 @@ class Markers(object):
                 logger.info("Refreshing transmitters schedule...")
                 self.applyUpdate(self.txmarkers, data)
 
+            # Check if we need to exit
+            if self.thread is None or self.event.is_set():
+                break
+
             # Update receivers data as necessary
             data = self.loadReceivers(onlyNew=True)
             if data is not None:
                 logger.info("Refreshing receiver markers...")
                 self.applyUpdate(self.rxmarkers, data)
 
+            # Check if we need to exit
+            if self.thread is None or self.event.is_set():
+                break
+
             # Update repeaters data as necessary
             data = self.loadRepeaters(onlyNew=True)
             if data is not None:
                 logger.info("Refreshing repeater markers...")
                 self.applyUpdate(self.remarkers, data)
-
-            # Check if we need to exit
-            if self.event.is_set():
-                break
 
         # Done with the thread
         logger.info("Stopped marker database thread.")
