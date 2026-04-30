@@ -352,7 +352,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                                 self.sdr.setCenterFreq(params["frequency"])
                 elif message["type"] == "connectionproperties":
                     if "params" in message:
-                        self.connectionProperties = message["params"]
+                        self.connectionProperties.update(message["params"])
                         if self.dsp:
                             self.getDsp().setProperties(self.connectionProperties)
                 elif message["type"] == "sendmessage":
