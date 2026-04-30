@@ -80,12 +80,15 @@ class ClientDemodulatorChain(Chain):
         if self.secondarySelector is not None:
             self.secondarySelector.stop()
             self.secondarySelector = None
-        self.clientAudioChain.stop()
-        self.clientAudioChain = None
-        self.demodulator.stop()
-        self.demodulator = None
-        self.selector.stop()
-        self.selector = None
+        if self.clientAudioChain is not None:
+            self.clientAudioChain.stop()
+            self.clientAudioChain = None
+        if self.demodulator is not None:
+            self.demodulator.stop()
+            self.demodulator = None
+        if self.selector is not None:
+            self.selector.stop()
+            self.selector = None
         self.selectorBuffer = None
 
     def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
