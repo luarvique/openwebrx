@@ -1,6 +1,7 @@
 **1.2.113**
 - Greatly reduced memory footprint, eliminating leaks.
 - Now dropping unused modules and buffers immediately.
+- Fixed RigControl frequency at page load [Niccolo Izzo].
 - Fixed wrong audio rate when changing SDR source.
 - Fixed markers update thread hanging on exit.
 - Fixed ring buffers leaking from services.
