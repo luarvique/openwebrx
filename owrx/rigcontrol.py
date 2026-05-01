@@ -317,16 +317,18 @@ class RigControl():
         self.mod     = None
         self.fCenter = None
         self.fOffset = None
+        super().__init__()
+        # Start RigControl before wiring properties: rigStart() clears
+        # fCenter/fOffset, so it must run before wireProperty callbacks
+        # populate them with current values.
+        if self.enabled:
+            self.enabled = self.rigStart()
         self.subscriptions = [
             props.wireProperty("offset_freq", self.setFrequencyOffset),
             props.wireProperty("center_freq", self.setCenterFrequency),
             props.wireProperty("rig_enabled", self.setRigEnabled),
             props.wireProperty("mod", self.setDemodulator),
         ]
-        super().__init__()
-        # Start RigControl if enabled
-        if self.enabled:
-            self.enabled = self.rigStart()
 
     def stop(self):
         for sub in self.subscriptions:
