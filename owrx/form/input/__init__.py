@@ -5,6 +5,8 @@ from owrx.form.input.converter import Converter, NullConverter, IntConverter, Fl
 from pycsdr.types import AgcProfile
 from enum import Enum
 
+import html
+
 class Input(ABC):
     def __init__(self, id, label, infotext=None, converter: Converter = None, validator: Validator = None, disabled=False, removable=False):
         self.id = id
@@ -66,7 +68,7 @@ class Input(ABC):
         return props
 
     def render_input_properties(self, value, error):
-        return " ".join('{}="{}"'.format(prop, value) for prop, value in self.input_properties(value, error).items())
+        return " ".join('{}="{}"'.format(prop, html.escape(value)) for prop, value in self.input_properties(value, error).items())
 
     def render_errors(self, errors):
         return "".join("""<div class="invalid-feedback">{msg}</div>""".format(msg=e) for e in errors)

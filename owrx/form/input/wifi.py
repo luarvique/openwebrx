@@ -13,7 +13,7 @@ class WifiSsidValidator(Validator):
         if len(value) > 0 and len(value) not in range(1, 33):
             raise ValidationError(key, "WiFi SSID must have length of 1..32 characters")
         # Do not allow any characters other than the ones below
-        m = re.search(r"[^0-9A-Za-z_\-\.]", value)
+        m = re.search(r"[^0-9A-Za-z\040-\057\072-\100\133-\140]", value)
         if m is not None:
             raise ValidationError(key, "WiFi SSID cannot contain '{0}' character".format(m.group(0)))
         pass
