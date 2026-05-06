@@ -2,6 +2,7 @@ from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem, BreadcrumbMixin
 from owrx.client import ClientRegistry
+from owrx.config import Config
 import json
 import re
 
@@ -66,10 +67,11 @@ class ClientController(AuthorizationMixin, WebpageController):
 
     @staticmethod
     def renderIp(ip):
+        pm = Config.get()
         ip = re.sub("^::ffff:", "", ip)
         return """
-            <a href="https://www.geolocation.com/en_us?ip={0}#ipresult" target="_blank">{1}</a>
-        """.format(ip, ip)
+            <a href="{0}" target="_blank">{1}</a>
+        """.format(pm["geoip_url"].format(ip), ip)
 
     @staticmethod
     def renderButtons(c):

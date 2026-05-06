@@ -367,6 +367,13 @@ class GeneralSettingsController(SettingsFormController):
                     + "allowing to look up sonde information by its ID number. "
                     + "Place curly brackets ({}) where ID is supposed to be.",
                 ),
+                TextInput(
+                    "geoip_url",
+                    "IP geolocation URL",
+                    infotext="Specifies IP geolocation URL, such as GEOLOCATION.COM, "
+                    + "allowing to estimate geographic locations of IP addresses. "
+                    + "Place curly brackets ({}) where IP is supposed to be.",
+                ),
             ),
             Section(
                 "Change password for '{0}'".format(self.user.name),
