@@ -342,6 +342,7 @@ class Modes(object):
             "ALE",
             underlying=["usb"],
             requirements=["ale"],
+            service=True,
             squelch=True
         ),
         # Radiosonde modes
