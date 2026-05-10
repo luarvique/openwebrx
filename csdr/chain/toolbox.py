@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
+from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule, AleModule
 from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
@@ -203,3 +203,23 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
     def setDialFrequency(self, frequency: int) -> None:
         # Not restarting LAME, it is ok to continue on a new file
         self.recorder.setDialFrequency(frequency)
+
+
+class AleDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, service: bool = False):
+        workers = [
+            Agc(Format.FLOAT),
+            Convert(Format.FLOAT, Format.SHORT),
+            AleModule(),
+        ]
+        # Connect all the workers
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+       return 8000
+
+    def supportsSquelch(self) -> bool:
+       return True
+
+    def setDialFrequency(self, frequency: int) -> None:
+        pass

@@ -337,6 +337,13 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
+        DigitalMode(
+            "ale",
+            "ALE",
+            underlying=["usb"],
+            requirements=["ale"],
+            squelch=True
+        ),
         # Radiosonde modes
         DigitalMode(
             "sonde-rs41",

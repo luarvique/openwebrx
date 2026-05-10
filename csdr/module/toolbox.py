@@ -105,3 +105,9 @@ class LameModule(ExecModule):
             "-s", str(sampleRate / 1000), "-", "-"
         ]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
+
+
+class AleModule(ExecModule):
+    def __init__(self):
+        cmd = ["stdbuf", "-i0", "-o0", "-e0", "LinuxALE", "-f", "/dev/stdin", "-l", "/tmp/ALE2.log"]
+        super().__init__(Format.SHORT, Format.CHAR, cmd)
