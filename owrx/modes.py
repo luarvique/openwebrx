@@ -337,6 +337,26 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
+        DigitalMode(
+            "lora-wan",
+            "LoRa WAN",
+            underlying=["empty"],
+            bandpass=None,
+            ifRate=1000000,
+            requirements=["lora"],
+            service=True,
+            squelch=True
+        ),
+        DigitalMode(
+            "lora-aprs",
+            "LoRa APRS",
+            underlying=["empty"],
+            bandpass=None,
+            ifRate=1000000,
+            requirements=["lora"],
+            service=True,
+            squelch=True
+        ),
         # Radiosonde modes
         DigitalMode(
             "sonde-rs41",

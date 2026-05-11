@@ -105,3 +105,12 @@ class LameModule(ExecModule):
             "-s", str(sampleRate / 1000), "-", "-"
         ]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
+
+
+class LoraModule(ExecModule):
+    def __init__(self, sampleRate: int = 1000000, options = []):
+        cmd = [
+            "lorarx", "-i", "/dev/stdin", "-f", "f32", "-r", str(sampleRate),
+            "-v", "-N", "-Q"
+            ] + options
+        super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
