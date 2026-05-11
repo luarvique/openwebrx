@@ -400,7 +400,8 @@
     "upper_bound": 434790000,
     "tags": ["public"],
     "frequencies": {
-      "ism": 433920000
+      "ism": 433920000,
+      "lora-aprs": 433775000
     }
   },
   {
