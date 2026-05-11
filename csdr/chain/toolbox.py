@@ -240,3 +240,10 @@ class LoraAprsDemodulator(LoraDemodulator):
         super().__init__(sampleRate, [
             "-b", "7", "-w", "64", "-s", "12", "-W", "50"
         ])
+
+
+class LoraFanetDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "8", "-w", "128", "-s", "7"
+        ])

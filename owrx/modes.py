@@ -357,6 +357,16 @@ class Modes(object):
             service=True,
             squelch=True
         ),
+        DigitalMode(
+            "lora-fanet",
+            "LoRa FANET",
+            underlying=["empty"],
+            bandpass=None,
+            ifRate=1000000,
+            requirements=["lora"],
+            service=True,
+            squelch=True
+        ),
         # Radiosonde modes
         DigitalMode(
             "sonde-rs41",
