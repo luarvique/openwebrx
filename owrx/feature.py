@@ -896,8 +896,8 @@ class FeatureDetector(object):
 
     def has_lorarx(self):
         """
-        OpenWebRX uses the [LoraRX](http://oe5dxl.hamspirit.at:8025/aprs/c/)
-        tool from OE5DXL to decode LoRa data. This software has to be built
+        OpenWebRX uses the LoraRX decoder from the [dxlAPRS](http://oe5dxl.hamspirit.at:8025/aprs/c/)
+        project to decode LoRa data. This software has to be built
         and installed manually.
         """
         return self.command_is_runnable("lorarx -h")
