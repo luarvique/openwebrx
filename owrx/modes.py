@@ -341,8 +341,7 @@ class Modes(object):
             "lora-wan",
             "LoRa WAN",
             underlying=["empty"],
-            bandpass=None,
-            ifRate=1000000,
+            bandpass=Bandpass(-500000, 500000),
             requirements=["lora"],
             service=True,
             squelch=True
@@ -351,8 +350,7 @@ class Modes(object):
             "lora-aprs",
             "LoRa APRS",
             underlying=["empty"],
-            bandpass=None,
-            ifRate=1000000,
+            bandpass=Bandpass(-500000, 500000),
             requirements=["lora"],
             service=True,
             squelch=True
@@ -361,8 +359,7 @@ class Modes(object):
             "lora-fanet",
             "LoRa FANET",
             underlying=["empty"],
-            bandpass=None,
-            ifRate=1000000,
+            bandpass=Bandpass(-500000, 500000),
             requirements=["lora"],
             service=True,
             squelch=True
