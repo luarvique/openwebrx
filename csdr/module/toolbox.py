@@ -111,6 +111,6 @@ class LoraModule(ExecModule):
     def __init__(self, sampleRate: int = 1000000, options = []):
         cmd = [
             "lorarx", "-i", "/dev/stdin", "-f", "f32", "-r", str(sampleRate),
-            "-v", "-N", "-Q"
+            "-v", "-N", #"-Q", "-V",
             ] + options
         super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)

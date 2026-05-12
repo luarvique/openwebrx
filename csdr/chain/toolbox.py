@@ -209,6 +209,7 @@ class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 1000000, options = []):
         self.sampleRate = sampleRate
         workers = [
+            Agc(Format.COMPLEX_FLOAT),
             LoraModule(sampleRate, options),
         ]
         # Connect all the workers
