@@ -344,12 +344,13 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                     # If the magic key is set in the settings, only allow
                     # changes if it matches the received key
                     if "params" in message and "frequency" in message["params"]:
-                        if self.stack["allow_center_freq_changes"]:
-                            params = message["params"]
-                            magic  = self.stack["magic_key"]
-                            key    = params["key"] if "key" in params else None
+                        params = message["params"]
+                        freq   = params["frequency"]
+                        if freq >= 0 and self.stack["allow_center_freq_changes"]:
+                            magic = self.stack["magic_key"]
+                            key   = params["key"] if "key" in params else None
                             if magic == "" or key == magic:
-                                self.sdr.setCenterFreq(params["frequency"])
+                                self.sdr.setCenterFreq(freq)
                 elif message["type"] == "connectionproperties":
                     if "params" in message:
                         self.connectionProperties.update(message["params"])

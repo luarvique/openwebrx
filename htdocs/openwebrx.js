@@ -109,7 +109,7 @@ function jumpBySteps(steps) {
     if (steps != 0) {
         var key = UI.getDemodulatorPanel().getMagicKey();
         var f = center_freq + steps * bandwidth / 4;
-        if (f > 0) {
+        if (f >= 0) {
             ws.send(JSON.stringify({
                 "type": "setfrequency", "params": { "frequency": f, "key": key }
             }));
