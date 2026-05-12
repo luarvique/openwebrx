@@ -364,6 +364,15 @@ class Modes(object):
             service=True,
             squelch=True
         ),
+        DigitalMode(
+            "meshtastic",
+            "Meshtastic",
+            underlying=["empty"],
+            bandpass=Bandpass(-500000, 500000),
+            requirements=["lora"],
+            service=True,
+            squelch=True
+        ),
         # Radiosonde modes
         DigitalMode(
             "sonde-rs41",

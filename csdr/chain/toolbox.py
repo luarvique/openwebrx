@@ -246,3 +246,10 @@ class LoraFanetDemodulator(LoraDemodulator):
         super().__init__(sampleRate, [
             "-b", "8", "-w", "128", "-s", "7"
         ])
+
+
+class MeshtasticDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "8", "-w", "256", "-s", "11", "-W", "50"
+        ])

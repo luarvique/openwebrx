@@ -790,6 +790,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "lora-fanet":
             from csdr.chain.toolbox import LoraFanetDemodulator
             return LoraFanetDemodulator()
+        elif mod == "meshtastic":
+            from csdr.chain.toolbox import MeshtasticDemodulator
+            return MeshtasticDemodulator()
         elif mod == "sonde-mts01":
             from csdr.chain.sonde import Mts01Demodulator
             return Mts01Demodulator()
