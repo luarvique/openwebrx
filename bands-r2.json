@@ -236,7 +236,8 @@
       "page": 439987500,
       "q65": 432065000,
       "msk144": 432360000,
-      "lora-aprs": 433775000
+      "lora-aprs": 433775000,
+      "meshcom": 433175000
     },
     "tags": ["hamradio"]
   },
@@ -432,7 +433,7 @@
     "tags": ["public"],
     "frequencies": {
       "meshcore": 910525000,
-      "meshtastic": 906875000
+      "meshtastic": 906875000,
     },
     "tags": ["public"]
   },
