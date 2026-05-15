@@ -387,7 +387,7 @@ class LoraParser(TextParser):
             out = json.loads(msg)
         except Exception as e:
             # Not JSON, return as string
-            return msg.decode("utf-8")
+            return msg.decode("utf-8") + "\n"
 
         # Add mode name
         out["mode"] = "LORA"
