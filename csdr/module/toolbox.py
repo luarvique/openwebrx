@@ -114,7 +114,7 @@ class LoraModule(PopenModule):
             "-f", "f32", "-H", "5", "-v", "-N", "-Q"
         ] + options
         if jsonOutput:
-            self.cmd += [ "-J", "/dev/stdout" ]
+            self.cmd += [ "-j", "/dev/stdout" ]
         super().__init__()
 
     def getCommand(self):
