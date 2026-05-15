@@ -373,3 +373,40 @@ class EasParser(TextParser):
         # Return received message as text
         return "\n".join(out)
 
+
+class LoraParser(TextParser):
+    def __init__(self, service: bool = False):
+        # Construct parent object
+        super().__init__(filePrefix="LORA", service=service)
+
+    def parse(self, msg: bytes):
+        try:
+            # Try parsing as JSON first
+            out = json.loads(msg)
+        except Exception as e:
+            # Not JSON, return as string
+            return msg.decode("utf-8")
+
+        # Add mode name
+        out["mode"] = "LORA"
+
+        # Add frequency, if known
+        if self.frequency:
+            out["freq"] = self.frequency
+
+        # Try decoding payload
+        if "payload" in out:
+            try:
+                self.parsePayload(out, base64.b64decode(out["payload"]))
+            except Exception as e:
+                logger.error("%s: Exception parsing: %s" % (self.myName(), str(e)))
+
+        # Report message
+        ReportingEngine.getSharedInstance().spot(out)
+
+        # Return JSON data
+        return out
+
+    def parsePayload(self, out, data: bytes):
+        # Add your LoRa payload parser here
+        pass

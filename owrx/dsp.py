@@ -793,6 +793,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "meshtastic":
             from csdr.chain.toolbox import MeshtasticDemodulator
             return MeshtasticDemodulator()
+        elif mod == "meshcore":
+            from csdr.chain.toolbox import MeshcoreDemodulator
+            return MeshcoreDemodulator()
         elif mod == "sonde-mts01":
             from csdr.chain.sonde import Mts01Demodulator
             return Mts01Demodulator()

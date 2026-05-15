@@ -108,26 +108,20 @@ class LameModule(ExecModule):
 
 
 class LoraModule(PopenModule):
-    def __init__(self, sampleRate: int = 1000000, options=[]):
-        self.sampleRate = sampleRate
-        self.options = options
+    def __init__(self, sampleRate: int = 1000000, jsonOutput: bool = False, options=[]):
+        self.cmd = [
+            "lorarx", "-i", "/dev/stdin", "-r", str(sampleRate),
+            "-f", "f32", "-H", "5", "-v", "-N", "-Q"
+        ] + options
+        if jsonOutput:
+            cmd += [ "-J", "/dev/stdout" ]
         super().__init__()
 
     def getCommand(self):
-        return [
-            "lorarx", "-i", "/dev/stdin", "-f", "f32", "-r", str(self.sampleRate),
-            "-v", "-N", "-Q"
-        ] + self.options
+        return self.cmd
 
     def getInputFormat(self) -> Format:
         return Format.COMPLEX_FLOAT
 
     def getOutputFormat(self) -> Format:
         return Format.CHAR
-
-#    def __init__(self, sampleRate: int = 1000000, options = []):
-#        cmd = [
-#            "lorarx", "-i", "/dev/stdin", "-f", "f32", "-r", str(sampleRate),
-#            "-v", "-N", #"-Q", "-V",
-#            ] + options
-#        super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)

@@ -337,11 +337,13 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
+        # LoRa modes
         DigitalMode(
             "lora-wan",
             "LoRa WAN",
             underlying=["empty"],
-            bandpass=Bandpass(-500000, 500000),
+            bandpass=None,
+            ifRate=1000000,
             requirements=["lora"],
             service=True,
             squelch=True
@@ -350,7 +352,8 @@ class Modes(object):
             "lora-aprs",
             "LoRa APRS",
             underlying=["empty"],
-            bandpass=Bandpass(-500000, 500000),
+            bandpass=None,
+            ifRate=1000000,
             requirements=["lora"],
             service=True,
             squelch=True
@@ -359,7 +362,8 @@ class Modes(object):
             "lora-fanet",
             "LoRa FANET",
             underlying=["empty"],
-            bandpass=Bandpass(-500000, 500000),
+            bandpass=None,
+            ifRate=1000000,
             requirements=["lora"],
             service=True,
             squelch=True
@@ -368,7 +372,18 @@ class Modes(object):
             "meshtastic",
             "Meshtastic",
             underlying=["empty"],
-            bandpass=Bandpass(-500000, 500000),
+            bandpass=None,
+            ifRate=1000000,
+            requirements=["lora"],
+            service=True,
+            squelch=True
+        ),
+        DigitalMode(
+            "meshcore",
+            "Meshcore",
+            underlying=["empty"],
+            bandpass=None,
+            ifRate=1000000,
             requirements=["lora"],
             service=True,
             squelch=True

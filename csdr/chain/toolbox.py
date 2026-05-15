@@ -2,7 +2,7 @@ from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule, LoraModule
 from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
-from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
+from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder, LoraParser
 from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
 from owrx.config import Config
 
@@ -208,9 +208,10 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
 class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 1000000, options = []):
         self.sampleRate = sampleRate
+        self.parser = LoraParser()
         workers = [
-            Agc(Format.COMPLEX_FLOAT),
-            LoraModule(sampleRate, options),
+            LoraModule(sampleRate, jsonOutput = True, options = options),
+            self.parser,
         ]
         # Connect all the workers
         super().__init__(workers)
@@ -222,7 +223,7 @@ class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         return True
 
     def setDialFrequency(self, frequency: int) -> None:
-        pass
+        self.parser.setDialFrequency(frequency)
 
 
 class LoraWanDemodulator(LoraDemodulator):
@@ -253,4 +254,11 @@ class MeshtasticDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-b", "8", "-w", "256", "-s", "11", "-W", "50"
+        ])
+
+
+class MeshcoreDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "6", "-w", "256", "-s", "7", "-W", "50"
         ])
