@@ -1,3 +1,17 @@
+openwebrx (1.2.114) bullseye jammy; urgency=low
+
+  * Integrated dxlAPRS LoraRX tool.
+  * Added LoRa WAN, LoRa APRS, and FANET modes.
+  * Added LoRa Meshtastic and Meshcore modes.
+  * Added setting for IP geolocation URL.
+  * Added setting for the help page URL.
+  * Blocked center frequency changes to <0Hz.
+  * Updated IP geolocation URL since it changed.
+  * Allowed more characters in WiFi SSIDs.
+  * Escaped HTML entities in input field values.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Fri, 15 May 2026 16:12:00 +0000
+
 openwebrx (1.2.113) bullseye jammy; urgency=low
 
   * Greatly reduced memory footprint, eliminating leaks.

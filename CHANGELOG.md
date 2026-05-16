@@ -1,3 +1,14 @@
+**1.2.114**
+- Integrated dxlAPRS LoraRX tool.
+- Added LoRa WAN, LoRa APRS, and FANET modes.
+- Added LoRa Meshtastic and Meshcore modes.
+- Added setting for IP geolocation URL.
+- Added setting for the help page URL.
+- Blocked center frequency changes to <0Hz.
+- Updated IP geolocation URL since it changed.
+- Allowed more characters in WiFi SSIDs.
+- Escaped HTML entities in input field values.
+
 **1.2.113**
 - Greatly reduced memory footprint, eliminating leaks.
 - Now dropping unused modules and buffers immediately.
