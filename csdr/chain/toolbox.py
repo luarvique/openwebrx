@@ -231,7 +231,8 @@ class LoraWanDemodulator(LoraDemodulator):
         super().__init__(sampleRate, [
             "-b", "7", "-w", "64",
             "-s", "12", "-s", "11", "-s", "10", "-s", "9", "-s", "8",
-            "-s", "7"
+            "-s", "7", "-s", "-12", "-s", "-11", "-s", "-10",
+            "-s", "-9", "-s", "-8", "-s", "-7"
         ])
 
 
