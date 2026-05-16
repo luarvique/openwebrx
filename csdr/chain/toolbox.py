@@ -1,8 +1,8 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
+from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule, LoraModule
 from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
-from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
+from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder, LoraParser
 from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
 from owrx.config import Config
 
@@ -203,3 +203,62 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
     def setDialFrequency(self, frequency: int) -> None:
         # Not restarting LAME, it is ok to continue on a new file
         self.recorder.setDialFrequency(frequency)
+
+
+class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, sampleRate: int = 1000000, options = []):
+        self.sampleRate = sampleRate
+        self.parser = LoraParser()
+        workers = [
+            LoraModule(sampleRate, jsonOutput = True, options = options),
+            self.parser,
+        ]
+        # Connect all the workers
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def supportsSquelch(self) -> bool:
+        return True
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
+
+
+class LoraWanDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "7", "-w", "64",
+            "-s", "12", "-s", "11", "-s", "10", "-s", "9", "-s", "8",
+            "-s", "7", "-s", "-12", "-s", "-11", "-s", "-10",
+            "-s", "-9", "-s", "-8", "-s", "-7"
+        ])
+
+
+class LoraAprsDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "7", "-w", "64", "-s", "12", "-W", "50"
+        ])
+
+
+class LoraFanetDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "8", "-w", "128", "-s", "7"
+        ])
+
+
+class MeshtasticDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "8", "-w", "256", "-s", "11", "-W", "50"
+        ])
+
+
+class MeshcoreDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "6", "-w", "256", "-s", "7", "-W", "50"
+        ])

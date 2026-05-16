@@ -110,6 +110,7 @@ class FeatureDetector(object):
         "skimmer": ["csdr_skimmer"],
         "sonde": ["sonde_rs"],
         "mp3": ["lame"],
+        "lora": ["lorarx"],
     }
 
     def feature_availability(self):
@@ -892,6 +893,14 @@ class FeatureDetector(object):
         installed manually.
         """
         return self.command_is_runnable("rs41mod -h")
+
+    def has_lorarx(self):
+        """
+        OpenWebRX uses the LoraRX decoder from the [dxlAPRS](http://oe5dxl.hamspirit.at:8025/aprs/c/)
+        project to decode LoRa data. This software has to be built
+        and installed manually.
+        """
+        return self.command_is_runnable("lorarx -h")
 
     def has_lame(self):
         """
