@@ -889,16 +889,16 @@ class FeatureDetector(object):
     def has_sonde_rs(self):
         """
         OpenWebRX uses Zilog decoders in [Project Horus](https://github.com/projecthorus/radiosonde_auto_rx)
-        to decode radiosonde data. This software has to be built and
-        installed manually.
+        to decode radiosonde data. You can install the
+        `sonde-decoders` package from the OpenWebRX+ repositories.
         """
         return self.command_is_runnable("rs41mod -h")
 
     def has_lorarx(self):
         """
         OpenWebRX uses the LoraRX decoder from the [dxlAPRS](http://oe5dxl.hamspirit.at:8025/aprs/c/)
-        project to decode LoRa data. This software has to be built
-        and installed manually.
+        project to decode LoRa data. You can install the
+        `dxlaprs-lora` package from the OpenWebRX+ repositories.
         """
         return self.command_is_runnable("lorarx -h")
 
