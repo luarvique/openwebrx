@@ -235,7 +235,9 @@
     "frequencies": {
       "page": 439987500,
       "q65": 432065000,
-      "msk144": 432360000
+      "msk144": 432360000,
+      "lora-aprs": 433775000,
+      "meshcom": 433175000
     },
     "tags": ["hamradio"]
   },
@@ -421,9 +423,19 @@
     "upper_bound": 434790000,
     "tags": ["public"],
     "frequencies": {
-      "ism": 433920000,
-      "lora-aprs": 433775000
+      "ism": 433920000
     }
+  },
+  {
+    "name": "US915",
+    "lower_bound": 902000000,
+    "upper_bound": 928000000,
+    "tags": ["public"],
+    "frequencies": {
+      "meshcore": 910525000,
+      "meshtastic": 906875000
+    },
+    "tags": ["public"]
   },
   {
     "name": "VHF Air",

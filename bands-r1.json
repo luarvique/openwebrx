@@ -237,7 +237,9 @@
     "frequencies": {
       "page": 439987500,
       "q65": 432065000,
-      "msk144": 432360000
+      "msk144": 432360000,
+      "lora-aprs": 433775000,
+      "meshcom": 433175000
     },
     "tags": ["hamradio"]
   },
@@ -416,9 +418,19 @@
     "upper_bound": 434790000,
     "tags": ["public"],
     "frequencies": {
-      "ism": 433920000,
-      "lora-aprs": 433775000
+      "ism": 433920000
     }
+  },
+  {
+    "name": "EU868",
+    "lower_bound": 862000000,
+    "upper_bound": 870000000,
+    "tags": ["public"],
+    "frequencies": {
+      "meshcore": 869618000,
+      "meshtastic": 869525000
+    },
+    "tags": ["public"]
   },
   {
     "name": "VHF Air",

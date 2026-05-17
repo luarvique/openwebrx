@@ -239,7 +239,7 @@ class LoraWanDemodulator(LoraDemodulator):
 class LoraAprsDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "7", "-w", "64", "-s", "12", "-W", "50"
+            "-b", "7", "-w", "64", "-s", "9", "-s", "12", "-W", "50"
         ])
 
 
@@ -253,12 +253,20 @@ class LoraFanetDemodulator(LoraDemodulator):
 class MeshtasticDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "8", "-w", "256", "-s", "11", "-W", "50"
+            "-b", "8", "-w", "256", "-s", "7", "-s", "8", "-s", "9",
+            "-s", "10", "-s", "11", "-W", "50"
         ])
 
 
 class MeshcoreDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "6", "-w", "256", "-s", "7", "-W", "50"
+            "-b", "6", "-w", "256", "-s", "7", "-s", "8", "-W", "50"
+        ])
+
+
+class MeshComDemodulator(LoraDemodulator):
+    def __init__(self, sampleRate: int = 1000000, service: bool = False):
+        super().__init__(sampleRate, [
+            "-b", "8", "-w", "256", "-s", "10", "-s", "11", "-W", "50"
         ])

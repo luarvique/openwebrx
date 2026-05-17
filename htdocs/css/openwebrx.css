@@ -1673,6 +1673,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="lora-aprs"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="meshcore"]    #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="meshcom"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="sonde-mts01"] #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-select-channel,
