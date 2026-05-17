@@ -388,6 +388,16 @@ class Modes(object):
             service=True,
             squelch=True
         ),
+        DigitalMode(
+            "meshcom",
+            "MeshCom",
+            underlying=["empty"],
+            bandpass=None,
+            ifRate=1000000,
+            requirements=["lora"],
+            service=True,
+            squelch=True
+        ),
         # Radiosonde modes
         DigitalMode(
             "sonde-rs41",
