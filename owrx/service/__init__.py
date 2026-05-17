@@ -9,7 +9,7 @@ from owrx.service.schedule import ServiceScheduler
 from owrx.service.chain import ServiceDemodulatorChain
 from owrx.modes import Modes, DigitalMode
 from typing import Union, Optional
-from csdr.chain.demodulator import BaseDemodulatorChain, ServiceDemodulator, DialFrequencyReceiver
+from csdr.chain.demodulator import BaseDemodulatorChain, ServiceDemodulator, DialFrequencyReceiver, FixedAudioRateChain
 from pycsdr.modules import Buffer
 
 import sys
@@ -272,14 +272,18 @@ class ServiceHandler(SdrSourceEventClient):
         if "underlying" in dial:
             modeObject = modeObject.for_underlying(dial["underlying"])
 
-        demod = self._getDemodulator(modeObject.get_modulation())
-        secondaryDemod = self._getSecondaryDemodulator(modeObject.modulation)
+        demod2 = self._getSecondaryDemodulator(modeObject.modulation)
+        if isinstance(demod2, FixedAudioRateChain):
+            demod = self._getDemodulator(modeObject.get_modulation(), demod2.getFixedAudioRate())
+        else:
+            demod = self._getDemodulator(modeObject.get_modulation())
+        if isinstance(demod2, DialFrequencyReceiver):
+            demod2.setDialFrequency(dial["frequency"])
+
         center_freq = source.getProps()["center_freq"]
         sampleRate = source.getProps()["samp_rate"]
-        if isinstance(secondaryDemod, DialFrequencyReceiver):
-            secondaryDemod.setDialFrequency(dial["frequency"])
 
-        chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, dial["frequency"] - center_freq)
+        chain = ServiceDemodulatorChain(demod, demod2, sampleRate, dial["frequency"] - center_freq)
         bandpass = modeObject.get_bandpass()
         if bandpass:
             chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
@@ -295,13 +299,13 @@ class ServiceHandler(SdrSourceEventClient):
         return chain
 
     # TODO move this elsewhere
-    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain]):
+    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain], sampleRate: int = 48000):
         if isinstance(demod, BaseDemodulatorChain):
             return demod
         # TODO: move this to Modes
         if demod == "nfm":
             from csdr.chain.analog import NFm
-            return NFm(48000)
+            return NFm(sampleRate)
         elif demod == "am":
             from csdr.chain.analog import Am
             return Am()
