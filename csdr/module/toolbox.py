@@ -102,7 +102,7 @@ class LameModule(ExecModule):
     def __init__(self, sampleRate: int = 24000):
         cmd = [
             "lame", "-r", "-m", "m", "--signed", "--bitwidth", "16",
-            "-s", str(sampleRate / 1000), "-", "-"
+            "-s", str(sampleRate / 1000), "-b", "128", "-", "-"
         ]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
 
