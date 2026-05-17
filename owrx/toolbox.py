@@ -380,8 +380,6 @@ class LoraParser(TextParser):
     def __init__(self, service: bool = False):
         # Construct parent object
         super().__init__(filePrefix="LORA", service=service)
-        # Construct parser for LoRa APRS
-        self.aprsParser = AprsParser()
 
     def parse(self, msg: bytes):
         try:
