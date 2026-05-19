@@ -229,7 +229,7 @@ class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 class LoraWanDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "7", "-w", "64",
+            "-H", "5", "-b", "7", "-w", "64",
             "-s", "12", "-s", "11", "-s", "10", "-s", "9", "-s", "8",
             "-s", "7", "-s", "-12", "-s", "-11", "-s", "-10",
             "-s", "-9", "-s", "-8", "-s", "-7"
@@ -239,34 +239,34 @@ class LoraWanDemodulator(LoraDemodulator):
 class LoraAprsDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "7", "-w", "64", "-s", "9", "-s", "12", "-W", "50"
+            "-H", "5", "-b", "7", "-w", "64", "-s", "9", "-s", "12", "-W", "50"
         ])
 
 
 class LoraFanetDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "8", "-w", "128", "-s", "7"
+            "-H", "5", "-b", "8", "-w", "128", "-s", "7"
         ])
 
 
 class MeshtasticDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "8", "-w", "256", "-s", "7", "-s", "8", "-s", "9",
-            "-s", "10", "-s", "11", "-W", "50"
+            "-H", "5", "-b", "8", "-w", "256", "-s", "7", "-s", "8",
+            "-s", "9", "-s", "10", "-s", "11", "-W", "50"
         ])
 
 
 class MeshcoreDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "6", "-w", "256", "-s", "7", "-s", "8", "-W", "50"
+            "-H", "5", "-b", "6", "-w", "256", "-s", "7", "-s", "8", "-W", "50"
         ])
 
 
 class MeshComDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
-            "-b", "8", "-w", "256", "-s", "10", "-s", "11", "-W", "50"
+            "-H", "1", "-b", "8", "-w", "256", "-s", "10", "-s", "11", "-W", "50"
         ])

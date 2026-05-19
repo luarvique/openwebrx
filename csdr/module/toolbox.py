@@ -111,7 +111,7 @@ class LoraModule(PopenModule):
     def __init__(self, sampleRate: int = 1000000, jsonOutput: bool = False, options=[]):
         self.cmd = [
             "lorarx", "-i", "/dev/stdin", "-r", str(sampleRate),
-            "-f", "f32", "-H", "5", "-v", "-N", "-Q"
+            "-f", "f32", "-v", "-N", "-Q"
         ] + options
         if jsonOutput:
             self.cmd += [ "-j", "/dev/stdout" ]
