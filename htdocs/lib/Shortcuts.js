@@ -1,5 +1,5 @@
 //
-// Handle keyboard shortcuts
+//Handle keyboard shortcuts
 //
 
 function Shortcuts() {}
@@ -33,7 +33,15 @@ Shortcuts.init = function(target) {
         <div class="ks-item-txt">tune frequency</div>
         <div class="ks-item-kbd">${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
       </div>
-
+<div class="ks-item">
+        <div class="ks-item-txt">Open Frequency Input</div>
+        <div class="ks-item-kbd">${this.keycap('T')}</div>
+      </div>
+      <div class="ks-item">
+        <div class="ks-item-txt">Focus Profile Selection List</div>
+        <div class="ks-item-kbd">${this.keycap('P')}</div>
+      </div>
+      
       <div class="ks-item">
         <div class="ks-item-txt">mute/unmute sound</div>
         <div class="ks-item-kbd">${this.keycap('Space')}</div>
@@ -168,8 +176,17 @@ Shortcuts.moveSelector = function(selector, steps) {
 };
 
 Shortcuts.handleKey = function(event) {
-    // Do not handle shortcuts when focused on a text or numeric input
-    var on_input = !!($('input:focus').length && ($('input:focus')[0].type === 'text' || $('input:focus')[0].type === 'number'));
+    // Do not handle shortcuts when focused on a text or numeric input or on a select list
+var focused = document.activeElement;
+var role = focused?.getAttribute('role');
+var on_input = !!(
+    focused &&
+    (
+        focused.tagName === 'INPUT' ||
+        focused.tagName === 'TEXTAREA' ||
+        focused.tagName === 'SELECT'
+    )
+);
     if (on_input) return;
 
     // Leave CTRL+<LETTER> combinations to the browser
@@ -391,6 +408,26 @@ Shortcuts.handleKey = function(event) {
             // L: Toggle log/chat panel
             $('div.button[data-toggle-panel="openwebrx-panel-log"]')[0].click();
             break;
+
+        case 't':
+            // T: Open and focus input field for frequency.
+            $('.webrx-actual-freq > div').trigger('click');
+            const field = $('input[type="number"]');
+            field.trigger('focus');
+            field[0]?.focus();
+            field[0]?.select();
+            break;
+
+
+        case 'p':
+            // P: Focus profile selection
+            const box = document.getElementById('openwebrx-sdr-profiles-listbox');
+            if (box) {
+                  box.focus();
+            }
+            break;
+
+
 
         case 'enter':
             // ENTER: Toggle receiver panel
