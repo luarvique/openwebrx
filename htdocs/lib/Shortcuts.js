@@ -33,14 +33,7 @@ Shortcuts.init = function(target) {
         <div class="ks-item-txt">tune frequency</div>
         <div class="ks-item-kbd">${this.keycap('ArrowLeft')}|${this.keycap('ArrowRight')}</div>
       </div>
-      <div class="ks-item">
-        <div class="ks-item-txt">input frequency</div>
-        <div class="ks-item-kbd">${this.keycap('T')}</div>
-      </div>
-      <div class="ks-item">
-        <div class="ks-item-txt">select profile</div>
-        <div class="ks-item-kbd">${this.keycap('P')}</div>
-      </div>
+
       <div class="ks-item">
         <div class="ks-item-txt">mute/unmute sound</div>
         <div class="ks-item-kbd">${this.keycap('Space')}</div>
@@ -150,6 +143,15 @@ Shortcuts.init = function(target) {
         <div class="ks-item-kbd">${this.keycap('|')}</div>
       </div>
       <div class="ks-item">
+        <div class="ks-item-txt">input frequency</div>
+        <div class="ks-item-kbd">${this.keycap('T')}</div>
+      </div>
+      <div class="ks-item">
+        <div class="ks-item-txt">select profile</div>
+        <div class="ks-item-kbd">${this.keycap('P')}</div>
+      </div>
+
+      <div class="ks-item">
         <div class="ks-item-txt">side-step current profile</div>
         <div class="ks-item-kbd">${this.keycap('PageUp')}|${this.keycap('PageDown')}</div>
       </div>
@@ -177,7 +179,7 @@ Shortcuts.moveSelector = function(selector, steps) {
 Shortcuts.handleKey = function(event) {
     // Do not handle shortcuts when focused on an input or list selector
     var tag = document.activeElement? document.activeElement.tagName : null;
-    if (tag && (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'))
+    if (tag && (tag === 'INPUT' || tag === 'TEXTAREA'))
         return;
 
     // Leave CTRL+<LETTER> combinations to the browser
@@ -402,16 +404,16 @@ Shortcuts.handleKey = function(event) {
 
         case 't':
             // T: Open frequency input
-            $('.webrx-actual-freq > div').trigger('click');
-            const field = $('input[type="number"]');
-            field.trigger('focus');
-            field[0]?.focus();
-            field[0]?.select();
+            $('.webrx-actual-freq > div').click();
+            $('.webrx-actual-freq > div > input[type="number"]').focus();
+            $('.webrx-actual-freq > div > input[type="number"]').select();
             break;
 
         case 'p':
             // P: Open profile selection
-            $('#openwebrx-sdr-profiles-listbox').click();
+            var profiles = $('#openwebrx-sdr-profiles-listbox')[0];
+            profiles.focus();
+            profiles.showPicker();
             break;
 
         case 'enter':
