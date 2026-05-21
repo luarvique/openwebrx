@@ -205,6 +205,11 @@ class AprsParser(PickleModule):
                 self.getMetric("direct").inc()
 
             ReportingEngine.getSharedInstance().spot(aprsData)
+
+            if getattr(self, "igate_enabled", False):
+                from owrx.aprs.igate import AprsIsIgate
+                AprsIsIgate.getSharedInstance().forward_ax25(data)
+
             return aprsData
 
         except Exception:

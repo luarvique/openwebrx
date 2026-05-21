@@ -15,6 +15,7 @@ class LoraParser(TextParser):
         # Construct parent object
         super().__init__(filePrefix="LORA", service=service)
         self.aprsParser = AprsParser()
+        self.aprsParser.igate_enabled = service
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
@@ -70,4 +71,3 @@ class LoraParser(TextParser):
         aprsData = self.aprsParser.process(ax25)
         if aprsData:
             out["aprs"] = aprsData
-            logger.warning("%s: LoRa APRS parseAprs success: %s", self.myName(), aprsData)
