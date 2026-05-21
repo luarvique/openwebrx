@@ -1412,6 +1412,11 @@ function openwebrx_init() {
     // Name used by map links to tune receiver
     frames.name = 'openwebrx-rx';
 
+    // Show Android app link when running on Android
+    if (/android/i.test(navigator.userAgent)) {
+        $('#openwebrx-get-android-app').show();
+    }
+
     audioEngine = new AudioEngine(audio_buffer_maximal_length_sec, audioReporter);
     var $overlay = $('#openwebrx-autoplay-overlay');
     $overlay.on('click', function(){
