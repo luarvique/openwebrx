@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, sampleRate: int = 1000000, options = []):
+    def __init__(self, sampleRate: int = 1000000, options = [], service: bool = False):
         self.sampleRate = sampleRate
-        self.parser = LoraParser()
+        self.parser = LoraParser(service=service)
         workers = [
             LoraModule(sampleRate, jsonOutput = True, options = options),
             self.parser,
@@ -36,21 +36,21 @@ class LoraWanDemodulator(LoraDemodulator):
             "-s", "12", "-s", "11", "-s", "10", "-s", "9", "-s", "8",
             "-s", "7", "-s", "-12", "-s", "-11", "-s", "-10",
             "-s", "-9", "-s", "-8", "-s", "-7"
-        ])
+        ], service=service)
 
 
 class LoraAprsDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "5", "-W", "50", "-b", "7", "-s", "9", "-s", "12"
-        ])
+        ], service=service)
 
 
 class LoraFanetDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "5", "-b", "8", "-s", "7"
-        ])
+        ], service=service)
 
 
 class MeshtasticDemodulator(LoraDemodulator):
@@ -58,18 +58,18 @@ class MeshtasticDemodulator(LoraDemodulator):
         super().__init__(sampleRate, [
             "-H", "5", "-W", "50", "-b", "8", "-s", "7", "-s", "8",
             "-s", "9", "-s", "10", "-s", "11"
-        ])
+        ], service=service)
 
 
 class MeshcoreDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "5", "-W", "50", "-b", "6", "-s", "7", "-s", "8"
-        ])
+        ], service=service)
 
 
 class MeshComDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "1", "-W", "50", "-b", "8", "-s", "10", "-s", "11"
-        ])
+        ], service=service)
