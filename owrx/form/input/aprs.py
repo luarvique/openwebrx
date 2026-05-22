@@ -3,6 +3,7 @@ from owrx.form.input import DropdownEnum
 
 class AprsBeaconSymbols(DropdownEnum):
     BEACON_RECEIVE_ONLY = ("R&", "Receive only IGate")
+    BEACON_RECEIVE_MULTI = ("M&", "Receive only IGate (Multi-Protocol)")
     BEACON_HF_GATEWAY = ("/&", "HF Gateway")
     BEACON_IGATE_GENERIC = ("I&", "Igate Generic (please use more specific overlay)")
     BEACON_PSKMAIL = ("P&", "PSKmail node")

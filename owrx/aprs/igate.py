@@ -67,29 +67,69 @@ def _format_lon(lon):
     return "{:03d}{:05.2f}{}".format(int(lon), (lon - int(lon)) * 60, direction)
 
 
+def build_uncompressed_position(lat, lon, symbol):
+    """
+    Build a 19-byte APRS uncompressed position (matches AprsParser.parseUncompressedCoordinates).
+    The two-character symbol places overlay/table at index 8 and the symbol at index 18.
+    """
+    lat_s = _format_lat(lat)
+    lon_s = _format_lon(lon)
+    lon_deg = lon_s[0:3]
+    lon_min = lon_s[3:8]
+    lon_hem = lon_s[8]
+
+    if len(symbol) >= 2:
+        table, symch = symbol[0], symbol[1]
+    elif len(symbol) == 1:
+        table, symch = symbol[0], symbol[0]
+    else:
+        table, symch = "/", "&"
+
+    # 19 data bytes (indices 0-18): lat[0:8], table[8], lon[9:17], symbol[18].
+    # Primary table: "/" at index 8 also separates lat from lon.
+    # Overlay (R&, M&, …): overlay replaces "/" at index 8; lon follows immediately.
+    if table == "/":
+        body = "{lat}/{lon_deg}{lon_min}{lon_hem}{symch}".format(
+            lat=lat_s, lon_deg=lon_deg, lon_min=lon_min, lon_hem=lon_hem, symch=symch
+        )
+    else:
+        body = "{lat}{table}{lon_deg}{lon_min}{lon_hem}{symch}".format(
+            lat=lat_s, table=table, lon_deg=lon_deg, lon_min=lon_min, lon_hem=lon_hem, symch=symch
+        )
+    if len(body) != 19:
+        raise ValueError("invalid APRS position length %d: %r" % (len(body), body))
+    return "!" + body
+
+
+def _beacon_comment_parts(pm):
+    parts = []
+    if "aprs_igate_comment" in pm:
+        comment = (pm["aprs_igate_comment"] or "").strip()
+        if comment:
+            parts.append(comment)
+    if "aprs_igate_height" in pm:
+        try:
+            height_ft = round(float(pm["aprs_igate_height"]) * FEET_PER_METER)
+            parts.append("HEIGHT=%d" % height_ft)
+        except (TypeError, ValueError):
+            logger.error("Cannot parse aprs_igate_height: %s", pm["aprs_igate_height"])
+    if "aprs_igate_gain" in pm:
+        gain = pm["aprs_igate_gain"]
+        if gain is not None and str(gain).strip() != "":
+            parts.append("GAIN=%s" % gain)
+    if "aprs_igate_dir" in pm and pm["aprs_igate_dir"]:
+        parts.append("DIR=%s" % pm["aprs_igate_dir"])
+    return parts
+
+
 def build_beacon_line():
     pm = Config.get()
     gps = pm["receiver_gps"]
     callsign = pm["aprs_callsign"].strip()
     symbol = pm["aprs_igate_symbol"]
-    lat = _format_lat(gps["lat"])
-    lon = _format_lon(gps["lon"])
 
-    comment_parts = []
-    if pm["aprs_igate_comment"]:
-        comment_parts.append(str(pm["aprs_igate_comment"]))
-    if "aprs_igate_height" in pm:
-        try:
-            height_ft = round(float(pm["aprs_igate_height"]) * FEET_PER_METER)
-            comment_parts.append("HEIGHT=%d" % height_ft)
-        except (TypeError, ValueError):
-            logger.error("Cannot parse aprs_igate_height: %s", pm["aprs_igate_height"])
-    if "aprs_igate_gain" in pm:
-        comment_parts.append("GAIN=%s" % pm["aprs_igate_gain"])
-    if "aprs_igate_dir" in pm and pm["aprs_igate_dir"]:
-        comment_parts.append("DIR=%s" % pm["aprs_igate_dir"])
-
-    info = "!{lat}/{lon}{symbol}".format(lat=lat, lon=lon, symbol=symbol)
+    info = build_uncompressed_position(gps["lat"], gps["lon"], symbol)
+    comment_parts = _beacon_comment_parts(pm)
     if comment_parts:
         info += " " + " ".join(comment_parts)
 
@@ -217,7 +257,7 @@ class AprsIsIgate(object):
                 logger.exception("APRS-IS forward failed")
 
     def _send(self, line):
-        packet = (line + "\r\n").encode("ascii")
+        packet = (line.rstrip() + "\r\n").encode("ascii")
         with self._connLock:
             if not self._ensure_connected():
                 return
