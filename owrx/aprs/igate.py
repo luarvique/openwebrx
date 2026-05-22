@@ -1,5 +1,6 @@
 from owrx.config import Config
 from owrx.aprs import encoding
+from owrx.version import openwebrx_version
 import logging
 import queue
 import socket
@@ -8,7 +9,7 @@ import threading
 logger = logging.getLogger(__name__)
 
 _DEFAULT_PORT = 14580
-_SOFTWARE_ID = "OpenWebRX 1.0"
+_SOFTWARE_ID = "OpenWebRX+ " + openwebrx_version;
 
 
 def build_tnc2_line(data):
