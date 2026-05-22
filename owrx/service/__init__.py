@@ -450,10 +450,20 @@ class Services(object):
     def start():
         config = Config.get()
         config.wireProperty("services_enabled", Services._receiveEnabledEvent)
+        config.wireProperty("aprs_igate_enabled", Services._syncAprsIgate)
+        Services._syncAprsIgate(config["aprs_igate_enabled"])
         activeSources = SdrService.getActiveSources()
         activeSources.wire(Services._receiveDeviceEvent)
         for key, source in activeSources.items():
             Services.schedulers[key] = ServiceScheduler(source)
+
+    @staticmethod
+    def _syncAprsIgate(state):
+        if state is PropertyDeleted:
+            state = False
+        if state:
+            from owrx.aprs.igate import AprsIsIgate
+            AprsIsIgate.ensureStarted()
 
     @staticmethod
     def _receiveEnabledEvent(state):

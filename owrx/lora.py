@@ -16,6 +16,9 @@ class LoraParser(TextParser):
         super().__init__(filePrefix="LORA", service=service)
         self.aprsParser = AprsParser()
         self.aprsParser.igate_enabled = service
+        if service:
+            from owrx.aprs.igate import AprsIsIgate
+            AprsIsIgate.getSharedInstance()
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)

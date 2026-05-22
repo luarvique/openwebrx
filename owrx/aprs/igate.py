@@ -9,7 +9,10 @@ import threading
 logger = logging.getLogger(__name__)
 
 _DEFAULT_PORT = 14580
-_SOFTWARE_ID = "OpenWebRX+ " + openwebrx_version;
+_SOFTWARE_ID = "OpenWebRX+ " + openwebrx_version
+_BEACON_INITIAL_DELAY = 30
+_BEACON_INTERVAL = 1800
+FEET_PER_METER = 3.28084
 
 
 def build_tnc2_line(data):
@@ -52,6 +55,47 @@ def parse_server(server):
     return server, _DEFAULT_PORT
 
 
+def _format_lat(lat):
+    direction = "N" if lat >= 0 else "S"
+    lat = abs(lat)
+    return "{:02d}{:05.2f}{}".format(int(lat), (lat - int(lat)) * 60, direction)
+
+
+def _format_lon(lon):
+    direction = "E" if lon >= 0 else "W"
+    lon = abs(lon)
+    return "{:03d}{:05.2f}{}".format(int(lon), (lon - int(lon)) * 60, direction)
+
+
+def build_beacon_line():
+    pm = Config.get()
+    gps = pm["receiver_gps"]
+    callsign = pm["aprs_callsign"].strip()
+    symbol = pm["aprs_igate_symbol"]
+    lat = _format_lat(gps["lat"])
+    lon = _format_lon(gps["lon"])
+
+    comment_parts = []
+    if pm["aprs_igate_comment"]:
+        comment_parts.append(str(pm["aprs_igate_comment"]))
+    if "aprs_igate_height" in pm:
+        try:
+            height_ft = round(float(pm["aprs_igate_height"]) * FEET_PER_METER)
+            comment_parts.append("HEIGHT=%d" % height_ft)
+        except (TypeError, ValueError):
+            logger.error("Cannot parse aprs_igate_height: %s", pm["aprs_igate_height"])
+    if "aprs_igate_gain" in pm:
+        comment_parts.append("GAIN=%s" % pm["aprs_igate_gain"])
+    if "aprs_igate_dir" in pm and pm["aprs_igate_dir"]:
+        comment_parts.append("DIR=%s" % pm["aprs_igate_dir"])
+
+    info = "!{lat}/{lon}{symbol}".format(lat=lat, lon=lon, symbol=symbol)
+    if comment_parts:
+        info += " " + " ".join(comment_parts)
+
+    return "{callsign}>APRS:{info}".format(callsign=callsign, info=info)
+
+
 class AprsIsIgate(object):
     creationLock = threading.Lock()
     sharedInstance = None
@@ -63,10 +107,17 @@ class AprsIsIgate(object):
                 AprsIsIgate.sharedInstance = AprsIsIgate()
             return AprsIsIgate.sharedInstance
 
+    @staticmethod
+    def ensureStarted():
+        if Config.get()["aprs_igate_enabled"]:
+            AprsIsIgate.getSharedInstance()
+
     def __init__(self):
         self._queue = queue.Queue()
         self._connLock = threading.Lock()
         self._socket = None
+        self._beaconStop = threading.Event()
+        self._beaconThread = None
         self._worker = threading.Thread(target=self._run, name="AprsIsIgate", daemon=True)
         self._worker.start()
         self._configSub = Config.get().filter(
@@ -74,26 +125,81 @@ class AprsIsIgate(object):
             "aprs_igate_server",
             "aprs_callsign",
             "aprs_igate_password",
+            "aprs_igate_beacon",
+            "receiver_gps",
+            "aprs_igate_symbol",
+            "aprs_igate_comment",
+            "aprs_igate_height",
+            "aprs_igate_gain",
+            "aprs_igate_dir",
         ).wire(self._onConfigChanged)
+        self._syncBeacon()
+        if self._canForward():
+            threading.Thread(target=self._connectEarly, name="AprsIsConnect", daemon=True).start()
+
+    def _connectEarly(self):
+        with self._connLock:
+            self._ensure_connected()
 
     def _onConfigChanged(self, *args):
         self._disconnect()
+        self._syncBeacon()
+        if self._canForward():
+            threading.Thread(target=self._connectEarly, name="AprsIsConnect", daemon=True).start()
 
-    def forward_ax25(self, data):
+    def _syncBeacon(self):
+        if self._beaconThread is not None:
+            self._beaconStop.set()
+            self._beaconThread.join()
+            self._beaconStop.clear()
+            self._beaconThread = None
+
+        pm = Config.get()
+        if pm["aprs_igate_enabled"] and pm["aprs_igate_beacon"]:
+            self._beaconThread = threading.Thread(target=self._beaconLoop, name="AprsIsBeacon", daemon=True)
+            self._beaconThread.start()
+
+    def _beaconLoop(self):
+        if self._beaconStop.wait(_BEACON_INITIAL_DELAY):
+            return
+        while not self._beaconStop.is_set():
+            try:
+                self._sendBeacon()
+            except Exception:
+                logger.exception("APRS-IS beacon failed")
+            if self._beaconStop.wait(_BEACON_INTERVAL):
+                return
+
+    def _sendBeacon(self):
+        if not self._canForward():
+            return
+        try:
+            line = build_beacon_line()
+        except Exception:
+            logger.exception("failed to build APRS-IS beacon")
+            return
+        logger.info("sending APRS-IS beacon: %s", line)
+        self._queue.put(line)
+
+    def _canForward(self):
         pm = Config.get()
         if not pm["aprs_igate_enabled"]:
-            return
-
+            return False
         callsign = pm["aprs_callsign"].strip()
         if not callsign or callsign == "N0CALL":
-            logger.debug("APRS-IS forwarding disabled: configure aprs_callsign")
-            return
-
+            return False
         password = pm["aprs_igate_password"]
         if password is None or str(password).strip() == "":
-            logger.debug("APRS-IS forwarding disabled: configure aprs_igate_password")
+            return False
+        return True
+
+    def forward_ax25(self, data):
+        if data.get("source") == "AIS":
+            return
+        if not self._canForward():
             return
 
+        callsign = Config.get()["aprs_callsign"].strip()
         try:
             line = add_igate_path(build_tnc2_line(data), callsign)
         except Exception:
