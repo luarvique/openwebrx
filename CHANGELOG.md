@@ -1,3 +1,17 @@
+**1.2.115**
+- Added [T] shortcut to enter frequency [Rene Jaun].
+- Added [P] shortcut to select profile [Rene Jaun].
+- Added LoRa bands and frequencies [Stefan DC4HF].
+- Added MeshCom LoRa mode [Stefan DC4HF].
+- Added link to Android app.
+- Fixed single-stepping from unaligned frequency.
+- Fixed secondary sampling rate for services.
+- Fixed background audio recording rate to 128ksps.
+- Optimized LoRa decoder invocations [Stefan DC4HF].
+- Updated feature install instructions.
+- Moved LoRa to its own source files.
+- Made more web assets zippable.
+
 **1.2.114**
 - Integrated dxlAPRS LoraRX tool.
 - Added LoRa WAN, LoRa APRS, and FANET modes.
