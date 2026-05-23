@@ -61,7 +61,10 @@ function zoomOutTotal() {
 function tuneBySteps(steps) {
     steps = Math.round(steps);
     if (steps != 0) {
-        UI.setFrequency(UI.getFrequency() + steps * tuning_step);
+        var f = UI.getFrequency() / tuning_step;
+        var i = Math.floor(f);
+        if (i != f && steps < 0) steps++;
+        UI.setFrequency((i + steps) * tuning_step);
     }
 }
 
