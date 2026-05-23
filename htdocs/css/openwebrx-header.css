@@ -109,8 +109,9 @@
     cursor:pointer;
 }
 
-.openwebrx-main-buttons .button[data-toggle-panel] {
-    /* will be enabled by javascript if the panel is present in the DOM */
+.openwebrx-main-buttons .button[data-toggle-panel],
+.openwebrx-main-buttons .openwebrx-receiver-home-button {
+    /* will be enabled by javascript when appropriate */
     display: none;
 }
 

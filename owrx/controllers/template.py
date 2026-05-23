@@ -25,8 +25,22 @@ class WebpageController(TemplateController):
         levels = max(0, len(path_parts) - 1)
         return "../" * levels
 
+    def get_receiver_home(self):
+        path_parts = [part for part in self.request.path[1:].split("/") if part]
+        if not path_parts:
+            return ""
+        return "../" * len(path_parts)
+
+    def get_receiver_home_display(self):
+        return "block" if self.get_receiver_home() else "none"
+
     def header_variables(self):
-        variables = { "document_root": self.get_document_root(), "map_type": "" }
+        variables = {
+            "document_root": self.get_document_root(),
+            "map_type": "",
+            "receiver_home": self.get_receiver_home(),
+            "receiver_home_display": self.get_receiver_home_display(),
+        }
         variables.update(ReceiverDetails().__dict__())
         return variables
 
