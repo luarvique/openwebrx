@@ -28,6 +28,106 @@ encoding = "utf-8"
 # regex for altitute in comment field
 altitudeRegex = re.compile("(^.*)\\/A=([0-9]{6})(.*$)")
 
+
+def splitUncompressedPosition(information):
+    """
+    Split uncompressed position and comment.
+    Some transmitters (notably LoRa APRS) insert '/' after an overlay byte,
+    which makes the fixed 19-byte field 20 bytes and leaks the symbol into the comment.
+    """
+    if len(information) < 19:
+        return information, ""
+    if information[8] not in "/\\" and len(information) > 19 and information[9] == "/":
+        # lon: degrees[10:13], minutes[13:18], hemisphere[18], symbol[19]
+        position = information[0:8] + information[8] + information[10:18] + information[18] + information[19]
+        return position, information[20:]
+    return information[0:19], information[19:]
+
+
+def isValidUncompressedPosition(raw):
+    """Return True if raw is a 19-byte APRS uncompressed position field."""
+    if len(raw) < 19:
+        return False
+    if not raw[0:2].isdigit() or raw[7] not in "NS" or raw[17] not in "EW":
+        return False
+    try:
+        lat_min = float(raw[2:7])
+        lon_deg = int(raw[9:12])
+        lon_min = float(raw[12:17])
+    except ValueError:
+        return False
+    if not (0 <= lat_min < 60 and 0 <= lon_min < 60):
+        return False
+    if not (0 <= int(raw[0:2]) <= 90 and 0 <= lon_deg <= 180):
+        return False
+    return True
+
+
+def stripCommentTelemetry(comment):
+    """
+    Remove Base91 comment telemetry (|ss11|…) appended after the user comment.
+    APRS user comments must not contain '|' (reserved); telemetry is always last.
+    """
+    idx = comment.find("|")
+    if idx >= 0:
+        tail = comment[idx:]
+        if tail.endswith("|") and len(tail) >= 3:
+            comment = comment[:idx]
+    return comment
+
+
+def splitCompressedComment(information, aprsData):
+    """
+    Compressed position is 13 bytes: /YYYYXXXX$csT, then the comment field.
+    See APRS101 chapter 9 (not 10 bytes + optional data).
+    """
+    if len(information) <= 10:
+        return ""
+    if len(information) >= 13:
+        c = information[10]
+        if c == "{":
+            aprsData["range"] = 2 * 1.08 ** (ord(information[11]) - 33) * milesToKilometers
+        elif c not in (" ", "V") and ord("!") <= ord(c) <= ord("z"):
+            aprsData["course"] = (ord(c) - 33) * 4
+            aprsData["speed"] = (1.08 ** (ord(information[11]) - 33) - 1) * knotsToKilometers
+        if c not in (" ", "V"):
+            t = ord(information[12])
+            aprsData["fix"] = (t & 0b00100000) > 0
+            sources = ["other", "GLL", "GGA", "RMC"]
+            aprsData["nmeasource"] = sources[(t & 0b00011000) >> 3]
+            origins = [
+                "Compressed",
+                "TNC BText",
+                "Software",
+                "[tbd]",
+                "KPC3",
+                "Pico",
+                "Other tracker",
+                "Digipeater conversion",
+            ]
+            aprsData["compressionorigin"] = origins[t & 0b00000111]
+        return information[13:]
+    if information[10] == " ":
+        return information[11:]
+    return information[10:]
+
+
+def sanitizeAprsComment(comment, symbol=None):
+    if not comment:
+        return ""
+    if "\x00" in comment:
+        comment = comment.split("\x00", 1)[0]
+    comment = stripCommentTelemetry(comment)
+    if symbol:
+        table = symbol.get("table")
+        sym = symbol.get("symbol")
+        if table and comment.startswith(table):
+            comment = comment[len(table) :]
+        if sym and comment.startswith(sym):
+            comment = comment[len(sym) :]
+    comment = "".join(c for c in comment if c.isprintable() or c in "\t ")
+    return comment.strip()
+
 # regex for parsing third-party headers
 thirdpartyeRegex = re.compile("^([a-zA-Z0-9-]+)>((([a-zA-Z0-9-]+\\*?,)*)([a-zA-Z0-9-]+\\*?)):(.*)$")
 
@@ -416,35 +516,19 @@ class AprsParser(PickleModule):
         if self.hasCompressedCoordinates(information):
             aprsData = self.parseCompressedCoordinates(information[0:10])
             aprsData["type"] = "compressed"
-            if information[10] != " ":
-                if information[10] == "{":
-                    # pre-calculated radio range
-                    aprsData["range"] = 2 * 1.08 ** (ord(information[11]) - 33) * milesToKilometers
-                else:
-                    aprsData["course"] = (ord(information[10]) - 33) * 4
-                    # speed is in knots... convert to metric (km/h)
-                    aprsData["speed"] = (1.08 ** (ord(information[11]) - 33) - 1) * knotsToKilometers
-                # compression type
-                t = ord(information[12])
-                aprsData["fix"] = (t & 0b00100000) > 0
-                sources = ["other", "GLL", "GGA", "RMC"]
-                aprsData["nmeasource"] = sources[(t & 0b00011000) >> 3]
-                origins = [
-                    "Compressed",
-                    "TNC BText",
-                    "Software",
-                    "[tbd]",
-                    "KPC3",
-                    "Pico",
-                    "Other tracker",
-                    "Digipeater conversion",
-                ]
-                aprsData["compressionorigin"] = origins[t & 0b00000111]
-            comment = information[13:]
+            comment = splitCompressedComment(information, aprsData)
         else:
-            aprsData = self.parseUncompressedCoordinates(information[0:19])
-            aprsData["type"] = "regular"
-            comment = information[19:]
+            position, comment = splitUncompressedPosition(information)
+            if isValidUncompressedPosition(position):
+                aprsData = self.parseUncompressedCoordinates(position)
+                aprsData["type"] = "regular"
+            else:
+                logger.debug(
+                    "skipping invalid uncompressed APRS position: %r",
+                    information[:48],
+                )
+                aprsData = {"type": "unknown"}
+                comment = information
 
         def decodeHeightGainDirectivity(comment):
             res = {"height": 2 ** int(comment[4]) * 10 * feetToMeters, "gain": int(comment[5])}
@@ -510,7 +594,7 @@ class AprsParser(PickleModule):
             aprsData["altitude"] = int(matches.group(2)) * feetToMeters
             comment = matches.group(1) + matches.group(3)
 
-        aprsData["comment"] = comment
+        aprsData["comment"] = sanitizeAprsComment(comment, aprsData.get("symbol"))
 
         return aprsData
 
