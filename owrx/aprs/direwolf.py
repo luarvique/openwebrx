@@ -15,8 +15,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-FEET_PER_METER = 3.28084
-
 
 class DirewolfConfigSubscriber(ABC):
     @abstractmethod
@@ -94,55 +92,7 @@ AGWPORT off
             port=self.getPort(), callsign=pm["aprs_callsign"]
         )
 
-        # Do not send AIS reports to IGATE
-        if is_service and not is_ais and pm["aprs_igate_enabled"]:
-            pbeacon = ""
-
-            if pm["aprs_igate_beacon"]:
-                # Format beacon lat/lon
-                lat = pm["receiver_gps"]["lat"]
-                lon = pm["receiver_gps"]["lon"]
-                direction_ns = "N" if lat > 0 else "S"
-                direction_we = "E" if lon > 0 else "W"
-                lat = abs(lat)
-                lon = abs(lon)
-                lat = "{0:02d}^{1:05.2f}{2}".format(int(lat), (lat - int(lat)) * 60, direction_ns)
-                lon = "{0:03d}^{1:05.2f}{2}".format(int(lon), (lon - int(lon)) * 60, direction_we)
-
-                # Convert height from meters to feet if specified
-                height = ""
-                if "aprs_igate_height" in pm:
-                    try:
-                        height_m = float(pm["aprs_igate_height"])
-                        height_ft = round(height_m * FEET_PER_METER)
-                        height = "HEIGHT=" + str(height_ft)
-                    except:
-                        logger.error(
-                            "Cannot parse 'aprs_igate_height', expected float: " + str(pm["aprs_igate_height"])
-                        )
-
-                pbeacon = 'PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} {height} {gain} {adir} comment="{comment}"'.format(
-                    symbol=pm["aprs_igate_symbol"],
-                    lat=lat,
-                    lon=lon,
-                    height=height,
-                    gain="GAIN=" + str(pm["aprs_igate_gain"]) if "aprs_igate_gain" in pm else "",
-                    adir="DIR=" + str(pm["aprs_igate_dir"]) if "aprs_igate_dir" in pm else "",
-                    comment=pm["aprs_igate_comment"],
-                )
-
-                logger.info("APRS PBEACON String: " + pbeacon)
-
-            config += """
-IGSERVER {server}
-IGLOGIN {callsign} {password}
-{pbeacon}
-            """.format(
-                server=pm["aprs_igate_server"],
-                callsign=pm["aprs_callsign"],
-                password=pm["aprs_igate_password"],
-                pbeacon=pbeacon,
-            )
+        # APRS-IS upload is handled by owrx.aprs.igate.AprsIsIgate (single shared connection).
 
         return config
 
