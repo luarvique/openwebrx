@@ -45,10 +45,6 @@ class Msk144Demodulator(ServiceDemodulator, DialFrequencyReceiver):
 class PacketDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, service: bool = False, ais: bool = False):
         self.parser = AprsParser()
-        if service and not ais:
-            self.parser.igate_enabled = True
-            from owrx.aprs.igate import AprsIsIgate
-            AprsIsIgate.getSharedInstance()
         workers = [
             # Default analog NFM demodulator includes a few extra blocks
             FmDemod(),
