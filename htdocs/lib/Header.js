@@ -1,21 +1,7 @@
 function Header(el) {
     this.el = el;
 
-    var onReceiverPage = $('#openwebrx-panel-receiver')[0];
-    var $receiverPanelBtn = this.el.find('.openwebrx-receiver-panel-button');
-    var $receiverHomeBtn = this.el.find('.openwebrx-receiver-home-button');
-
-    if (onReceiverPage) {
-        $receiverHomeBtn.hide();
-        $receiverPanelBtn.css({display: 'block'}).click(function () {
-            toggle_panel($(this).data('toggle-panel'));
-        });
-    } else {
-        $receiverPanelBtn.hide();
-        $receiverHomeBtn.css({display: 'block'});
-    }
-
-    var $buttons = this.el.find('.openwebrx-main-buttons').find('[data-toggle-panel]').not('.openwebrx-receiver-panel-button').filter(function(){
+    var $buttons = this.el.find('.openwebrx-main-buttons').find('[data-toggle-panel]').filter(function(){
         // ignore buttons when the corresponding panel is not in the DOM
         return $('#' + $(this).data('toggle-panel'))[0];
     });
