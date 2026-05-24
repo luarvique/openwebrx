@@ -8,6 +8,7 @@ openwebrx (1.2.115) bullseye jammy; urgency=low
   * Fixed single-stepping from unaligned frequency.
   * Fixed secondary sampling rate for services.
   * Fixed background audio recording rate to 128ksps.
+  * Fixed weather RTTY bookmarks, removed duplicates.
   * Optimized LoRa decoder invocations [Stefan DC4HF].
   * Updated feature install instructions.
   * Moved LoRa to its own source files.
