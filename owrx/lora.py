@@ -1,5 +1,5 @@
 from owrx.toolbox import TextParser
-from owrx.aprs import AprsParser, encoding, thirdpartyeRegex
+from owrx.aprs import AprsParser, thirdpartyeRegex
 from owrx.reporting import ReportingEngine
 
 import base64
@@ -16,9 +16,6 @@ class LoraParser(TextParser):
         super().__init__(filePrefix="LORA", service=service)
         self.aprsParser = AprsParser()
         self.aprsParser.igate_enabled = service
-        if service:
-            from owrx.aprs.igate import AprsIsIgate
-            AprsIsIgate.getSharedInstance()
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
@@ -44,7 +41,7 @@ class LoraParser(TextParser):
             try:
                 self.parsePayload(out, base64.b64decode(out["payload"]))
             except Exception as e:
-                logger.error("%s: Exception parsing: %s" % (self.myName(), str(e)))
+                logger.error("Exception parsing LoRa payload: %s", str(e))
 
         # Report message
         ReportingEngine.getSharedInstance().spot(out)
@@ -52,28 +49,28 @@ class LoraParser(TextParser):
         # Return JSON data
         return out
 
+    # Parse LoRa payload by type
     def parsePayload(self, out, data: bytes):
         if len(data) > 3 and data[0] == 0x3C and data[1] == 0xFF and data[2] == 0x01:
             self.parseAprs(out, data[3:])
 
+    # Parse LoRa APRS payload
     def parseAprs(self, out, data: bytes):
-        text = data.decode(encoding, "replace").strip()
-        matches = thirdpartyeRegex.match(text)
+        payload = data.decode("utf-8").strip()
+        matches = thirdpartyeRegex.match(payload)
         if not matches:
-            logger.warning("%s: could not parse LoRa APRS payload: %s", self.myName(), text)
-            return
-
-        path = matches.group(2).split(",")
-        info = matches.group(6)
-        if "\x00" in info:
-            info = info.split("\x00", 1)[0]
-        ax25 = {
-            "source": matches.group(1).upper(),
-            "destination": path[0] if path else "",
-            "path": path[1:] if len(path) > 1 else [],
-            "data": info.encode(encoding),
-            "raw": "".join("{:02X}".format(x) for x in data),
-        }
-        aprsData = self.aprsParser.process(ax25)
-        if aprsData:
-            out["aprs"] = aprsData
+            logger.warning("Couldn't parse LoRa APRS payload: '%s'", text)
+        else:
+            path = matches.group(2).split(",")
+            info = matches.group(6)
+            if "\x00" in info:
+                info = info.split("\x00", 1)[0]
+            aprs = self.aprsParser.process({
+                "source"      : matches.group(1).upper(),
+                "destination" : path[0] if path else "",
+                "path"        : path[1:] if len(path) > 1 else [],
+                "data"        : info.encode("utf-8"),
+                "raw"         : "".join("{:02X}".format(x) for x in data),
+            })
+            if aprs:
+                out["aprs"] = aprs
