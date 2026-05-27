@@ -315,6 +315,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif demod in ["usb", "lsb", "cw"]:
             from csdr.chain.analog import Ssb
             return Ssb()
+        elif demod == "empty":
+            from csdr.chain.analog import Empty
+            return Empty()
 
     # TODO move this elsewhere
     def _getSecondaryDemodulator(self, mod) -> Optional[ServiceDemodulator]:
@@ -409,6 +412,24 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "elektro-lrit":
             from csdr.chain.satellite import ElektroLritDemodulator
             return ElektroLritDemodulator(service=True)
+        elif mod == "lora-wan":
+            from csdr.chain.lora import LoraWanDemodulator
+            return LoraWanDemodulator(service=True)
+        elif mod == "lora-aprs":
+            from csdr.chain.lora import LoraAprsDemodulator
+            return LoraAprsDemodulator(service=True)
+        elif mod == "lora-fanet":
+            from csdr.chain.lora import LoraFanetDemodulator
+            return LoraFanetDemodulator(service=True)
+        elif mod == "meshtastic":
+            from csdr.chain.lora import MeshtasticDemodulator
+            return MeshtasticDemodulator(service=True)
+        elif mod == "meshcore":
+            from csdr.chain.lora import MeshcoreDemodulator
+            return MeshcoreDemodulator(service=True)
+        elif mod == "meshcom":
+            from csdr.chain.lora import MeshComDemodulator
+            return MeshComDemodulator(service=True)
         # NOAA-15 satellite has been retired, not operational
         #elif mod == "noaa-apt-15":
         #    from csdr.chain.satellite import NoaaAptDemodulator
