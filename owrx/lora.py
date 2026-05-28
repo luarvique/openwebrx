@@ -64,12 +64,10 @@ class LoraParser(TextParser):
             info = matches.group(6)
             if "\x00" in info:
                 info = info.split("\x00", 1)[0]
-            aprs = self.aprsParser.process({
+            return self.aprsParser.process({
                 "source"      : matches.group(1).upper(),
                 "destination" : path[0] if path else "",
                 "path"        : path[1:] if len(path) > 1 else [],
                 "data"        : info.encode("utf-8"),
                 "raw"         : "".join("{:02X}".format(x) for x in data),
             })
-            if aprs:
-                out["aprs"] = aprs
