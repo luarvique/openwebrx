@@ -38,7 +38,9 @@ class LoraParser(TextParser):
         # Try decoding payload
         if "payload" in out:
             try:
-                self.parsePayload(out, base64.b64decode(out["payload"]))
+                payload = self.parsePayload(out, base64.b64decode(out["payload"]))
+                if payload:
+                    return payload
             except Exception as e:
                 logger.error("Exception parsing LoRa payload: %s", str(e))
 
@@ -51,7 +53,9 @@ class LoraParser(TextParser):
     # Parse LoRa payload by type
     def parsePayload(self, out, data: bytes):
         if len(data) > 3 and data[0] == 0x3C and data[1] == 0xFF and data[2] == 0x01:
-            self.parseAprs(out, data[3:])
+            return self.parseAprs(out, data[3:])
+        else:
+            return None
 
     # Parse LoRa APRS payload
     def parseAprs(self, out, data: bytes):
