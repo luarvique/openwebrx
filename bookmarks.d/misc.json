@@ -62,12 +62,12 @@
     {
         "name" : "Time - RWM",
         "frequency" : 4996000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - EBC",
         "frequency" : 4998000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV, WWVH, BPM",
@@ -82,7 +82,7 @@
     {
         "name" : "Time - RWM",
         "frequency" : 9996000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV, WWVH, BPM",
@@ -102,7 +102,7 @@
     {
         "name" : "Time - RWM",
         "frequency" : 14996000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV, WWVH, BPM",
@@ -112,7 +112,7 @@
     {
         "name" : "Time - EBC",
         "frequency" : 15006000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV",
