@@ -1,7 +1,7 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.lora import LoraModule
 from pycsdr.types import Format
-from owrx.lora import LoraParser
+from owrx.lora import LoraParser, MeshtasticParser
 
 import logging
 
@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, sampleRate: int = 1000000, options = [], service: bool = False):
+    def __init__(self, sampleRate: int = 1000000, options = [], parser)
         self.sampleRate = sampleRate
-        self.parser = LoraParser(service=service)
+        self.parser = parser
         workers = [
             LoraModule(sampleRate, jsonOutput = True, options = options),
             self.parser,
@@ -36,21 +36,21 @@ class LoraWanDemodulator(LoraDemodulator):
             "-s", "12", "-s", "11", "-s", "10", "-s", "9", "-s", "8",
             "-s", "7", "-s", "-12", "-s", "-11", "-s", "-10",
             "-s", "-9", "-s", "-8", "-s", "-7"
-        ], service=service)
+        ], LoraParser(service))
 
 
 class LoraAprsDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "5", "-W", "50", "-b", "7", "-s", "9", "-s", "12"
-        ], service=service)
+        ], LoraParser(service))
 
 
 class LoraFanetDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "5", "-b", "8", "-s", "7"
-        ], service=service)
+        ], LoraParser(service))
 
 
 class MeshtasticDemodulator(LoraDemodulator):
@@ -58,18 +58,18 @@ class MeshtasticDemodulator(LoraDemodulator):
         super().__init__(sampleRate, [
             "-H", "5", "-W", "50", "-b", "8", "-s", "7", "-s", "8",
             "-s", "9", "-s", "10", "-s", "11"
-        ], service=service)
+        ], MeshtasticParser(service))
 
 
 class MeshcoreDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "5", "-W", "50", "-b", "6", "-s", "7", "-s", "8"
-        ], service=service)
+        ], LoraParser(service))
 
 
 class MeshComDemodulator(LoraDemodulator):
     def __init__(self, sampleRate: int = 1000000, service: bool = False):
         super().__init__(sampleRate, [
             "-H", "1", "-W", "50", "-b", "8", "-s", "10", "-s", "11"
-        ], service=service)
+        ], LoraParser(service))
