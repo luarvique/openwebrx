@@ -111,7 +111,7 @@ class FeatureDetector(object):
         "sonde": ["sonde_rs"],
         "mp3": ["lame"],
         "lora": ["lorarx"],
-        "meshtastic": ["meshtastic"],
+        "meshtastic": ["lorarx", "py_meshtastic"],
     }
 
     def feature_availability(self):
@@ -903,7 +903,7 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("lorarx -h")
 
-    def has_meshtastic(self):
+    def has_py_meshtastic(self):
         """
         OpenWebRX uses [Meshtastic](https://pypi.org/project/meshtastic/) Python library
         to decode Meshtastic traffic. You can install the

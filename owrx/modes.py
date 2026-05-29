@@ -374,7 +374,7 @@ class Modes(object):
             underlying=["empty"],
             bandpass=None,
             ifRate=1000000,
-            requirements=["lora", "meshtastic"],
+            requirements=["meshtastic"],
             service=True,
             squelch=True
         ),
