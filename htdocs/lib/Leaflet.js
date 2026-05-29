@@ -70,6 +70,19 @@ function LAircraftMarker () { $.extend(this, new LMarker(), new AircraftMarker()
 // Leaflet-Specific SimpleMarker
 function LSimpleMarker() { $.extend(this, new LMarker(), new AprsMarker()); }
 
+// Leaflet-Specific MeshtasticMarker
+function LMeshtasticMarker() { $.extend(this, new LMarker(), new MeshtasticMarker()); }
+LMeshtasticMarker.prototype.onAdd = function() {
+    this.div = this.create();
+    this.setIcon(L.divIcon({
+        html        : this.div,
+        iconSize    : this.getSize(),
+        iconAnchor  : this.getIconAnchor(),
+        popupAnchor : this.getAnchorOffset(),
+        className   : 'dummy'
+    }));
+};
+
 //
 // Leaflet-Specific Locator
 //

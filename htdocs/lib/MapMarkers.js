@@ -23,20 +23,21 @@ function MarkerManager() {
 
     // Symbols used for marker types
     this.symbols = {
-        'KiwiSDR'   : '&tridot;',
-        'WebSDR'    : '&tridot;',
-        'OpenWebRX' : '&tridot;',
-        'Stations'  : '&#9041;', //'&#9678;',
-        'Repeaters' : '&bowtie;',
-        'APRS'      : '&#9872;',
-        'AIS'       : '&apacir;',
-        'HFDL'      : '&#9992;',
-        'VDL2'      : '&#9992;',
-        'ADSB'      : '&#9992;',
-        'ACARS'     : '&#9992;',
-        'UAT'       : '&#9992;',
-        'HDR'       : '&#9836;',
-        'SONDE'     : '&#9906;'
+        'KiwiSDR'     : '&tridot;',
+        'WebSDR'      : '&tridot;',
+        'OpenWebRX'   : '&tridot;',
+        'Stations'    : '&#9041;', //'&#9678;',
+        'Repeaters'   : '&bowtie;',
+        'APRS'        : '&#9872;',
+        'AIS'         : '&apacir;',
+        'HFDL'        : '&#9992;',
+        'VDL2'        : '&#9992;',
+        'ADSB'        : '&#9992;',
+        'ACARS'       : '&#9992;',
+        'UAT'         : '&#9992;',
+        'HDR'         : '&#9836;',
+        'SONDE'       : '&#9906;',
+        'Meshtastic'  : '&#x2A07;'
     };
 
     // Marker type shown/hidden status
@@ -863,4 +864,116 @@ AircraftMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     return '<h3>' + name + distance + '</h3>'
         + '<div align="center">' + timeString + ' using ' + this.mode + '</div>'
         + commentString + detailsString + messageString;
+};
+
+//
+// Meshtastic Node Marker
+//
+
+function MeshtasticMarker() {}
+
+MeshtasticMarker.prototype = new Marker();
+
+MeshtasticMarker.prototype.update = function(update) {
+    this.lastseen  = update.lastseen;
+    this.mode      = update.mode;
+    this.altitude  = update.location.altitude;
+    this.src       = update.location.src;
+    this.hop_limit = update.location.hop_limit;
+    this.hop_start = update.location.hop_start;
+    this.summary   = update.location.summary;
+    // Preserve previously cached names/role/hw_model — only overwrite when present in this update
+    if (update.location.long_name  !== undefined) this.long_name  = update.location.long_name;
+    if (update.location.short_name !== undefined) this.short_name = update.location.short_name;
+    if (update.location.role       !== undefined) this.role       = update.location.role;
+    if (update.location.hw_model   !== undefined) this.hw_model   = update.location.hw_model;
+
+    this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
+    this.age(new Date().getTime() - update.lastseen);
+};
+
+MeshtasticMarker.prototype.draw = function() {
+    if (this.opacity) this.div.style.opacity = this.opacity;
+    else this.div.style.opacity = null;
+    if (this.place) this.place();
+};
+
+MeshtasticMarker.prototype.create = function() {
+    var div = this.div = document.createElement('div');
+    div.style.position  = 'absolute';
+    div.style.cursor    = 'pointer';
+    div.style.width     = '28px';
+    div.style.textAlign = 'center';
+
+    var circle = document.createElement('div');
+    circle.style.width        = '28px';
+    circle.style.height       = '28px';
+    circle.style.fontSize     = '20px';
+    circle.style.lineHeight   = '28px';
+    circle.style.textAlign    = 'center';
+    circle.style.color        = '#ffffff';
+    circle.style.background   = '#2e8b57';
+    circle.style.borderRadius = '50%';
+    circle.style.boxShadow    = '0 1px 4px rgba(0,0,0,0.5)';
+    circle.textContent = '⨇';
+
+    var tip = document.createElement('div');
+    tip.style.width       = '0';
+    tip.style.height      = '0';
+    tip.style.margin      = '0 auto';
+    tip.style.borderLeft  = '7px solid transparent';
+    tip.style.borderRight = '7px solid transparent';
+    tip.style.borderTop   = '9px solid #2e8b57';
+
+    div.appendChild(circle);
+    div.appendChild(tip);
+    return div;
+};
+
+// Pin: anchor at tip of triangle (28px circle + 9px tip)
+MeshtasticMarker.prototype.getIconAnchor   = function() { return [14, 37]; };
+MeshtasticMarker.prototype.getAnchorOffset = function() { return [0, -37]; };
+MeshtasticMarker.prototype.getSize         = function() { return [28, 37]; };
+
+MeshtasticMarker.prototype.getInfoHTML = function(name, receiverMarker) {
+    var timeString    = moment(this.lastseen).fromNow();
+    var detailsString = '';
+    var distance      = '';
+
+    if (receiverMarker) {
+        distance = ' at ' + Utils.distanceKm(receiverMarker.position, this.position) + ' km';
+    }
+
+    if (this.long_name) {
+        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.long_name));
+    }
+    if (this.short_name) {
+        detailsString += Utils.makeListItem('Short name', Utils.htmlEscape(this.short_name));
+    }
+    if (this.role) {
+        detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
+    }
+    if (this.src) {
+        detailsString += Utils.makeListItem('Node ID', '!' + this.src);
+    }
+    if (this.altitude !== undefined && this.altitude !== null) {
+        detailsString += Utils.makeListItem('Altitude', this.altitude.toFixed(0) + ' m');
+    }
+    if (this.hop_limit !== undefined && this.hop_limit !== null) {
+        var hops = this.hop_start !== undefined && this.hop_start !== null
+            ? this.hop_limit + ' / ' + this.hop_start
+            : String(this.hop_limit);
+        detailsString += Utils.makeListItem('Hops', hops);
+    }
+    if (this.summary) {
+        detailsString += Utils.makeListItem('Info', Utils.htmlEscape(this.summary));
+    }
+
+    if (detailsString.length > 0) {
+        detailsString = '<div>' + Utils.makeListTitle('Details') + detailsString + '</div>';
+    }
+
+    return '<h3>' + name + distance + '</h3>'
+        + '<div align="center">' + timeString + ' using Meshtastic</div>'
+        + detailsString;
 };

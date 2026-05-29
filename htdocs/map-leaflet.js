@@ -455,6 +455,10 @@ MapManager.prototype.processUpdates = function(updates) {
                         case 'APRS': case 'AIS': case 'HDR': case 'SONDE':
                             marker = new LAprsMarker();
                             break;
+                        case 'Meshtastic':
+                            marker = new LMeshtasticMarker();
+                            marker.onAdd();
+                            break;
                         case 'KiwiSDR': case 'WebSDR': case 'OpenWebRX':
                         case 'Stations': case 'Repeaters':
                             marker = new LFeatureMarker();

@@ -175,6 +175,9 @@ MapManager.prototype.processUpdates = function(updates) {
                         case 'ACARS': case 'UAT':
                             marker = new GAircraftMarker();
                             break;
+                        case 'Meshtastic':
+                            marker = new GMeshtasticMarker();
+                            break;
                         case 'APRS': case 'AIS': case 'HDR': case 'SONDE':
                             marker = new GAprsMarker();
                             break;

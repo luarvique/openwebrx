@@ -1,24 +1,27 @@
+from owrx.reporting import ReportingEngine
 from owrx.toolbox import TextParser
 from owrx.aprs import AprsParser, thirdpartyeRegex
 from owrx.reporting import ReportingEngine
 
 import base64
 import json
-
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class LoraParser(TextParser):
-    def __init__(self, service: bool = False):
+    def __init__(self, service: bool = False, subParser=None):
         # Construct parent object
         super().__init__(filePrefix="LORA", service=service)
         self.aprsParser = AprsParser()
+        self.subParser = subParser() if subParser else None
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
         self.aprsParser.setDialFrequency(frequency)
+        if self.subParser:
+            self.subParser.setDialFrequency(frequency)
 
     def parse(self, msg: bytes):
         try:
@@ -51,8 +54,10 @@ class LoraParser(TextParser):
         return out
 
     # Parse LoRa payload by type
-    def parsePayload(self, out, data: bytes):
-        if len(data) > 3 and data[0] == 0x3C and data[1] == 0xFF and data[2] == 0x01:
+    def parsePayload(self, out: dict[str, object], data: bytes):
+        if self.subParser:
+            return self.subParser.parsePayload(out, data)
+        elif len(data) > 3 and data[0] == 0x3C and data[1] == 0xFF and data[2] == 0x01:
             return self.parseAprs(out, data[3:])
         else:
             return None
@@ -81,6 +86,12 @@ class MeshtasticParser(TextParser):
     def __init__(self, service: bool = False):
         # Construct parent object
         super().__init__(filePrefix="MESHTASTIC", service=service)
+        from owrx.meshtastic import MeshtasticParser as MeshtasticDecoder
+        self._decoder = MeshtasticDecoder()
+
+    def setDialFrequency(self, frequency: int) -> None:
+        super().setDialFrequency(frequency)
+        self._decoder.setDialFrequency(frequency)
 
     def parse(self, msg: bytes):
         try:
@@ -100,8 +111,9 @@ class MeshtasticParser(TextParser):
         # Try decoding payload
         if "payload" in out:
             try:
-                # @@@ Add code here!
-                pass
+                payload = self._decoder.parsePayload(out, base64.b64decode(out["payload"]))
+                if payload:
+                    return payload
             except Exception as e:
                 logger.error("Exception parsing LoRa payload: %s", str(e))
 

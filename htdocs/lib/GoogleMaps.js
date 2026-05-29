@@ -98,6 +98,24 @@ GAircraftMarker.prototype.place = function() {
 };
 
 //
+// GoogleMaps-Specific MeshtasticMarker
+//
+
+function GMeshtasticMarker() { $.extend(this, new MeshtasticMarker()); }
+GMeshtasticMarker.prototype = new GMarker();
+
+GMeshtasticMarker.prototype.place = function() {
+    var div = this.div;
+    if (div) {
+        var point = this.getProjection().fromLatLngToDivPixel(this.position);
+        if (point) {
+            div.style.left = point.x - 14 + 'px';
+            div.style.top  = point.y - 37 + 'px';
+        }
+    }
+};
+
+//
 // GoogleMaps-Specific SimpleMarker
 //
 

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" width="240" height="280">
+  <defs>
+    <radialGradient id="bodyGrad" cx="40%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#34394A"></stop>
+      <stop offset="30%" stop-color="#1B1F2C"></stop>
+      <stop offset="75%" stop-color="#0A0C12"></stop>
+      <stop offset="100%" stop-color="#000"></stop>
+    </radialGradient>
+    <radialGradient id="discGrad" cx="45%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#A6FBC2"></stop>
+      <stop offset="55%" stop-color="#6BEF95"></stop>
+      <stop offset="100%" stop-color="#4FCB85"></stop>
+    </radialGradient>
+    <linearGradient id="spearGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7CFF6E"></stop>
+      <stop offset="60%" stop-color="#6BEF95"></stop>
+      <stop offset="100%" stop-color="#4FCB85"></stop>
+    </linearGradient>
+    <filter id="drop" x="-40%" y="-30%" width="180%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"></feGaussianBlur>
+      <feOffset dx="0" dy="5"></feOffset>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"></feFuncA></feComponentTransfer>
+      <feMerge><feMergeNode></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+    </filter>
+    <filter id="halo" x="-40%" y="-30%" width="180%" height="160%">
+      <feGaussianBlur stdDeviation="3.5"></feGaussianBlur>
+    </filter>
+    <clipPath id="bodyClip">
+      <path d="M 120 271 C 70 220, 40 190, 40 120 A 80 80 0 1 1 200 120 C 200 190, 170 220, 120 271 Z"></path>
+    </clipPath>
+  </defs>
+
+  
+  <path d="M 120 271 C 70 220, 40 190, 40 120 A 80 80 0 1 1 200 120 C 200 190, 170 220, 120 271 Z" fill="#ffffff" opacity="0.5" filter="url(#halo)"></path>
+
+  
+  <g filter="url(#drop)">
+    <path d="M 120 271 C 70 220, 40 190, 40 120 A 80 80 0 1 1 200 120 C 200 190, 170 220, 120 271 Z" fill="url(#bodyGrad)" stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round"></path>
+  </g>
+
+  
+  <path d="M 70 58 Q 120 30 175 65" fill="none" stroke="#a8acbb" stroke-width="3" stroke-linecap="round" opacity="0.55"></path>
+  <path d="M 78 65 Q 120 42 170 70" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity="0.35"></path>
+
+  
+  <g clip-path="url(#bodyClip)">
+    
+    <path d="M 92 195 C 98 213, 108 238, 120 256" fill="none" stroke="url(#spearGrad)" stroke-width="6" stroke-linecap="round" opacity="0.95"></path>
+    
+    <path d="M 148 195 C 142 213, 132 238, 120 256" fill="none" stroke="url(#spearGrad)" stroke-width="6" stroke-linecap="round" opacity="0.95"></path>
+    
+    <path d="M 92 195 Q 120 209, 148 195" fill="none" stroke="#4FCB85" stroke-width="3" stroke-linecap="round" opacity="0.7"></path>
+    
+    <circle cx="120" cy="256" r="3.5" fill="#7CFF6E"></circle>
+  </g>
+
+  
+  <path d="M 111 263 L 120 256 L 129 263" fill="none" stroke="#7CFF6E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+
+  
+  <circle cx="120" cy="120" r="68" fill="url(#discGrad)"></circle>
+  <circle cx="120" cy="120" r="68" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.55"></circle>
+  <circle cx="120" cy="120" r="68" fill="none" stroke="#0A0C12" stroke-width="1.5"></circle>
+
+  
+  <path d="M 76 146 L 102 94" stroke="#1F2330" stroke-width="11" stroke-linecap="round" fill="none"></path>
+  <path d="M 112 146 L 138 94 L 164 146" stroke="#1F2330" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+</svg>
