@@ -909,8 +909,11 @@ class FeatureDetector(object):
         to decode Meshtastic traffic. You can install the
         `python3-meshtastic` package from the OpenWebRX+ repositories.
         """
-        import importlib.util
-        return importlib.util.find_spec("meshtastic") is not None
+        try:
+            from meshtastic import OUR_APP_VERSION
+            return True
+        except ImportError:
+            return False
 
     def has_lame(self):
         """
