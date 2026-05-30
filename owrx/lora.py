@@ -101,6 +101,7 @@ class MeshtasticParser(TextParser):
         if "payload" in out:
             try:
                 # @@@ Add code here!
+                pass
             except Exception as e:
                 logger.error("Exception parsing LoRa payload: %s", str(e))
 
