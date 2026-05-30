@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, sampleRate: int = 1000000, options = [], parser = None)
+    def __init__(self, sampleRate: int = 1000000, options = [], parser = None):
         self.sampleRate = sampleRate
         self.parser = parser
         workers = [
