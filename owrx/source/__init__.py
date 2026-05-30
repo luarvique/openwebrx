@@ -818,7 +818,7 @@ class SdrDeviceDescription(object):
         return ["name", "center_freq", "samp_rate", "start_freq", "start_mod", "tuning_step"]
 
     def getProfileOptionalKeys(self):
-        return [
+        keys = [
             "initial_squelch_level",
             "initial_nr_level",
             "rf_gain",
@@ -830,6 +830,9 @@ class SdrDeviceDescription(object):
             "rig_enabled",
             "key_locked",
         ]
+        if self.supportsPpm():
+            keys += ["ppm"]
+        return keys
 
     def getDeviceSection(self):
         return OptionalSection(
