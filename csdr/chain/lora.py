@@ -9,13 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, sampleRate: int = 1000000, options = [], parser)
+    def __init__(self, sampleRate: int = 1000000, options = [], parser = None)
         self.sampleRate = sampleRate
         self.parser = parser
         workers = [
             LoraModule(sampleRate, jsonOutput = True, options = options),
-            self.parser,
         ]
+        if self.parser is not None:
+            workers += [ self.parser ]
         # Connect all the workers
         super().__init__(workers)
 
@@ -26,7 +27,8 @@ class LoraDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         return True
 
     def setDialFrequency(self, frequency: int) -> None:
-        self.parser.setDialFrequency(frequency)
+        if self.parser is not None:
+            self.parser.setDialFrequency(frequency)
 
 
 class LoraWanDemodulator(LoraDemodulator):
