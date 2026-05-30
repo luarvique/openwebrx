@@ -3,6 +3,7 @@ from owrx.config import Config
 from owrx.reporting.reporter import Reporter, FilteredReporter
 from owrx.reporting.aisreporter import AisReporter
 from owrx.reporting.pskreporter import PskReporter
+from owrx.reporting.sondehub import SondehubReporter
 from owrx.reporting.wsprnet import WsprnetReporter
 from owrx.feature import FeatureDetector
 import logging
@@ -19,6 +20,7 @@ class ReportingEngine(object):
     reporterClasses = {
         "pskreporter": PskReporter,
         "wsprnet": WsprnetReporter,
+        "sondehub": SondehubReporter,
         "aisreporter": AisReporter,
         "mqtt": ("owrx.reporting.mqtt", "MqttReporter")
     }

@@ -338,7 +338,9 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # Enable background service for decoding digital data. You can find more information at:
 # https://github.com/jketterl/openwebrx/wiki/Background-decoding
 #services_enabled = False
-#services_decoders = ["ft8", "ft4", "wspr", "packet"]
+#services_decoders = ["ft8", "ft4", "wspr", "packet", "sonde-rs41"]
+# For RS41 background decoding, enable services_enabled, include sonde-rs41 above, enable
+# "Run background services" on the SDR, and use a profile covering 400-406 MHz (e.g. radiosonde).
 
 # === aprs igate settings ===
 # If you want to share your APRS decodes with the aprs network, configure these settings accordingly.
@@ -386,3 +388,14 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # in addition to these settings also make sure that receiver_gps contains your correct location
 #wsprnet_enabled = False
 #wsprnet_callsign = "N0CALL"
+
+# === Sondehub reporting settings ===
+# enable this if you want to upload decoded RS41 telemetry to Sondehub
+# uploader callsign is taken from APRS, PSKReporter, WSPRNet, or receiver name in that order
+#sondehub_enabled = False
+# optional uploader callsign override
+#sondehub_uploader_callsign = "N0CALL"
+# software name reported to Sondehub
+#sondehub_uploader_software = "OpenWebRX+"
+# station position for Sondehub uploads always uses receiver_gps and receiver_asl
+# from General Settings

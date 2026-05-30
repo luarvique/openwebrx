@@ -1,6 +1,5 @@
 from owrx.form.input import Input
 from owrx.form.input.validator import Validator
-from owrx.form.error import ValidationError
 from owrx.config import Config
 
 import logging
@@ -18,10 +17,18 @@ class LocationValidator(Validator):
 
 
 class LocationInput(Input):
-    def __init__(self, id, label, validator: Validator = None):
+    def __init__(self, id, label, infotext=None, validator: Validator = None):
         if validator is None:
             validator = LocationValidator()
-        super().__init__(id, label, validator=validator)
+        super().__init__(id, label, infotext=infotext, validator=validator)
+
+    def _normalise_value(self, value):
+        if isinstance(value, dict):
+            return {
+                "lat": value.get("lat", ""),
+                "lon": value.get("lon", ""),
+            }
+        return {"lat": "", "lon": ""}
 
     def render_input_group(self, value, errors):
         return """
@@ -35,7 +42,7 @@ class LocationInput(Input):
         """.format(
             id=self.id,
             rowclass="is-invalid" if errors else "",
-            inputs=self.render_input(value, errors),
+            inputs=self.render_input(self._normalise_value(value), errors),
             errors=self.render_errors(errors),
             key=Config.get()["google_maps_api_key"],
         )
