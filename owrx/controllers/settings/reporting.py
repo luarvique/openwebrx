@@ -98,6 +98,21 @@ class ReportingController(SettingsFormController):
                 ),
             ),
             Section(
+                "Sondehub Reporting",
+                CheckboxInput(
+                    "sondehub_enabled",
+                    "Enable sending RS41 sonde telemetry to Sondehub",
+                ),
+                TextInput(
+                    "sondehub_callsign",
+                    "sondehub callsign",
+                    infotext="This callsign will be used to send sonde telemetry to Sondehub. "
+                    + "When left empty, OpenWebRX falls back to APRS, PSKReporter, WSPRNet "
+                    + "callsigns, or receiver name.",
+                    converter=OptionalConverter(),
+                ),
+            ),
+            Section(
                 "AIS reporter settings",
                 CheckboxInput(
                     "aisreporter_enabled",
