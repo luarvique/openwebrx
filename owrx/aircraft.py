@@ -560,6 +560,7 @@ class AdsbParser(AircraftParser):
         self.checkPeriod = 1
         self.lastParse = 0
         # Start periodic JSON file check
+        self.stopEvent = threading.Event()
         self.thread = threading.Thread(target=self._refreshThread, name=type(self).__name__ + ".Refresh")
         self.thread.start()
 
@@ -567,15 +568,17 @@ class AdsbParser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         return None
 
+    # To stop, need to terminate the thread first
+    def stop(self):
+        self.stopEvent.set()
+
     # Periodically check if Dump1090's JSON file has changed
     # and parse it if it has.
     def _refreshThread(self):
         lastUpdate = 0
-        while self.thread is not None:
-            # Wait until the next check
-            time.sleep(self.checkPeriod)
+        while not self.stopEvent.is_set():
+            # If JSON file has updated since the last update, parse it
             try:
-                # If JSON file has updated since the last update, parse it
                 ts = os.path.getmtime(self.jsonFile)
                 if ts > lastUpdate:
                     lastUpdate = ts
@@ -588,6 +591,10 @@ class AdsbParser(AircraftParser):
                         }))
             except Exception as exptn:
                 logger.info("Failed to check file '{0}': {1}".format(self.jsonFile, exptn))
+            # Wait until the next check or termination
+            self.stopEvent.wait(self.checkPeriod)
+        # Thread is done, free resources
+        super().stop()
 
     # Parse supplied JSON file in Dump1090 format.
     def parseJson(self, file: str):
