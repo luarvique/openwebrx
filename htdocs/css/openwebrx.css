@@ -1377,6 +1377,96 @@ img.openwebrx-mirror-img
     text-align: right;
 }
 
+#openwebrx-panel-meshtastic-message {
+    height: 310px;
+}
+
+#openwebrx-panel-meshtastic-message table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+#openwebrx-panel-meshtastic-message thead .snr {
+    box-sizing: border-box;  /* keep total box = td.snr's 62px */
+    width: 62px;
+    padding-right: 52px;
+    text-align: left;
+}
+
+#openwebrx-panel-meshtastic-message tbody {
+    font-family: monospace;
+    color: black;
+    height: 280px;
+}
+
+#openwebrx-panel-meshtastic-message thead tr,
+#openwebrx-panel-meshtastic-message tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+#openwebrx-panel-meshtastic-message .timestamp {
+    width: 60px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .src {
+    width: 82px;
+    text-align: left;
+}
+
+#openwebrx-panel-meshtastic-message .dst {
+    width: 72px;
+    text-align: left;
+}
+
+#openwebrx-panel-meshtastic-message .type {
+    width: 52px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .hops {
+    width: 38px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .snr {
+    width: 56px;
+    text-align: right;
+}
+
+#openwebrx-panel-meshtastic-message tbody tr.entry-summary {
+    display: flex;
+    width: 100%;
+}
+
+#openwebrx-panel-meshtastic-message tr.entry-summary .timestamp {
+    flex: 0 0 66px;   /* matches timestamp column: 60px width + 3+3 padding */
+    min-width: 0;
+}
+
+#openwebrx-panel-meshtastic-message .summary {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    font-size: 0.85em;
+    color: #333;
+    padding-top: 0;
+    padding-bottom: 2px;
+    word-break: break-word;
+}
+
+#openwebrx-panel-meshtastic-message .nodename {
+    display: block;
+    font-size: 0.8em;
+    color: #444;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: default;
+}
+
 #openwebrx-panel-skimmer-message {
     height: 310px;
 }
@@ -1640,6 +1730,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft8"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wspr"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt65"]    #openwebrx-digimode-select-channel,
@@ -1682,6 +1773,11 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-select-channel
 {
     display: none;
+}
+
+#openwebrx-panel-digimodes[data-mode="meshtastic"]
+{
+    display: none !important;
 }
 
 #openwebrx-panel-digimodes[data-mode="ft8"]     #openwebrx-digimode-canvas-container,
