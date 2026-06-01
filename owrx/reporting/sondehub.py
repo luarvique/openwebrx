@@ -1,6 +1,7 @@
 import json
 import logging
 import threading
+import time
 from datetime import datetime
 from queue import Full, Queue
 from urllib import request
@@ -17,12 +18,14 @@ PoisonPill = object()
 
 class Worker(threading.Thread):
     endpoint = "https://api.v2.sondehub.org/sondes/telemetry"
+    uploadIntervalSeconds = 15.0
 
     def __init__(self, queue: Queue, uploadCounter: CounterMetric = None, errorCounter: CounterMetric = None):
         self.queue = queue
         self.doRun = True
         self.uploadCounter = uploadCounter
         self.errorCounter = errorCounter
+        self.nextUploadTimestamp = 0.0
         super().__init__(daemon=True)
 
     def run(self):
@@ -55,10 +58,7 @@ class Worker(threading.Thread):
         return "N0CALL"
 
     def _getSoftwareName(self):
-        config = Config.get()
-        if "sondehub_uploader_software" in config and config["sondehub_uploader_software"]:
-            return config["sondehub_uploader_software"]
-        return "OpenWebRX+"
+        return "OpenWebRX - {0}".format(openwebrx_version.lstrip("v"))
 
     def _getUploaderPosition(self):
         config = Config.get()
@@ -76,6 +76,12 @@ class Worker(threading.Thread):
         sonde_type = str(data.get("type", "")).upper()
         subtype = str(data.get("subtype", "")).upper()
         return sonde_type == "RS41" or subtype.startswith("RS41") or "rs41_mainboard" in data
+
+    def _waitForUploadSlot(self):
+        now = time.monotonic()
+        waitSeconds = self.nextUploadTimestamp - now
+        if waitSeconds > 0:
+            time.sleep(waitSeconds)
 
     def uploadSpot(self, spot):
         if not isinstance(spot, dict):
@@ -146,9 +152,11 @@ class Worker(threading.Thread):
             "Content-Type": "application/json",
             "User-Agent": "OpenWebRX+ Sondehub Reporter",
         }
+        self._waitForUploadSlot()
         req = request.Request(self.endpoint, data=body, headers=headers, method="PUT")
         with request.urlopen(req, timeout=60) as response:
             status = getattr(response, "status", None)
+        self.nextUploadTimestamp = time.monotonic() + self.uploadIntervalSeconds
 
         if self.uploadCounter is not None:
             self.uploadCounter.inc()

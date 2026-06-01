@@ -420,7 +420,6 @@ defaultConfig = PropertyLayer(
     wsprnet_enabled=False,
     wsprnet_callsign="N0CALL",
     sondehub_enabled=False,
-    sondehub_uploader_software="OpenWebRX+",
     mqtt_enabled=False,
     mqtt_host="localhost",
     mqtt_use_ssl=False,

@@ -395,7 +395,5 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 #sondehub_enabled = False
 # optional uploader callsign override
 #sondehub_uploader_callsign = "N0CALL"
-# software name reported to Sondehub
-#sondehub_uploader_software = "OpenWebRX+"
 # station position for Sondehub uploads always uses receiver_gps and receiver_asl
 # from General Settings

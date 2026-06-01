@@ -110,12 +110,6 @@ class ReportingController(SettingsFormController):
                     + "falls back to APRS, PSKReporter, WSPRNet, or receiver name.",
                     converter=OptionalConverter(),
                 ),
-                TextInput(
-                    "sondehub_uploader_software",
-                    "Uploader software",
-                    infotext="Software name reported to Sondehub along with telemetry uploads. "
-                    + "Station coordinates always use the receiver coordinates from General Settings.",
-                ),
             ),
             Section(
                 "AIS reporter settings",
