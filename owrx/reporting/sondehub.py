@@ -102,6 +102,8 @@ class Worker(threading.Thread):
         self.lock = threading.RLock()
         self.standardBuffer = []
         self.dfmBuffer = []
+        self.standardSeen = set()
+        self.dfmSeen = set()
         self.nextStandardFlush = time.monotonic() + self.standardUploadIntervalSeconds
         self.nextDfmFlush = time.monotonic() + self.dfmUploadIntervalSeconds
         super().__init__(daemon=True, name="sondehub-uploader")
@@ -132,6 +134,14 @@ class Worker(threading.Thread):
 
         self._flushAllBuffers()
 
+    @staticmethod
+    def _frameKey(entry):
+        serial = entry.get("serial")
+        frame = entry.get("frame")
+        if serial is None or frame is None:
+            return None
+        return (str(serial), frame)
+
     def _bufferSpot(self, spot):
         entry = self._spotToEntry(spot)
         if entry is None:
@@ -139,9 +149,31 @@ class Worker(threading.Thread):
 
         with self.lock:
             if self._isDfmEntry(entry):
-                self.dfmBuffer.append(entry)
+                buffer = self.dfmBuffer
+                seen = self.dfmSeen
             else:
-                self.standardBuffer.append(entry)
+                buffer = self.standardBuffer
+                seen = self.standardSeen
+
+            key = self._frameKey(entry)
+            if key is not None and key in seen:
+                if isSondehubDebugEnabled():
+                    logger.info(
+                        "SondehubReporter dropping duplicate frame serial=%s frame=%s",
+                        key[0],
+                        key[1],
+                    )
+                else:
+                    logger.debug(
+                        "SondehubReporter dropping duplicate frame serial=%s frame=%s",
+                        key[0],
+                        key[1],
+                    )
+                return
+
+            buffer.append(entry)
+            if key is not None:
+                seen.add(key)
 
     def _flushDueBatches(self):
         now = time.monotonic()
@@ -153,6 +185,7 @@ class Worker(threading.Thread):
             if now >= self.nextStandardFlush and self.standardBuffer:
                 standardBatch = self.standardBuffer
                 self.standardBuffer = []
+                self.standardSeen = set()
                 self.nextStandardFlush = now + self.standardUploadIntervalSeconds
             elif now >= self.nextStandardFlush:
                 self.nextStandardFlush = now + self.standardUploadIntervalSeconds
@@ -161,6 +194,7 @@ class Worker(threading.Thread):
                 if len(self.dfmBuffer) >= self.dfmMinPackets:
                     dfmBatch = self.dfmBuffer
                     self.dfmBuffer = []
+                    self.dfmSeen = set()
                 self.nextDfmFlush = now + self.dfmUploadIntervalSeconds
 
         if standardBatch:
@@ -173,7 +207,10 @@ class Worker(threading.Thread):
             standardBatch = self.standardBuffer
             dfmBatch = self.dfmBuffer if len(self.dfmBuffer) >= self.dfmMinPackets else []
             self.standardBuffer = []
+            self.standardSeen = set()
             self.dfmBuffer = [] if dfmBatch else self.dfmBuffer
+            if dfmBatch:
+                self.dfmSeen = set()
 
         if standardBatch:
             self._uploadBatch(standardBatch, "standard")
@@ -263,6 +300,41 @@ class Worker(threading.Thread):
             return False
         return True
 
+    @staticmethod
+    def _isValidPtuValue(field, value):
+        """Match radiosonde_auto_rx / SondeHub invalid PTU sentinels (see RS JSON wiki)."""
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return False
+        if field == "temp":
+            return numeric > -273.0
+        if field == "humidity":
+            return numeric >= 0.0
+        if field == "pressure":
+            return numeric > 0.0
+        return False
+
+    @staticmethod
+    def _addPtuFields(entry, data):
+        """Copy valid PTU fields from any supported decoder JSON into SondeHub v2 telemetry."""
+        for key in ("temp", "humidity", "pressure"):
+            if key in data and Worker._isValidPtuValue(key, data[key]):
+                entry[key] = data[key]
+
+    @staticmethod
+    def _subtypeTypicallyHasPressureSensor(data, family):
+        """Best-effort hint for debug logs; decoders may still omit pressure until calibrated."""
+        subtype = str(data.get("subtype", "")).upper()
+        sonde_type = str(data.get("type", "")).upper()
+        if family == "rs41":
+            return "SGP" in subtype or sonde_type.startswith("RS92")
+        if family == "dfm":
+            return "DFM09P" in subtype or subtype.endswith("09P")
+        if family in ("m10", "m20", "mts01"):
+            return True
+        return False
+
     def _spotToEntry(self, spot):
         if not isinstance(spot, dict):
             logger.warning("SondehubReporter dropping spot: expected dict, got %s", type(spot))
@@ -314,22 +386,66 @@ class Worker(threading.Thread):
 
         if "sats" in data:
             entry["sats"] = data["sats"]
-        if "batt" in data:
+        if "batt" in data and data.get("batt", -1) >= 0:
             entry["batt"] = data["batt"]
-        if "temp" in data:
-            entry["temp"] = data["temp"]
-        if "humidity" in data:
-            entry["humidity"] = data["humidity"]
-        if "pressure" in data:
-            entry["pressure"] = data["pressure"]
+        self._addPtuFields(entry, data)
         if subtype:
             entry["subtype"] = subtype
+
+        if isSondehubDebugEnabled():
+            raw_pressure = data.get("pressure")
+            if "pressure" in entry:
+                logger.info(
+                    "Sondehub PTU pressure included type=%s subtype=%s serial=%s frame=%s pressure=%s hPa",
+                    sonde_type,
+                    subtype or "",
+                    entry.get("serial"),
+                    entry.get("frame"),
+                    entry["pressure"],
+                )
+            elif Worker._subtypeTypicallyHasPressureSensor(data, family):
+                logger.info(
+                    "Sondehub PTU pressure missing type=%s subtype=%s serial=%s frame=%s raw=%s "
+                    "(sonde may lack sensor or calibration not complete)",
+                    sonde_type,
+                    data.get("subtype", ""),
+                    entry.get("serial"),
+                    entry.get("frame"),
+                    raw_pressure,
+                )
+            elif raw_pressure is not None and not Worker._isValidPtuValue("pressure", raw_pressure):
+                logger.debug(
+                    "Sondehub PTU pressure invalid type=%s subtype=%s raw=%s",
+                    sonde_type,
+                    data.get("subtype", ""),
+                    raw_pressure,
+                )
 
         return entry
 
     def _uploadBatch(self, batch, batchType):
         if not batch:
             return
+
+        if isSondehubDebugEnabled():
+            logger.info(
+                "Sondehub pushing %s batch to API packets=%d uploader=%s",
+                batchType,
+                len(batch),
+                batch[0].get("uploader_callsign"),
+            )
+            logger.info("Sondehub telemetry batch payload: %s", batch)
+            pressure_frames = [
+                (e.get("serial"), e.get("frame"), e.get("pressure"))
+                for e in batch
+                if e.get("pressure") is not None
+            ]
+            if pressure_frames:
+                logger.info(
+                    "Sondehub batch includes pressure in %d packet(s): %s",
+                    len(pressure_frames),
+                    pressure_frames,
+                )
 
         body = gzip.compress(json.dumps(batch).encode("utf-8"))
         headers = {
@@ -390,10 +506,8 @@ class Worker(threading.Thread):
             status if status is not None else "unknown",
             batch[0].get("uploader_callsign"),
         )
-        if isSondehubDebugEnabled():
-            logger.info("Sondehub telemetry batch payload: %s", batch)
-            if responseText:
-                logger.info("Sondehub telemetry batch response: %s", responseText)
+        if isSondehubDebugEnabled() and responseText:
+            logger.info("Sondehub telemetry batch response: %s", responseText)
 
 
 class ListenerWorker(threading.Thread):
