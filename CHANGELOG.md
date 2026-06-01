@@ -1,3 +1,9 @@
+**1.2.116**
+- Added Sondehub reporter for RS41 telemetry [Hai Tran].
+- Added LoRa APRS parser [Stefan DC4HF].
+- Adding per-profile PPM correction option.
+- Fixed exception when stopping AdsbParser.
+
 **1.2.115**
 - Added [T] shortcut to enter frequency [Rene Jaun].
 - Added [P] shortcut to select profile [Rene Jaun].
