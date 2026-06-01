@@ -3,7 +3,7 @@ from owrx.config import Config
 from owrx.reporting.reporter import Reporter, FilteredReporter
 from owrx.reporting.aisreporter import AisReporter
 from owrx.reporting.pskreporter import PskReporter
-from owrx.reporting.sondehub import SondehubReporter
+from owrx.reporting.sondehub import SondehubReporter, isSondehubListenerEnabled, isSondehubTelemetryEnabled
 from owrx.reporting.wsprnet import WsprnetReporter
 from owrx.feature import FeatureDetector
 import logging
@@ -41,6 +41,7 @@ class ReportingEngine(object):
     def __init__(self):
         self.reporters = []
         configKeys = ["{}_enabled".format(n) for n in self.reporterClasses.keys()]
+        configKeys.append("sondehub_listener_enabled")
         self.configSub = Config.get().filter(*configKeys).wire(self.setupReporters)
         self.setupReporters()
 
@@ -56,7 +57,11 @@ class ReportingEngine(object):
                     reporterClass = getattr(module, className)
                 else:
                     continue
-            if configKey in config and config[configKey]:
+            if typeStr == "sondehub":
+                active = isSondehubTelemetryEnabled() or isSondehubListenerEnabled()
+            else:
+                active = configKey in config and config[configKey]
+            if active:
                 if not any(isinstance(r, reporterClass) for r in self.reporters):
                     self.reporters += [reporterClass()]
             else:

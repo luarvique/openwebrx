@@ -162,6 +162,10 @@ Support and info:       https://groups.io/g/openwebrx
     # Instantiate and refresh marker database
     Markers.start()
 
+    # Start reporting backends (Sondehub listener, PSKReporter, etc.) even when
+    # report_radio is disabled; otherwise they would not run until the first spot.
+    ReportingEngine.getSharedInstance()
+
     # Report server started
     reportServerState("ServerStarted")
 

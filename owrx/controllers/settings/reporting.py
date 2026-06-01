@@ -1,6 +1,6 @@
 from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
 from owrx.form.section import Section
-from owrx.form.input.converter import OptionalConverter, IntConverter
+from owrx.form.input.converter import OptionalConverter, IntConverter, TextConverter
 from owrx.form.input.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput, PasswordInput, Option
 from owrx.form.input.validator import AddressAndOptionalPortValidator
@@ -101,15 +101,31 @@ class ReportingController(SettingsFormController):
                 "Sondehub Reporting",
                 CheckboxInput(
                     "sondehub_enabled",
-                    "Enable sending RS41 sonde telemetry to Sondehub",
+                    "Enable Sondehub telemetry uploads for radiosondes",
                 ),
                 TextInput(
-                    "sondehub_callsign",
-                    "sondehub callsign",
-                    infotext="This callsign will be used to send sonde telemetry to Sondehub. "
-                    + "When left empty, OpenWebRX falls back to APRS, PSKReporter, WSPRNet "
-                    + "callsigns, or receiver name.",
+                    "sondehub_uploader_callsign",
+                    "Uploader callsign",
+                    infotext="Optional override for the Sondehub uploader callsign. When left empty, OpenWebRX "
+                    + "falls back to APRS, PSKReporter, WSPRNet, or receiver name.",
                     converter=OptionalConverter(),
+                ),
+                CheckboxInput(
+                    "sondehub_listener_enabled",
+                    "Send listener location",
+                    infotext="Keep Sondehub listener up to date using current coordinate, software and antenna. "
+                    + "Station position is uploaded every 15 minutes.",
+                ),
+                TextInput(
+                    "sondehub_listener_antenna",
+                    "Antenna information",
+                    infotext="Antenna description sent to Sondehub with listener position updates.",
+                    converter=TextConverter(),
+                ),
+                CheckboxInput(
+                    "sondehub_debug_decoding",
+                    "Enable debugging",
+                    infotext="Show debugging text when decoding radiosonde telemetry data or uploading station status.",
                 ),
             ),
             Section(
