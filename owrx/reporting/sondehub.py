@@ -27,8 +27,7 @@ DFM_SUBTYPE_ALIASES = {
     "DFM06": "DFM06",
 }
 
-LISTENER_UPLOAD_INTERVAL_SECONDS = 15 * 60
-
+LISTENER_UPLOAD_INTERVAL_SECONDS = 3600 * 6 # 6 hours between station/listener location uploads
 
 def getSoftwareVersion():
     return openwebrx_version.lstrip("v")
