@@ -101,13 +101,14 @@ class ReportingController(SettingsFormController):
                 "Sondehub Reporting",
                 CheckboxInput(
                     "sondehub_enabled",
-                    "Enable Sondehub telemetry uploads for RS41 sondes",
+                    "Enable sending RS41 sonde telemetry to Sondehub",
                 ),
                 TextInput(
-                    "sondehub_uploader_callsign",
-                    "Uploader callsign",
-                    infotext="Optional override for the Sondehub uploader callsign. When left empty, OpenWebRX "
-                    + "falls back to APRS, PSKReporter, WSPRNet, or receiver name.",
+                    "sondehub_callsign",
+                    "sondehub callsign",
+                    infotext="This callsign will be used to send sonde telemetry to Sondehub. "
+                    + "When left empty, OpenWebRX falls back to APRS, PSKReporter, WSPRNet "
+                    + "callsigns, or receiver name.",
                     converter=OptionalConverter(),
                 ),
             ),

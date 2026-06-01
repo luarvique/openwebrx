@@ -32,15 +32,6 @@ defaultConfig = PropertyLayer(
             direct_sampling=0,
             profiles=PropertyLayer(
                 **{
-                    "radiosonde": PropertyLayer(
-                        name="403 MHz Radiosonde",
-                        center_freq=403000000,
-                        rf_gain=29,
-                        samp_rate=2400000,
-                        start_freq=403000000,
-                        start_mod="nfm",
-                        tuning_step="500000",
-                    ),
                     "70cm": PropertyLayer(
                         name="70cm Repeaters",
                         center_freq=438800000,
@@ -399,7 +390,7 @@ defaultConfig = PropertyLayer(
     js8_enabled_profiles=["normal", "slow"],
     js8_decoding_depth=3,
     services_enabled=False,
-    services_decoders=["ft8", "ft4", "wspr", "packet", "sonde-rs41"],
+    services_decoders=["ft8", "ft4", "wspr", "packet"],
     aprs_callsign="N0CALL",
     aprs_igate_enabled=False,
     aprs_igate_server="euro.aprs2.net",
@@ -420,6 +411,7 @@ defaultConfig = PropertyLayer(
     wsprnet_enabled=False,
     wsprnet_callsign="N0CALL",
     sondehub_enabled=False,
+    sondehub_callsign="",
     mqtt_enabled=False,
     mqtt_host="localhost",
     mqtt_use_ssl=False,

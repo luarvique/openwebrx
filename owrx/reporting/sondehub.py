@@ -45,8 +45,8 @@ class Worker(threading.Thread):
 
     def _getUploaderCallsign(self):
         config = Config.get()
-        if "sondehub_uploader_callsign" in config and config["sondehub_uploader_callsign"]:
-            return config["sondehub_uploader_callsign"]
+        if "sondehub_callsign" in config and config["sondehub_callsign"]:
+            return config["sondehub_callsign"]
 
         for key in ["aprs_callsign", "pskreporter_callsign", "wsprnet_callsign"]:
             if key in config and config[key] and config[key] != "N0CALL":
