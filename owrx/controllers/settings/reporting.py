@@ -98,6 +98,20 @@ class ReportingController(SettingsFormController):
                 ),
             ),
             Section(
+                "Sondehub Reporting",
+                CheckboxInput(
+                    "sondehub_enabled",
+                    "Enable Sondehub telemetry uploads for RS41 sondes",
+                ),
+                TextInput(
+                    "sondehub_uploader_callsign",
+                    "Uploader callsign",
+                    infotext="Optional override for the Sondehub uploader callsign. When left empty, OpenWebRX "
+                    + "falls back to APRS, PSKReporter, WSPRNet, or receiver name.",
+                    converter=OptionalConverter(),
+                ),
+            ),
+            Section(
                 "AIS reporter settings",
                 CheckboxInput(
                     "aisreporter_enabled",

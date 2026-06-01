@@ -121,7 +121,23 @@ class SondeParser(TextParser):
         elif self.frequency != 0:
             out["freq"] = self.frequency
 
+        device_type = str(data["type"]).upper() if "type" in data else ""
+        device_subtype = str(data["subtype"]).upper() if "subtype" in data else ""
+        is_rs41 = device_type == "RS41" or device_subtype.startswith("RS41") or "rs41_mainboard" in data
+
         logger.debug("Decoded data: %s", out)
+        if is_rs41:
+            logger.info(
+                "RS41 decoded id=%s freq=%s lat=%s lon=%s alt=%s sats=%s batt=%s comment=%s",
+                out.get("source"),
+                out.get("freq"),
+                out.get("lat"),
+                out.get("lon"),
+                out.get("altitude"),
+                out.get("sats"),
+                out.get("battery"),
+                out.get("comment"),
+            )
 
         # Report message
         ReportingEngine.getSharedInstance().spot(out)
