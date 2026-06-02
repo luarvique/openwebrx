@@ -92,10 +92,6 @@ class MeshtasticParser(TextParser):
         try:
             # Try parsing JSON
             out = json.loads(msg)
-        catch Exception as e:
-            logger.debug("Discarding 
-
-
             # Meshtastic packet must have payload
             if "payload" in out:
                 # Try decoding payload
