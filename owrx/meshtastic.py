@@ -319,6 +319,7 @@ class MeshtasticLocation(LatLngLocation):
 
     def __dict__(self):  # type: ignore[override]
         res: dict[str, object] = super().__dict__()  # type: ignore[assignment]
+        res["ttl"] = round((datetime.now(timezone.utc) + self.getTTL()).timestamp() * 1000)
         if self.alt is not None:
             res["altitude"] = self.alt
         if self.src is not None:
@@ -447,6 +448,7 @@ class MeshtasticDecoder:
         # Update last_heard after all per-packet data is cached, so a flush triggered
         # here always sees the complete entry (including any freshly cached position).
         self._touch_last_heard(src)
+        return out
 
     def _load_node_cache(self) -> dict[str, dict[str, str | int | float | bool | None]]:
         try:
