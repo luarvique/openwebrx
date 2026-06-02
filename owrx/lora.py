@@ -1,7 +1,7 @@
-from owrx.reporting import ReportingEngine
 from owrx.toolbox import TextParser
-from owrx.aprs import AprsParser, thirdpartyeRegex
 from owrx.reporting import ReportingEngine
+from owrx.aprs import AprsParser, thirdpartyeRegex
+from owrx.meshtastic import MeshtasticDecoder
 
 import base64
 import json
@@ -81,40 +81,33 @@ class LoraParser(TextParser):
 class MeshtasticParser(TextParser):
     def __init__(self, service: bool = False):
         # Construct parent object
-        super().__init__(filePrefix="MESHTASTIC", service=service)
-        from owrx.meshtastic import MeshtasticDecoder
-        self._decoder = MeshtasticDecoder()
+        super().__init__(filePrefix="MHTC", service=service)
+        self.decoder = MeshtasticDecoder()
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
-        self._decoder.setDialFrequency(frequency)
+        self.decoder.setDialFrequency(frequency)
 
     def parse(self, msg: bytes):
         try:
-            # Try parsing as JSON first
+            # Try parsing JSON
             out = json.loads(msg)
+            # Meshtastic packet must have payload
+            if "payload" in out:
+                # Try decoding payload
+                out = self.decoder.parsePayload(out, base64.b64decode(out["payload"]))
+                # Add mode name
+                out["mode"] = "MESHTASTIC"
+                # Add frequency, if known
+                if self.frequency:
+                    out["freq"] = self.frequency
+                # Report message
+                ReportingEngine.getSharedInstance().spot(out)
+                # Done
+                return out
         except Exception as e:
-            # Not JSON, return as string
-            return msg.decode("utf-8") + "\n"
+            # Something did not work out
+            logger.error("Exception parsing LoRa payload: %s", str(e))
 
-        # Add mode name
-        out["mode"] = "MESHTASTIC"
-
-        # Add frequency, if known
-        if self.frequency:
-            out["freq"] = self.frequency
-
-        # Try decoding payload
-        if "payload" in out:
-            try:
-                payload = self._decoder.parsePayload(out, base64.b64decode(out["payload"]))
-                if payload:
-                    return payload
-            except Exception as e:
-                logger.error("Exception parsing LoRa payload: %s", str(e))
-
-        # Report message
-        ReportingEngine.getSharedInstance().spot(out)
-
-        # Return JSON data
-        return out
+        # Parsing failed, return LORA packet as string
+        return msg.decode("utf-8") + "\n"

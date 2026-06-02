@@ -70,10 +70,6 @@ function LAircraftMarker () { $.extend(this, new LMarker(), new AircraftMarker()
 // Leaflet-Specific SimpleMarker
 function LSimpleMarker() { $.extend(this, new LMarker(), new AprsMarker()); }
 
-// Leaflet-Specific MeshtasticMarker
-function LMeshtasticMarker() { $.extend(this, new LMarker(), new MeshtasticMarker()); }
-LMeshtasticMarker.prototype = new LFeatureMarker();
-
 //
 // Leaflet-Specific Locator
 //

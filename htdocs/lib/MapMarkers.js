@@ -215,6 +215,19 @@ FeatureMarker.prototype.update = function(update) {
     // Generic vendor-specific details
     this.details  = update.location.details;
 
+    // Meshtastic stuff
+    if (this.mode === 'MESHTASTIC') {
+        this.src       = update.location.src;
+        this.hop_limit = update.location.hop_limit;
+        this.hop_start = update.location.hop_start;
+        this.comment   = update.location.summary;
+        // Preserve previously cached names/role/hw_model — only overwrite when present in this update
+        if (update.location.long_name)  this.long_name  = update.location.long_name;
+        if (update.location.short_name) this.short_name = update.location.short_name;
+        if (update.location.role)       this.role       = update.location.role;
+        if (update.location.hw_model)   this.hw_model   = update.location.hw_model;
+    }
+
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
 
@@ -341,6 +354,25 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         if (this.updated) {
             detailsString += Utils.makeListItem('Updated', this.updated);
         }
+    }
+
+    //
+    // Meshtastic data
+    //
+    if (this.long_name) {
+        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.long_name));
+    }
+    if (this.short_name) {
+        detailsString += Utils.makeListItem('Short Name', Utils.htmlEscape(this.short_name));
+    }
+    if (this.src) {
+        detailsString += Utils.makeListItem('Node ID', Utils.htmlEscape('!' + this.src));
+    }
+    if (this.role) {
+        detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
+    }
+    if (this.hop_limit && this.hop_limit) {
+        detailsString += Utils.makeListItem('Hops', this.hop_limit + ' / ' + this.hop_start);
     }
 
     var moreDetails = this.detailsData;
@@ -865,93 +897,4 @@ AircraftMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     return '<h3>' + name + distance + '</h3>'
         + '<div align="center">' + timeString + ' using ' + this.mode + '</div>'
         + commentString + detailsString + messageString;
-};
-
-//
-// Meshtastic Node Marker
-//
-
-function MeshtasticMarker() {}
-
-MeshtasticMarker.prototype = new FeatureMarker();
-
-MeshtasticMarker.prototype.create = function() {
-    var div = FeatureMarker.prototype.create.call(this);
-    this.symWidth = this.symHeight = 24;
-    div.style.width        = '24px';
-    div.style.height       = '24px';
-    div.style.lineHeight   = '24px';
-    div.style.fontSize     = '18px';
-    div.style.borderRadius = '50%';
-    div.style.boxShadow    = '0 1px 4px rgba(0,0,0,0.5)';
-    return div;
-};
-
-MeshtasticMarker.prototype.draw = function() {
-    FeatureMarker.prototype.draw.call(this);
-    if (this.div) {
-        this.div.style.backgroundColor = this.color;
-        this.div.style.color = '#ffffff';
-    }
-};
-
-MeshtasticMarker.prototype.update = function(update) {
-    this.lastseen  = update.lastseen;
-    this.mode      = update.mode;
-    this.altitude  = update.location.altitude;
-    this.src       = update.location.src;
-    this.hop_limit = update.location.hop_limit;
-    this.hop_start = update.location.hop_start;
-    this.summary   = update.location.summary;
-    // Preserve previously cached names/role/hw_model — only overwrite when present in this update
-    if (update.location.long_name  !== undefined) this.long_name  = update.location.long_name;
-    if (update.location.short_name !== undefined) this.short_name = update.location.short_name;
-    if (update.location.role       !== undefined) this.role       = update.location.role;
-    if (update.location.hw_model   !== undefined) this.hw_model   = update.location.hw_model;
-
-    this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
-    this.age(new Date().getTime() - update.lastseen);
-};
-
-MeshtasticMarker.prototype.getInfoHTML = function(name, receiverMarker) {
-    var timeString    = moment(this.lastseen).fromNow();
-    var detailsString = '';
-    var distance      = '';
-
-    if (receiverMarker) {
-        distance = ' at ' + Utils.distanceKm(receiverMarker.position, this.position) + ' km';
-    }
-
-    if (this.long_name) {
-        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.long_name));
-    }
-    if (this.short_name) {
-        detailsString += Utils.makeListItem('Short name', Utils.htmlEscape(this.short_name));
-    }
-    if (this.role) {
-        detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
-    }
-    if (this.src) {
-        detailsString += Utils.makeListItem('Node ID', '!' + this.src);
-    }
-    if (this.altitude !== undefined && this.altitude !== null) {
-        detailsString += Utils.makeListItem('Altitude', this.altitude.toFixed(0) + ' m');
-    }
-    if (this.hop_limit !== undefined && this.hop_limit !== null) {
-        var hops = this.hop_start !== undefined && this.hop_start !== null
-            ? this.hop_limit + ' / ' + this.hop_start
-            : String(this.hop_limit);
-        detailsString += Utils.makeListItem('Hops', hops);
-    }
-    if (this.summary) {
-        detailsString += Utils.makeListItem('Info', Utils.htmlEscape(this.summary));
-    }
-
-    if (detailsString.length > 0) {
-        detailsString = '<div>' + Utils.makeListTitle('Details') + detailsString + '</div>';
-    }
-
-    return '<h3>' + name + distance + '</h3>'
-        + '<div align="center">' + timeString + ' using Meshtastic</div>'
-        + detailsString;
 };
