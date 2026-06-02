@@ -1,3 +1,4 @@
+from owrx.reporting import ReportingEngine
 from owrx.toolbox import TextParser
 from owrx.aprs import AprsParser, thirdpartyeRegex
 from owrx.reporting import ReportingEngine
@@ -81,6 +82,12 @@ class MeshtasticParser(TextParser):
     def __init__(self, service: bool = False):
         # Construct parent object
         super().__init__(filePrefix="MESHTASTIC", service=service)
+        from owrx.meshtastic import MeshtasticDecoder
+        self._decoder = MeshtasticDecoder()
+
+    def setDialFrequency(self, frequency: int) -> None:
+        super().setDialFrequency(frequency)
+        self._decoder.setDialFrequency(frequency)
 
     def parse(self, msg: bytes):
         try:
@@ -100,8 +107,9 @@ class MeshtasticParser(TextParser):
         # Try decoding payload
         if "payload" in out:
             try:
-                # @@@ Add code here!
-                pass
+                payload = self._decoder.parsePayload(out, base64.b64decode(out["payload"]))
+                if payload:
+                    return payload
             except Exception as e:
                 logger.error("Exception parsing LoRa payload: %s", str(e))
 

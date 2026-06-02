@@ -178,6 +178,11 @@ MapManager.prototype.processUpdates = function(updates) {
                         case 'APRS': case 'AIS': case 'HDR': case 'SONDE':
                             marker = new GAprsMarker();
                             break;
+                        case 'Meshtastic':
+                            marker = new GMeshtasticMarker();
+                            if (!update.location.symbol) update.location.symbol = self.mman.getSymbol(update.mode);
+                            if (!update.location.color)  update.location.color  = self.mman.getColor(update.mode);
+                            break;
                         case 'KiwiSDR': case 'WebSDR': case 'OpenWebRX':
                         case 'Stations': case 'Repeaters':
                             marker = new GFeatureMarker();
