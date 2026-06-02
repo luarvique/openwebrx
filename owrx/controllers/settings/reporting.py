@@ -109,11 +109,11 @@ class ReportingController(SettingsFormController):
                     "sondehub_callsign",
                     "Uploader callsign",
                     infotext="Optional override for the Sondehub uploader callsign. When left empty, OpenWebRX "
-                    + "falls back to APRS, PSKReporter, WSPRNet, or receiver name.",
+                    + "falls back to APRS, PSKReporter, WSPRNet callsigns, or receiver name.",
                     converter=OptionalConverter(),
                 ),
                 TextInput(
-                    "sondehub_listener_antenna",
+                    "sondehub_antenna",
                     "Antenna information",
                     infotext="Antenna description sent to Sondehub with listener position updates.",
                     converter=TextConverter(),

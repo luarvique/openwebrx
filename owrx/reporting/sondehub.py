@@ -67,12 +67,8 @@ def getUploaderPosition():
 
 def getListenerAntenna():
     config = Config.get()
-    if "sondehub_listener_antenna" not in config:
-        return ""
-    value = config["sondehub_listener_antenna"]
-    if value is None:
-        return ""
-    return str(value).strip()
+    value = config["sondehub_antenna"] if "sondehub_antenna" in config else None
+    return "" if value is None else str(value).strip()
 
 
 def isSondehubTelemetryEnabled():
