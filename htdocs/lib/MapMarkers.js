@@ -216,7 +216,7 @@ FeatureMarker.prototype.update = function(update) {
     this.details  = update.location.details;
 
     // Meshtastic stuff
-    if (this.mode === 'MESHTASTIC') {
+    if (this.mode === 'Meshtastic') {
         this.src       = update.location.src;
         this.hop_limit = update.location.hop_limit;
         this.hop_start = update.location.hop_start;
@@ -371,7 +371,7 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     if (this.role) {
         detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
     }
-    if (this.hop_limit && this.hop_limit) {
+    if (this.hop_limit && this.hop_start) {
         detailsString += Utils.makeListItem('Hops', this.hop_limit + ' / ' + this.hop_start);
     }
 
