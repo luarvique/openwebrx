@@ -1037,3 +1037,153 @@ $.fn.skimmerMessagePanel = function() {
     }
     return this.data('panel');
 };
+
+MeshtasticMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+MeshtasticMessagePanel.prototype = Object.create(MessagePanel.prototype);
+
+MeshtasticMessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'Meshtastic';
+};
+
+MeshtasticMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="timestamp">UTC</th>' +
+                '<th class="src">Src</th>' +
+                '<th class="dst">Dst</th>' +
+                '<th class="type">Type</th>' +
+                '<th class="hops">Hops</th>' +
+                '<th class="snr">SNR</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+MeshtasticMessagePanel.prototype._shortenType = function(name) {
+    if (!name) return '?';
+    var map = {
+        'TEXT_MESSAGE_APP':    'TEXT',
+        'REMOTE_HARDWARE_APP': 'HW',
+        'POSITION_APP':        'POS',
+        'NODEINFO_APP':        'INFO',
+        'ROUTING_APP':         'ROUTE',
+        'ADMIN_APP':           'ADMIN',
+        'WAYPOINT_APP':        'WPT',
+        'REPLY_APP':           'REPLY',
+        'IP_TUNNEL_APP':       'IP',
+        'SERIAL_APP':          'SER',
+        'STORE_FORWARD_APP':   'SF',
+        'RANGE_TEST_APP':      'RTEST',
+        'TELEMETRY_APP':       'TELEM',
+        'ZPS_APP':             'ZPS',
+        'TRACEROUTE_APP':      'TRACE',
+        'NEIGHBORINFO_APP':    'NBR',
+        'ATAK_PLUGIN':         'ATAK',
+        'PAXCOUNTER_APP':      'PAX',
+        'POWERSTRESS_APP':     'PWR',
+        'DETECTION_SENSOR_APP': 'SENS',
+        'AUDIO_APP':           'AUDIO',
+        'MAP_REPORT_APP':      'MAP',
+    };
+    return map[name] || name.replace(/_APP$/, '').replace(/_PLUGIN$/, '').slice(0, 6);
+};
+
+MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
+    var mesh = msg.meshtastic || {};
+
+    // Drop packets that couldn't be decoded (no portnum = still encrypted)
+    if (!mesh.portnum_name) return;
+
+    // Format timestamp + optional role on second line
+    var timestamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
+    if (mesh.src_role) {
+        var roleMap = {
+            'CLIENT':         'CLT',   'CLIENT_MUTE':    'CLT-M',
+            'ROUTER':         'RTR',   'ROUTER_CLIENT':  'RTR-C',
+            'REPEATER':       'RPT',   'TRACKER':        'TRK',
+            'SENSOR':         'SNS',   'TAK':            'TAK',
+            'CLIENT_HIDDEN':  'CLT-H', 'LOST_AND_FOUND': 'L&F',
+            'TAK_TRACKER':    'TAK-T',
+        };
+        var roleShort = roleMap[mesh.src_role] || mesh.src_role.slice(0, 5);
+        timestamp += '<span class="nodename" title="' + mesh.src_role + '">' + roleShort + '</span>';
+    }
+
+    // Format src / dst — main id + optional second line with short name (tooltip = long name)
+    function nodeCell(hexId, shortName, longName, isBcast) {
+        if (!hexId && !isBcast) return '?';
+        var id = isBcast ? 'BCAST' : ('!' + hexId);
+        var html = isBcast ? id : '<a href="/map?callsign=!' + hexId + '" target="_blank">' + id + '</a>';
+        if (shortName)
+            html += '<span class="nodename">' + shortName.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>';
+        if (longName)
+            html += '<span class="nodename">' + longName.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>';
+        return html;
+    }
+    var src = nodeCell(mesh.src, mesh.src_short_name, mesh.src_long_name, false);
+    var dst = mesh.dest === 'ffffffff'
+        ? nodeCell(null, null, null, true)
+        : nodeCell(mesh.dest, mesh.dest_short_name, mesh.dest_long_name, false);
+
+    // Portnum type, shortened; channel hash on second line
+    var type = this._shortenType(mesh.portnum_name);
+    if (mesh.channel_hash)
+        type += '<span class="nodename" title="channel hash">ch:' + mesh.channel_hash + '</span>';
+
+    // Hops: taken / total
+    var hops = '';
+    if (mesh.hop_start != null && mesh.hop_limit != null) {
+        var taken = mesh.hop_start - mesh.hop_limit;
+        hops = taken + '/' + mesh.hop_start;
+    }
+
+    // SNR from top-level field
+    var snr = (msg.snr != null)? msg.snr + '&nbsp;dB' : '';
+
+    // Summary text (HTML-escaped)
+    var summary = (mesh.summary || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    var $b = $(this.el).find('tbody');
+    // Count entries (main rows marked with class "entry") for alternating color
+    var odd = $b.find('tr.entry').length % 2 === 0;
+    var isText = (mesh.portnum_name === 'TEXT_MESSAGE_APP');
+    var bg  = isText ? '#FFF8CC' : (odd ? '#FFFFFF' : '#E0FFE0');
+
+    var rows =
+        '<tr class="entry" style="background-color:' + bg + ';">' +
+            '<td class="timestamp">' + timestamp + '</td>' +
+            '<td class="src">'       + src       + '</td>' +
+            '<td class="dst">'       + dst       + '</td>' +
+            '<td class="type">'      + type      + '</td>' +
+            '<td class="hops">'      + hops      + '</td>' +
+            '<td class="snr">'       + snr       + '</td>' +
+        '</tr>';
+
+    if (summary) {
+        var summaryStyle = isText
+            ? ' style="font-weight:bold; font-size:1.05em; color:#333;"'
+            : '';
+        rows +=
+            '<tr class="entry-summary" style="background-color:' + bg + ';">' +
+                '<td class="timestamp"></td>' +
+                '<td class="summary"' + summaryStyle + '>' + summary + '</td>' +
+            '</tr>';
+    }
+
+    $b.append($(rows));
+
+    this.scrollToBottom();
+};
+
+$.fn.meshtasticMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new MeshtasticMessagePanel(this));
+    }
+    return this.data('panel');
+};

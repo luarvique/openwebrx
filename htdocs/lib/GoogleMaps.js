@@ -98,6 +98,13 @@ GAircraftMarker.prototype.place = function() {
 };
 
 //
+// GoogleMaps-Specific MeshtasticMarker
+//
+
+function GMeshtasticMarker() { $.extend(this, new MeshtasticMarker()); }
+GMeshtasticMarker.prototype = new GFeatureMarker();
+
+//
 // GoogleMaps-Specific SimpleMarker
 //
 
