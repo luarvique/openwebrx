@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 PoisonPill = object()
 
-SOFTWARE_NAME = "OpenWebRX+"
+SOFTWARE_NAME = "OpenWebRX"
 
 DFM_SUBTYPE_ALIASES = {
     "DFM9": "DFM09",
@@ -39,8 +39,8 @@ def getSoftwareUserAgent():
 
 def getUploaderCallsign():
     config = Config.get()
-    if "sondehub_uploader_callsign" in config and config["sondehub_uploader_callsign"]:
-        return config["sondehub_uploader_callsign"]
+    if "sondehub_callsign" in config and config["sondehub_callsign"]:
+        return config["sondehub_callsign"]
 
     for key in ["aprs_callsign", "pskreporter_callsign", "wsprnet_callsign"]:
         if key in config and config[key] and config[key] != "N0CALL":
@@ -73,14 +73,6 @@ def getListenerAntenna():
     if value is None:
         return ""
     return str(value).strip()
-
-
-def isSondehubDebugEnabled():
-    return Config.get()["sondehub_debug_decoding"]
-
-
-def isSondehubListenerEnabled():
-    return Config.get()["sondehub_listener_enabled"]
 
 
 def isSondehubTelemetryEnabled():
@@ -157,18 +149,11 @@ class Worker(threading.Thread):
 
             key = self._frameKey(entry)
             if key is not None and key in seen:
-                if isSondehubDebugEnabled():
-                    logger.info(
-                        "SondehubReporter dropping duplicate frame serial=%s frame=%s",
-                        key[0],
-                        key[1],
-                    )
-                else:
-                    logger.debug(
-                        "SondehubReporter dropping duplicate frame serial=%s frame=%s",
-                        key[0],
-                        key[1],
-                    )
+                logger.debug(
+                    "SondehubReporter dropping duplicate frame serial=%s frame=%s",
+                    key[0],
+                    key[1],
+                )
                 return
 
             buffer.append(entry)
@@ -392,34 +377,33 @@ class Worker(threading.Thread):
         if subtype:
             entry["subtype"] = subtype
 
-        if isSondehubDebugEnabled():
-            raw_pressure = data.get("pressure")
-            if "pressure" in entry:
-                logger.info(
-                    "Sondehub PTU pressure included type=%s subtype=%s serial=%s frame=%s pressure=%s hPa",
-                    sonde_type,
-                    subtype or "",
-                    entry.get("serial"),
-                    entry.get("frame"),
-                    entry["pressure"],
-                )
-            elif Worker._subtypeTypicallyHasPressureSensor(data, family):
-                logger.info(
-                    "Sondehub PTU pressure missing type=%s subtype=%s serial=%s frame=%s raw=%s "
-                    "(sonde may lack sensor or calibration not complete)",
-                    sonde_type,
-                    data.get("subtype", ""),
-                    entry.get("serial"),
-                    entry.get("frame"),
-                    raw_pressure,
-                )
-            elif raw_pressure is not None and not Worker._isValidPtuValue("pressure", raw_pressure):
-                logger.debug(
-                    "Sondehub PTU pressure invalid type=%s subtype=%s raw=%s",
-                    sonde_type,
-                    data.get("subtype", ""),
-                    raw_pressure,
-                )
+        raw_pressure = data.get("pressure")
+        if "pressure" in entry:
+            logger.debug(
+                "Sondehub PTU pressure included type=%s subtype=%s serial=%s frame=%s pressure=%s hPa",
+                sonde_type,
+                subtype or "",
+                entry.get("serial"),
+                entry.get("frame"),
+                entry["pressure"],
+            )
+        elif Worker._subtypeTypicallyHasPressureSensor(data, family):
+            logger.debug(
+                "Sondehub PTU pressure missing type=%s subtype=%s serial=%s frame=%s raw=%s "
+                "(sonde may lack sensor or calibration not complete)",
+                sonde_type,
+                data.get("subtype", ""),
+                entry.get("serial"),
+                entry.get("frame"),
+                raw_pressure,
+            )
+        elif raw_pressure is not None and not Worker._isValidPtuValue("pressure", raw_pressure):
+            logger.debug(
+                "Sondehub PTU pressure invalid type=%s subtype=%s raw=%s",
+                sonde_type,
+                data.get("subtype", ""),
+                raw_pressure,
+            )
 
         return entry
 
@@ -427,25 +411,24 @@ class Worker(threading.Thread):
         if not batch:
             return
 
-        if isSondehubDebugEnabled():
-            logger.info(
-                "Sondehub pushing %s batch to API packets=%d uploader=%s",
-                batchType,
-                len(batch),
-                batch[0].get("uploader_callsign"),
+        logger.debug(
+            "Sondehub pushing %s batch to API packets=%d uploader=%s",
+            batchType,
+            len(batch),
+            batch[0].get("uploader_callsign"),
+        )
+        logger.debug("Sondehub telemetry batch payload: %s", batch)
+        pressure_frames = [
+            (e.get("serial"), e.get("frame"), e.get("pressure"))
+            for e in batch
+            if e.get("pressure") is not None
+        ]
+        if pressure_frames:
+            logger.debug(
+                "Sondehub batch includes pressure in %d packet(s): %s",
+                len(pressure_frames),
+                pressure_frames,
             )
-            logger.info("Sondehub telemetry batch payload: %s", batch)
-            pressure_frames = [
-                (e.get("serial"), e.get("frame"), e.get("pressure"))
-                for e in batch
-                if e.get("pressure") is not None
-            ]
-            if pressure_frames:
-                logger.info(
-                    "Sondehub batch includes pressure in %d packet(s): %s",
-                    len(pressure_frames),
-                    pressure_frames,
-                )
 
         body = gzip.compress(json.dumps(batch).encode("utf-8"))
         headers = {
@@ -506,8 +489,8 @@ class Worker(threading.Thread):
             status if status is not None else "unknown",
             batch[0].get("uploader_callsign"),
         )
-        if isSondehubDebugEnabled() and responseText:
-            logger.info("Sondehub telemetry batch response: %s", responseText)
+        if responseText:
+            logger.debug("Sondehub telemetry batch response: %s", responseText)
 
 
 class ListenerWorker(threading.Thread):
@@ -527,7 +510,7 @@ class ListenerWorker(threading.Thread):
         )
         while self.doRun:
             try:
-                if isSondehubListenerEnabled():
+                if isSondehubTelemetryEnabled():
                     self.uploadListener()
             except Exception:
                 logger.exception("Unhandled error in Sondehub listener worker")
@@ -625,10 +608,9 @@ class ListenerWorker(threading.Thread):
             position[2],
             status if status is not None else "unknown",
         )
-        if isSondehubDebugEnabled():
-            logger.info("Sondehub listener payload: %s", payload)
-            if responseText:
-                logger.info("Sondehub listener response: %s", responseText)
+        logger.debug("Sondehub listener payload: %s", payload)
+        if responseText:
+            logger.debug("Sondehub listener response: %s", responseText)
 
 
 class SondehubReporter(FilteredReporter):
@@ -654,7 +636,7 @@ class SondehubReporter(FilteredReporter):
         metrics.addMetric("sondehub.listener_errors", self.listenerErrorCounter)
         self.telemetryWorker = None
         self.listenerWorker = None
-        self.configSub = Config.get().filter("sondehub_enabled", "sondehub_listener_enabled").wire(self._applyConfig)
+        self.configSub = Config.get().filter("sondehub_enabled").wire(self._applyConfig)
         self._applyConfig()
 
     def _applyConfig(self, *args):
@@ -664,11 +646,6 @@ class SondehubReporter(FilteredReporter):
                 self.telemetryWorker = Worker(self.queue, self.uploadCounter, self.errorCounter)
                 self.telemetryWorker.start()
                 logger.info("Sondehub telemetry reporting started")
-        elif self.telemetryWorker is not None:
-            self._stopTelemetryWorker()
-            logger.info("Sondehub telemetry reporting stopped")
-
-        if isSondehubListenerEnabled():
             if self.listenerWorker is None:
                 self.listenerWorker = ListenerWorker(self.listenerUploadCounter, self.listenerErrorCounter)
                 self.listenerWorker.start()
@@ -676,9 +653,13 @@ class SondehubReporter(FilteredReporter):
                     "Sondehub listener reporting enabled (upload every %d seconds)",
                     LISTENER_UPLOAD_INTERVAL_SECONDS,
                 )
-        elif self.listenerWorker is not None:
-            self._stopListenerWorker()
-            logger.info("Sondehub listener reporting stopped")
+        else:
+            if self.telemetryWorker is not None:
+                self._stopTelemetryWorker()
+                logger.info("Sondehub telemetry reporting stopped")
+            if self.listenerWorker is not None:
+                self._stopListenerWorker()
+                logger.info("Sondehub listener reporting stopped")
 
     def _stopTelemetryWorker(self):
         while not self.queue.empty():

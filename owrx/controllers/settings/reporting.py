@@ -101,31 +101,22 @@ class ReportingController(SettingsFormController):
                 "Sondehub Reporting",
                 CheckboxInput(
                     "sondehub_enabled",
-                    "Enable Sondehub telemetry uploads for radiosondes",
+                    "Enable Sondehub telemetry and listener reporting",
+                    infotext="Uploads decoded radiosonde telemetry and keeps your listener station position "
+                    + "on Sondehub up to date.",
                 ),
                 TextInput(
-                    "sondehub_uploader_callsign",
+                    "sondehub_callsign",
                     "Uploader callsign",
                     infotext="Optional override for the Sondehub uploader callsign. When left empty, OpenWebRX "
                     + "falls back to APRS, PSKReporter, WSPRNet, or receiver name.",
                     converter=OptionalConverter(),
-                ),
-                CheckboxInput(
-                    "sondehub_listener_enabled",
-                    "Send listener location",
-                    infotext="Keep Sondehub listener up to date using current coordinate, software and antenna. "
-                    + "Station position is uploaded every 15 minutes.",
                 ),
                 TextInput(
                     "sondehub_listener_antenna",
                     "Antenna information",
                     infotext="Antenna description sent to Sondehub with listener position updates.",
                     converter=TextConverter(),
-                ),
-                CheckboxInput(
-                    "sondehub_debug_decoding",
-                    "Enable debugging",
-                    infotext="Show debugging text when decoding radiosonde telemetry data or uploading station status.",
                 ),
             ),
             Section(
