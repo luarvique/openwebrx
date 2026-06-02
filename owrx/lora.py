@@ -96,18 +96,21 @@ class MeshtasticParser(TextParser):
             if "payload" in out:
                 # Try decoding payload
                 out = self.decoder.parsePayload(out, base64.b64decode(out["payload"]))
-                # Add mode name
-                out["mode"] = "MESHTASTIC"
-                # Add frequency, if known
-                if self.frequency:
-                    out["freq"] = self.frequency
-                # Report message
-                ReportingEngine.getSharedInstance().spot(out)
-                # Done
-                return out
+                if out:
+                    # Add mode name
+                    out["mode"] = "MESHTASTIC"
+                    # Add frequency, if known
+                    if self.frequency:
+                        out["freq"] = self.frequency
+                    # Report message
+                    ReportingEngine.getSharedInstance().spot(out)
+                    # Done
+                    return out
         except Exception as e:
             # Something did not work out
-            logger.error("Exception parsing LoRa payload: %s", str(e))
+            logger.error("Exception parsing Meshtastic message: %s", str(e))
 
         # Parsing failed, return LORA packet as string
-        return msg.decode("utf-8") + "\n"
+        msg = msg.decode("utf-8")
+        logger.info("Failed parsing Meshtastic message: '%s'", msg) 
+        return msg + "\n"
