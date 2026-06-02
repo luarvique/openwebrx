@@ -1,6 +1,6 @@
 from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
 from owrx.form.section import Section
-from owrx.form.input.converter import OptionalConverter, IntConverter
+from owrx.form.input.converter import OptionalConverter, IntConverter, TextConverter
 from owrx.form.input.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput, PasswordInput, Option
 from owrx.form.input.validator import AddressAndOptionalPortValidator
@@ -101,15 +101,22 @@ class ReportingController(SettingsFormController):
                 "Sondehub Reporting",
                 CheckboxInput(
                     "sondehub_enabled",
-                    "Enable sending RS41 sonde telemetry to Sondehub",
+                    "Enable Sondehub telemetry and listener reporting",
+                    infotext="Uploads decoded radiosonde telemetry and keeps your listener station position "
+                    + "on Sondehub up to date.",
                 ),
                 TextInput(
                     "sondehub_callsign",
-                    "sondehub callsign",
-                    infotext="This callsign will be used to send sonde telemetry to Sondehub. "
-                    + "When left empty, OpenWebRX falls back to APRS, PSKReporter, WSPRNet "
-                    + "callsigns, or receiver name.",
+                    "Uploader callsign",
+                    infotext="Optional override for the Sondehub uploader callsign. When left empty, OpenWebRX "
+                    + "falls back to APRS, PSKReporter, WSPRNet, or receiver name.",
                     converter=OptionalConverter(),
+                ),
+                TextInput(
+                    "sondehub_listener_antenna",
+                    "Antenna information",
+                    infotext="Antenna description sent to Sondehub with listener position updates.",
+                    converter=TextConverter(),
                 ),
             ),
             Section(

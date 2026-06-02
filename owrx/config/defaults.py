@@ -32,6 +32,15 @@ defaultConfig = PropertyLayer(
             direct_sampling=0,
             profiles=PropertyLayer(
                 **{
+                    "radiosonde": PropertyLayer(
+                        name="403 MHz Radiosonde",
+                        center_freq=403000000,
+                        rf_gain=29,
+                        samp_rate=2400000,
+                        start_freq=403000000,
+                        start_mod="nfm",
+                        tuning_step="500000",
+                    ),
                     "70cm": PropertyLayer(
                         name="70cm Repeaters",
                         center_freq=438800000,
@@ -412,6 +421,7 @@ defaultConfig = PropertyLayer(
     wsprnet_callsign="N0CALL",
     sondehub_enabled=False,
     sondehub_callsign="",
+    sondehub_listener_antenna="",
     mqtt_enabled=False,
     mqtt_host="localhost",
     mqtt_use_ssl=False,

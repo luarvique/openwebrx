@@ -123,20 +123,50 @@ class SondeParser(TextParser):
 
         device_type = str(data["type"]).upper() if "type" in data else ""
         device_subtype = str(data["subtype"]).upper() if "subtype" in data else ""
-        is_rs41 = device_type == "RS41" or device_subtype.startswith("RS41") or "rs41_mainboard" in data
 
         logger.debug("Decoded data: %s", out)
-        if is_rs41:
-            logger.info(
-                "RS41 decoded id=%s freq=%s lat=%s lon=%s alt=%s sats=%s batt=%s comment=%s",
+        sonde_label = device_type or device_subtype or "SONDE"
+        logger.debug(
+            "Radiosonde decoded entry type=%s id=%s frame=%s freq=%s lat=%s lon=%s alt=%s "
+            "temp=%s humidity=%s pressure=%s sats=%s batt=%s comment=%s",
+            sonde_label,
+            out.get("source"),
+            data.get("frame"),
+            out.get("freq"),
+            out.get("lat"),
+            out.get("lon"),
+            out.get("altitude"),
+            data.get("temp"),
+            data.get("humidity"),
+            data.get("pressure"),
+            out.get("sats"),
+            out.get("battery"),
+            out.get("comment"),
+        )
+        logger.debug("Radiosonde decoder JSON: %s", data)
+        pressure = data.get("pressure")
+        if pressure is not None and float(pressure) > 0:
+            logger.debug(
+                "Radiosonde decode includes pressure: type=%s subtype=%s serial=%s frame=%s pressure=%s hPa",
+                sonde_label,
+                data.get("subtype", ""),
                 out.get("source"),
-                out.get("freq"),
-                out.get("lat"),
-                out.get("lon"),
-                out.get("altitude"),
-                out.get("sats"),
-                out.get("battery"),
-                out.get("comment"),
+                data.get("frame"),
+                pressure,
+            )
+        elif device_type == "RS41" and device_subtype.startswith("RS41-SG") and "SGP" not in device_subtype:
+            logger.debug(
+                "Radiosonde decode has no pressure (subtype=%s): RS41-SG has no barometer; "
+                "use RS41-SGP for measured pressure",
+                data.get("subtype", device_subtype),
+            )
+        elif pressure is not None and float(pressure) <= 0:
+            logger.debug(
+                "Radiosonde decode pressure not valid yet (type=%s subtype=%s raw=%s): "
+                "invalid sentinel or awaiting PTU/calibration",
+                sonde_label,
+                data.get("subtype", ""),
+                pressure,
             )
 
         # Report message
