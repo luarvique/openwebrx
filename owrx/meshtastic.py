@@ -375,7 +375,7 @@ class MeshtasticDecoder:
             logger.debug("Meshtastic: dropped packet with crc=%d", out.get("crc"))
             return None
 
-        dest      = int.from_bytes(data[0:4], "little")
+        dst       = int.from_bytes(data[0:4], "little")
         src       = int.from_bytes(data[4:8], "little")
         packet_id = int.from_bytes(data[8:12], "little")
 
@@ -394,7 +394,7 @@ class MeshtasticDecoder:
         hop_start = (flags >> 5) & 0x07
 
         mesh = {
-            "dest":         f"{dest:08x}",
+            "dst":          f"{dst:08x}",
             "src":          f"{src:08x}",
             "packet_id":    f"{packet_id:08x}",
             "hop_limit":    hop_limit,
@@ -424,17 +424,17 @@ class MeshtasticDecoder:
             except Exception as e:
                 logger.debug("Meshtastic decrypt/decode failed for %s: %s", mesh["src"], e)
 
-        # Annotate src/dest with cached names/role/hw_model (if known)
-        src_hex  = f"{src:08x}"
-        dest_hex = f"{dest:08x}"
+        # Annotate src/dst with cached names/role/hw_model (if known)
+        src_hex = f"{src:08x}"
+        dst_hex = f"{dst:08x}"
         for key, field in (("short_name", "src_short_name"), ("long_name", "src_long_name"),
                            ("role", "src_role"), ("hw_model", "src_hw_model")):
             val = self._cache_str(src_hex, key)
             if val:
                 mesh[field] = val
-        if dest != 0xFFFFFFFF:
-            for key, field in (("short_name", "dest_short_name"), ("long_name", "dest_long_name")):
-                val = self._cache_str(dest_hex, key)
+        if dst != 0xFFFFFFFF:
+            for key, field in (("short_name", "dst_short_name"), ("long_name", "dst_long_name")):
+                val = self._cache_str(dst_hex, key)
                 if val:
                     mesh[field] = val
 
