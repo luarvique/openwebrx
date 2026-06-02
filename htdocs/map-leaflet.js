@@ -455,13 +455,8 @@ MapManager.prototype.processUpdates = function(updates) {
                         case 'APRS': case 'AIS': case 'HDR': case 'SONDE':
                             marker = new LAprsMarker();
                             break;
-                        case 'Meshtastic':
-                            marker = new LMeshtasticMarker();
-                            if (!update.location.symbol) update.location.symbol = self.mman.getSymbol(update.mode);
-                            if (!update.location.color)  update.location.color  = self.mman.getColor(update.mode);
-                            break;
                         case 'KiwiSDR': case 'WebSDR': case 'OpenWebRX':
-                        case 'Stations': case 'Repeaters':
+                        case 'Stations': case 'Repeaters': case 'Meshtastic':
                             marker = new LFeatureMarker();
                             // If no symbol or color supplied, use defaults by type
                             if (!update.location.symbol) update.location.symbol = self.mman.getSymbol(update.mode);
