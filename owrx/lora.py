@@ -1,7 +1,6 @@
 from owrx.toolbox import TextParser
 from owrx.reporting import ReportingEngine
 from owrx.aprs import AprsParser, thirdpartyeRegex
-from owrx.meshtastic import MeshtasticDecoder
 
 import base64
 import json
@@ -76,34 +75,3 @@ class LoraParser(TextParser):
                 "data"        : info.encode("utf-8"),
                 "raw"         : "".join("{:02X}".format(x) for x in data),
             })
-
-
-class MeshtasticParser(TextParser):
-    def __init__(self, service: bool = False):
-        # Construct parent object
-        super().__init__(filePrefix="MHTC", service=service)
-        self.decoder = MeshtasticDecoder()
-
-    def setDialFrequency(self, frequency: int) -> None:
-        super().setDialFrequency(frequency)
-        self.decoder.setDialFrequency(frequency)
-
-    def parse(self, msg: bytes):
-        try:
-            # Try parsing JSON
-            out = json.loads(msg)
-            # Meshtastic packet must have payload
-            if "payload" in out:
-                out = self.decoder.parsePayload(out, base64.b64decode(out["payload"]))
-                if out:
-                    out["mode"] = "Meshtastic"
-                    if self.frequency:
-                        out["freq"] = self.frequency
-                    ReportingEngine.getSharedInstance().spot(out)
-                    return out
-        except Exception as e:
-            logger.error("Exception parsing Meshtastic message: %s", str(e))
-
-        msg = msg.decode("utf-8", errors="replace")
-        logger.info("Failed parsing Meshtastic message: '%s'", msg)
-        return msg + "\n"

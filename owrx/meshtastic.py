@@ -1,13 +1,14 @@
+from owrx.toolbox import TextParser
+from owrx.reporting import ReportingEngine
 from owrx.map import Map, LatLngLocation
-from owrx.bands import Bandplan
+from owrx.bands import Bandplan, Band
 from owrx.storage import Storage
-from datetime import timedelta
+from datetime import datetime, timezone, timedelta
 
 import base64
 import json
 import logging
 import time
-from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -341,14 +342,14 @@ class MeshtasticLocation(LatLngLocation):
         return res
 
 
-class MeshtasticDecoder:
+class MeshtasticParser(TextParser):
     _DEDUP_TTL:           int = 60
     _DEDUP_MAX:           int = 4096
     _CACHE_SAVE_INTERVAL: int = 60
 
-    def __init__(self) -> None:
+    def __init__(self, service: bool = False) -> None:
+        super().__init__(filePrefix="MHTC", service=service)
         self._key:              bytes = _resolve_key("AQ==")
-        from owrx.bands import Band
         self._band:             Band | None = None
         self._seen:             dict[tuple[int, int], float] = {}
         self._cache_file:       str   = Storage.getFilePath("meshtastic_nodes.json")
@@ -357,7 +358,28 @@ class MeshtasticDecoder:
         self._node_cache:       dict[str, dict[str, str | int | float | bool | None]] = self._load_node_cache()
 
     def setDialFrequency(self, frequency: int) -> None:
+        super().setDialFrequency(frequency)
         self._band = Bandplan.getSharedInstance().findBand(frequency)
+
+    def parse(self, msg: bytes):
+        try:
+            # Try parsing JSON
+            out = json.loads(msg)
+            # Meshtastic packet must have payload and valid CRC
+            if "payload" in out and "crc" in out and out["crc"] == 1:
+                out = self.parsePayload(out, base64.b64decode(out["payload"]))
+                if out:
+                    out["mode"] = "Meshtastic"
+                    if self.frequency:
+                        out["freq"] = self.frequency
+                    ReportingEngine.getSharedInstance().spot(out)
+                    return out
+        except Exception as e:
+            logger.error("Exception parsing Meshtastic message: %s", str(e))
+
+        msg = msg.decode("utf-8", errors="replace")
+        logger.info("Failed parsing Meshtastic message: '%s'", msg)
+        return msg + "\n"
 
     def _is_duplicate(self, src: int, packet_id: int) -> bool:
         now = time.monotonic()
