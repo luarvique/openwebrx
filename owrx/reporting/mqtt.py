@@ -12,6 +12,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+try:
+    from paho.mqtt.client import CallbackAPIVersion
+    paho_mqtt_v2_available = True
+    mqtt_api_version = CallbackAPIVersion.VERSION1
+except ImportError:
+    paho_mqtt_v2_available = False
+    mqtt_api_version = None
+
 
 class MqttReporter(Reporter):
     DEFAULT_TOPIC = "openwebrx"
@@ -33,7 +41,12 @@ class MqttReporter(Reporter):
     def _getClient(self):
         pm = Config.get()
         clientId = pm["mqtt_client_id"] if "mqtt_client_id" in pm else ""
-        client = Client(client_id=clientId, protocol=MQTTv5)
+        
+        if paho_mqtt_v2_available:
+            client = Client(mqtt_api_version, client_id=clientId, protocol=MQTTv5)
+        else:
+            client = Client(client_id=clientId, protocol=MQTTv5)
+        
         client.on_disconnect = self._onDisconnect
         client.on_connect = self._onConnect
         client.on_message = self._onMessage
