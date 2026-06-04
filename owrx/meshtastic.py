@@ -12,14 +12,25 @@ import time
 
 logger = logging.getLogger(__name__)
 
+
+DEFAULT_KEY = bytes([
+    0xD4, 0xF1, 0xBB, 0x3A,
+    0x20, 0x29, 0x07, 0x59,
+    0xF0, 0xBC, 0xFF, 0xAB,
+    0xCF, 0x4E, 0x69, 0x01,
+])
+
+
+# Import decryption library if available
 try:
     from Cryptodome.Cipher import AES
     from Cryptodome.Util import Counter
     _aes_available = True
 except ImportError:
     _aes_available = False
-    logger.warning("Meshtastic: pycryptodome not installed, decryption disabled. Install with: apt install python3-pycryptodome  OR  pip install pycryptodome")
+    logger.warning("PyCryptodome not installed, decryption disabled. Install with: 'apt install python3-pycryptodome' OR 'pip install pycryptodome'")
 
+# Import ProtoBuf and Meshtastic libraries if available
 try:
     from google.protobuf.json_format import MessageToDict
     from meshtastic.protobuf import (
@@ -36,16 +47,9 @@ try:
     _protobuf_available = True
 except ImportError:
     _protobuf_available = False
-    logger.warning("Meshtastic: meshtastic package not installed, payload decoding disabled. No Debian package available, install with: pip install meshtastic")
+    logger.warning("Meshtastic package not installed, payload decoding disabled. No Debian package available, install with: 'pip install meshtastic'")
 
-
-DEFAULT_KEY = bytes([
-    0xD4, 0xF1, 0xBB, 0x3A,
-    0x20, 0x29, 0x07, 0x59,
-    0xF0, 0xBC, 0xFF, 0xAB,
-    0xCF, 0x4E, 0x69, 0x01,
-])
-
+# Create a mapping from packet types to decoders
 if _protobuf_available:
     APP_PROTO_DECODERS = {
         2:  remote_hardware_pb2.HardwareMessage,
@@ -66,12 +70,10 @@ if _protobuf_available:
         74: powermon_pb2.PowerStressMessage,
     }
 
-
 def _expand_short_psk(index):
     key = bytearray(DEFAULT_KEY)
     key[-1] = (key[-1] + index - 1) & 0xFF
     return bytes(key)
-
 
 def _resolve_key(raw_key):
     raw = raw_key.strip()
@@ -101,10 +103,6 @@ def _portnum_name(portnum):
         return portnums_pb2.PortNum.Name(portnum)
     except Exception:
         return f"UNKNOWN_{portnum}"
-
-
-def _proto_to_dict(message):
-    return MessageToDict(message, preserving_proto_field_name=True)
 
 
 def _append_metric(metrics, key, label, parts, unit=""):
@@ -216,136 +214,25 @@ def _summarize_fields(data, preferred=None, limit=4):
     return ", ".join(parts) if parts else f"fields={','.join(list(data.keys())[:4])}"
 
 
-def _decode_app_payload(portnum, payload_bytes):
-    if portnum in (1, 7):
-        try:
-            text = payload_bytes.decode("utf-8")
-        except Exception:
-            text = payload_bytes.decode("utf-8", errors="replace")
-        return {"type": "text", "summary": text, "data": text}
-
-    cls = APP_PROTO_DECODERS.get(portnum)
-    if cls is None:
-        return None
-
-    try:
-        msg = cls()
-        msg.ParseFromString(payload_bytes)
-        data = _proto_to_dict(msg)
-        summary = None
-
-        if portnum == 3:
-            lat_i = data.get("latitude_i")
-            lon_i = data.get("longitude_i")
-            alt = data.get("altitude")
-            if lat_i is not None and lon_i is not None:
-                lat = int(lat_i) / 1e7
-                lon = int(lon_i) / 1e7
-                summary = f"lat={lat:.6f},lon={lon:.6f}" + (f",alt={alt}" if alt is not None else "")
-        elif portnum == 4:
-            summary = _nodeinfo_summary(data)
-        elif portnum == 5:
-            summary = _routing_summary(data)
-        elif portnum == 6:
-            summary = _summarize_fields(data, [("set_owner", "owner"), ("set_config", "config"),
-                                               ("reboot_seconds", "reboot")])
-        elif portnum == 8:
-            name = data.get("name")
-            lat_i = data.get("latitude_i")
-            lon_i = data.get("longitude_i")
-            parts = []
-            if name:
-                parts.append(f"name={name}")
-            if lat_i is not None and lon_i is not None:
-                parts.append(f"lat={int(lat_i)/1e7:.6f},lon={int(lon_i)/1e7:.6f}")
-            summary = ", ".join(parts) if parts else _summarize_fields(data)
-        elif portnum == 67:
-            summary = _telemetry_summary(data)
-        elif portnum == 70:
-            summary = _summarize_fields(data, [("route", "route"), ("route_back", "route_back")])
-        elif portnum == 71:
-            summary = _summarize_fields(data, [("node_id", "node"), ("neighbors", "neighbors")])
-        elif portnum == 72:
-            summary = _summarize_fields(data, [("contact", "contact"), ("group", "group")])
-
-        if not summary:
-            summary = _summarize_fields(data)
-
-        return {"type": "protobuf", "summary": summary, "data": data}
-    except Exception:
-        return None
-
-
-def _parse_data_message(decrypted_bytes):
-    try:
-        data_msg = mesh_pb2.Data()
-        data_msg.ParseFromString(decrypted_bytes)
-        payload = data_msg.payload
-        portnum = int(data_msg.portnum)
-        decoded = _decode_app_payload(portnum, payload)
-        return {
-            "portnum": portnum,
-            "portnum_name": _portnum_name(portnum),
-            "payload_decoded": decoded,
-        }
-    except Exception:
-        return None
-
-
-def _decrypt_payload(key, src, packet_id, encrypted):
-    iv_prefix = packet_id.to_bytes(8, "little") + src.to_bytes(4, "little")
-    ctr = Counter.new(32, prefix=iv_prefix, initial_value=0)
-    cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
-    return cipher.decrypt(encrypted)
-
-
 class MeshtasticLocation(LatLngLocation):
-    def __init__(self, lat: float, lon: float, alt: int | None = None, src: str | None = None,
-                 hop_limit: int | None = None, hop_start: int | None = None, summary: str | None = None,
-                 long_name: str | None = None, short_name: str | None = None,
-                 role: str | None = None, hw_model: str | None = None):
+    def __init__(self, lat, lon, data):
         super().__init__(lat, lon)
-        self.alt:        int | None = alt
-        self.src:        str | None = src
-        self.hop_limit:  int | None = hop_limit
-        self.hop_start:  int | None = hop_start
-        self.summary:    str | None = summary
-        self.long_name:  str | None = long_name
-        self.short_name: str | None = short_name
-        self.role:       str | None = role
-        self.hw_model:   str | None = hw_model
+        self.data = data
 
-    def getTTL(self) -> timedelta:  # type: ignore[override]
+    def getTTL(self) -> timedelta:
         return timedelta(hours=4)
 
-    def __dict__(self):  # type: ignore[override]
-        res: dict[str, object] = super().__dict__()  # type: ignore[assignment]
+    def __dict__(self):
+        res = super().__dict__()
         res["ttl"] = round((datetime.now(timezone.utc) + self.getTTL()).timestamp() * 1000)
-        if self.alt is not None:
-            res["altitude"] = self.alt
-        if self.src is not None:
-            res["src"] = self.src
-        if self.hop_limit is not None:
-            res["hop_limit"] = self.hop_limit
-        if self.hop_start is not None:
-            res["hop_start"] = self.hop_start
-        if self.summary is not None:
-            res["summary"] = self.summary
-        if self.long_name is not None:
-            res["long_name"] = self.long_name
-        if self.short_name is not None:
-            res["short_name"] = self.short_name
-        if self.role is not None:
-            res["role"] = self.role
-        if self.hw_model is not None:
-            res["hw_model"] = self.hw_model
+        res.append(data)
         return res
 
 
 class MeshtasticParser(TextParser):
-    _DEDUP_TTL:           int = 60
-    _DEDUP_MAX:           int = 4096
-    _CACHE_SAVE_INTERVAL: int = 60
+    CACHE_SAVE_INTERVAL = 60
+    DEDUP_TTL = 60
+    DEDUP_MAX = 4096
 
     def __init__(self, service: bool = False) -> None:
         super().__init__(filePrefix="MHTC", service=service)
@@ -361,116 +248,180 @@ class MeshtasticParser(TextParser):
         super().setDialFrequency(frequency)
         self._band = Bandplan.getSharedInstance().findBand(frequency)
 
+    # Parse Meshtastic message received by LoraRX
     def parse(self, msg: bytes):
         try:
             # Try parsing JSON
-            out = json.loads(msg)
+            data = json.loads(msg)
             # Meshtastic packet must have payload and valid CRC
-            if "payload" in out and "crc" in out and out["crc"] == 1:
-                out = self.parsePayload(out, base64.b64decode(out["payload"]))
-                if out:
-                    out["mode"] = "Meshtastic"
-                    if self.frequency:
-                        out["freq"] = self.frequency
-                    ReportingEngine.getSharedInstance().spot(out)
-                    return out
+            if "payload" in data and "crc" in data and data["crc"] >= 1:
+                return self.parsePacket(base64.b64decode(data["payload"]))
         except Exception as e:
-            logger.error("Exception parsing Meshtastic message: %s", str(e))
-
+            logger.error("Exception parsing message: %s", str(e))
+        # Message could not be parsed
         msg = msg.decode("utf-8", errors="replace")
-        logger.info("Failed parsing Meshtastic message: '%s'", msg)
+        logger.info("Failed parsing message: '%s'", msg)
         return msg + "\n"
 
-    def _is_duplicate(self, src: int, packet_id: int) -> bool:
+    # Return TRUE if we got a duplicate packet, else FALSE
+    def isDuplicatePacket(self, src: int, packetId: int) -> bool:
         now = time.monotonic()
-        key = (src, packet_id)
-        if key in self._seen and now - self._seen[key] < self._DEDUP_TTL:
+        key = (src, packetId)
+        if key in self._seen and now - self._seen[key] < self.DEDUP_TTL:
             return True
         self._seen[key] = now
-        if len(self._seen) > self._DEDUP_MAX:
-            cutoff = now - self._DEDUP_TTL
+        if len(self._seen) > self.DEDUP_MAX:
+            cutoff = now - self.DEDUP_TTL
             self._seen = {k: v for k, v in self._seen.items() if v > cutoff}
         return False
 
-    def parsePayload(self, out: dict[str, object], data: bytes):
-        # crc: 1=OK, 0=error, -1=no CRC. Meshtastic always uses CRC.
-        if int(out.get("crc", 1)) < 1:  # type: ignore[arg-type]
-            logger.debug("Meshtastic: dropped packet with crc=%d", out.get("crc"))
+    #
+    # Parse Meshtastic packet (header + payload)
+    #
+    def parsePacket(self, data: bytes):
+        # Must have 16-byte header
+        if len(data) < 16:
             return None
 
+        # Parse header
         dst       = int.from_bytes(data[0:4], "little")
         src       = int.from_bytes(data[4:8], "little")
         packet_id = int.from_bytes(data[8:12], "little")
+        flags     = data[12]
 
-        if self._is_duplicate(src, packet_id):
-            return
+        # Drop duplicates
+        if self.isDuplicatePacket(src, packet_id):
+            return None
 
-        flags      = data[12]
-        chan_hash  = data[13]
-        next_hop   = data[14]
-        relay_node = data[15]
-        encrypted  = data[16:]
-
-        hop_limit = flags & 0x07
-        want_ack  = bool(flags & 0x08)
-        via_mqtt  = bool(flags & 0x10)
-        hop_start = (flags >> 5) & 0x07
-
-        mesh = {
-            "dst":          f"{dst:08x}",
-            "src":          f"{src:08x}",
-            "packet_id":    f"{packet_id:08x}",
-            "hop_limit":    hop_limit,
-            "hop_start":    hop_start,
-            "want_ack":     want_ack,
-            "via_mqtt":     via_mqtt,
-            "channel_hash": f"{chan_hash:02x}",
-            "next_hop":     f"{next_hop:02x}",
-            "relay_node":   f"{relay_node:02x}",
+        # Place header data into the output
+        out = {
+            "mode":         "Meshtastic",
+            "timestamp":    round(datetime.now(timezone.utc).timestamp() * 1000),
+            "dst":          dst,
+            "src":          src,
+            "packet_id":    packet_id,
+            "hop_limit":    flags & 0x07,
+            "hop_start":    (flags >> 5) & 0xE0,
+            "want_ack":     bool(flags & 0x08),
+            "via_mqtt":     bool(flags & 0x10),
+            "channel_hash": data[13],
+            "next_hop":     data[14],
+            "relay_node":   data[15],
         }
 
-        meshtastic_data = None
+        # Add reception frequency, if known
+        if self.frequency:
+            out["freq"] = self.frequency
 
-        if _aes_available and encrypted:
+        # If packet has data and we can decrypt it...
+        if _aes_available and _protobuf_available and len(data) > 16:
             try:
-                decrypted = _decrypt_payload(self._key, src, packet_id, encrypted)
-                if _protobuf_available:
-                    meshtastic_data = _parse_data_message(decrypted)
-                    if meshtastic_data:
-                        mesh["portnum"]      = meshtastic_data["portnum"]
-                        mesh["portnum_name"] = meshtastic_data["portnum_name"]
-                        decoded = meshtastic_data.get("payload_decoded") or {}
-                        mesh["summary"] = decoded.get("summary", "")
-                        mesh["data"]    = (decoded.get("data") or {})
-                        if meshtastic_data["portnum"] == 4:
-                            self._update_node_cache(src, mesh["data"])  # type: ignore[arg-type]
-            except Exception as e:
-                logger.debug("Meshtastic decrypt/decode failed for %s: %s", mesh["src"], e)
+                # Prepare decryption engine
+                prefix = packet_id.to_bytes(8, "little") + src.to_bytes(4, "little")
+                ctr    = Counter.new(32, prefix=prefix, initial_value=0)
+                cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
 
-        # Annotate src/dst with cached names/role/hw_model (if known)
-        src_hex = f"{src:08x}"
-        dst_hex = f"{dst:08x}"
-        for key, field in (("short_name", "src_short_name"), ("long_name", "src_long_name"),
-                           ("role", "src_role"), ("hw_model", "src_hw_model")):
-            val = self._cache_str(src_hex, key)
+                # Decrypt and parse packet data
+                parsed = mesh_pb2.Data()
+                parsed.ParseFromString(cipher.decrypt(data[16:]))
+                self.parsePayload(out, int(parsed.portnum), parsed.payload)
+
+            except Exception as e:
+                logger.debug("Decrypt/decode failed for !%08x: %s", out["src"], e)
+
+        # Annotate src address with cached names/role/hw_model (if known)
+        for key, field in (
+            ("short_name", "src_short_name"), ("long_name", "src_long_name"),
+            ("role", "src_role"), ("hw_model", "src_hw_model")
+            ):
+            val = self._cache_str(out["src"], key)
             if val:
-                mesh[field] = val
+               out[field] = val
+
+        # Annotate dst address with cached names/role/hw_model (if known)
         if dst != 0xFFFFFFFF:
             for key, field in (("short_name", "dst_short_name"), ("long_name", "dst_long_name")):
-                val = self._cache_str(dst_hex, key)
+                val = self._cache_str(out["dst"], key)
                 if val:
-                    mesh[field] = val
+                    out[field] = val
 
-        out["mode"] = "Meshtastic"
-        out["timestamp"] = round(datetime.now(timezone.utc).timestamp() * 1000)
-        out["meshtastic"] = mesh
+        # Update map marker
+        if "lat" in out and "lon" in out:
+            loc = MeshtasticLocation(out["lat"], out["lon"], out)
+            Map.getSharedInstance().updateLocation(f"!{src:08x}", loc, "Meshtastic", self._band)
 
-        self._update_map(out, src, meshtastic_data)
+        # Report received packet
+        ReportingEngine.getSharedInstance().spot(out)
 
-        # Update last_heard after all per-packet data is cached, so a flush triggered
-        # here always sees the complete entry (including any freshly cached position).
+        # Update last_heard after all per-packet data is cached, so a flush
+        # triggered here always sees the complete entry, including any
+        # freshly cached position.
         self._touch_last_heard(src)
+
+        # Done
         return out
+
+    #
+    # Parse decrypted Meshtastic payload
+    #
+    def parsePayload(self, out, port, payload):
+        # Add port number
+        out["portnum"]      = port
+        out["portnum_name"] = _portnum_name(port)
+
+        # For text messages, add text
+        if port in (1, 7):
+            try:
+                out["message"] = payload.decode("utf-8")
+            except Exception:
+                out["message"] = payload.decode("utf-8", errors="replace")
+            return
+
+        cls = APP_PROTO_DECODERS.get(port)
+        if cls is None:
+            return
+
+        try:
+            msg = cls()
+            msg.ParseFromString(payload)
+            data = MessageToDict(msg, preserving_proto_field_name=True)
+
+            if port == 3:
+                if "latitude_i" in data:
+                    out["lat"] = int(data["latitude_i"]) / 10000000
+                if "longitude_i" in data:
+                    out["lon"] = int(data["longitude_i"]) / 10000000
+                if "altitude" in data:
+                    out["alt"] = int(data["altitude"])
+            elif port == 4:
+                out["comment"] = _nodeinfo_summary(data)
+            elif port == 5:
+                out["comment"] = _routing_summary(data)
+            elif port == 6:
+                out["comment"] = _summarize_fields(data, [("set_owner", "owner"), ("set_config", "config"), ("reboot_seconds", "reboot")])
+            elif port == 8:
+                if "name" in data and "latitude_i" in data and "longitude_i" in data:
+                    out["waypoint"] = {
+                        "name" : data["name"],
+                        "lat"  : int(data["latitude_i"]) / 10000000,
+                        "lon"  : int(data["longitude_i"]) / 10000000
+                    }
+                else:
+                    out["comment"] = _summarize_fields(data)
+            elif port == 67:
+                out["comment"] = _telemetry_summary(data)
+            elif port == 70:
+                out["comment"] = _summarize_fields(data, [("route", "route"), ("route_back", "route_back")])
+            elif port == 71:
+                out["comment"] = _summarize_fields(data, [("node_id", "node"), ("neighbors", "neighbors")])
+            elif port == 72:
+                out["comment"] = _summarize_fields(data, [("contact", "contact"), ("group", "group")])
+            else:
+                out["comment"] = _summarize_fields(data)
+
+    except Exception:
+        logger.debug("Payload parsing failed for !%08x: %s", out["src"], e)
+        return None
 
     def _load_node_cache(self) -> dict[str, dict[str, str | int | float | bool | None]]:
         try:
@@ -527,46 +478,3 @@ class MeshtasticParser(TextParser):
 
     def _node_display_name(self, src_hex: str) -> str | None:
         return self._cache_str(src_hex, "long_name") or self._cache_str(src_hex, "short_name")
-
-    def _update_map(self, out, src, meshtastic_data):
-        if not meshtastic_data or meshtastic_data.get("portnum") != 3:
-            return
-        decoded = (meshtastic_data.get("payload_decoded") or {}).get("data") or {}
-        lat_i = decoded.get("latitude_i")
-        lon_i = decoded.get("longitude_i")
-        if lat_i is None or lon_i is None:
-            return
-        lat = int(lat_i) / 1e7
-        lon = int(lon_i) / 1e7
-        alt     = decoded.get("altitude")
-        src_hex = f"{src:08x}"
-        node_id = f"!{src_hex}"
-
-        # Cache position in node entry
-        entry: dict[str, str | int | float | bool | None] = dict(self._node_cache.get(src_hex, {}))
-        entry["lat"] = lat
-        entry["lon"] = lon
-        if alt is not None:
-            entry["alt"] = int(alt)
-        entry["last_heard"] = round(datetime.now(timezone.utc).timestamp() * 1000)
-        self._node_cache[src_hex] = entry
-        self._mark_cache_dirty()
-
-        hop_limit = out.get("meshtastic", {}).get("hop_limit")
-        hop_start = out.get("meshtastic", {}).get("hop_start")
-        summary   = out.get("meshtastic", {}).get("summary") or ""
-        loc = MeshtasticLocation(lat, lon,
-                                 alt=int(alt) if alt is not None else None,
-                                 src=src_hex,
-                                 hop_limit=hop_limit,
-                                 hop_start=hop_start,
-                                 summary=summary,
-                                 long_name=self._cache_str(src_hex, "long_name"),
-                                 short_name=self._cache_str(src_hex, "short_name"),
-                                 role=self._cache_str(src_hex, "role"),
-                                 hw_model=self._cache_str(src_hex, "hw_model"))
-        Map.getSharedInstance().updateLocation(node_id, loc, "Meshtastic", self._band)
-        out["lat"] = lat
-        out["lon"] = lon
-        if alt is not None:
-            out["altitude"] = int(alt)
