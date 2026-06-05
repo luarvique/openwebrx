@@ -1,8 +1,10 @@
 **1.2.116**
 - Added Sondehub reporter for RS41 telemetry [Hai Tran].
+- Added paho-mqtt 2.0 compatibility [Marc Fontaine].
 - Added LoRa APRS parser [Stefan DC4HF].
-- Adding per-profile PPM correction option.
+- Added per-profile PPM correction option.
 - Fixed exception when stopping AdsbParser.
+- Fixed exception when stopping services.
 
 **1.2.115**
 - Added [T] shortcut to enter frequency [Rene Jaun].
