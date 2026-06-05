@@ -229,9 +229,9 @@ class MeshtasticParser(TextParser):
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
-        self._band = Bandplan.getSharedInstance().findBand(frequency)
+        self.band = Bandplan.getSharedInstance().findBand(frequency)
 
-    def loadNodeCache(fileName: str):
+    def loadNodeCache(self, fileName: str):
         try:
             with open(fileName, "r") as f:
                 return json.load(f)
@@ -239,7 +239,7 @@ class MeshtasticParser(TextParser):
             logger.debug("Failed loading node cache from '%s': %s", fileName, e)
         return {}
 
-    def saveNodeCache(fileName: str, data) -> boolean:
+    def saveNodeCache(self, fileName: str, data) -> boolean:
         try:
             with open(fileName, "w") as f:
                 json.dump(data, f)
@@ -248,7 +248,7 @@ class MeshtasticParser(TextParser):
             logger.debug("Failed saving node cache to '%s': %s", fileName, e)
         return False
 
-    def cacheNode(node: int, data):
+    def cacheNode(self, node: int, data):
         with self.nodes:
             # Our current time
             now = time.monotonic()
@@ -351,25 +351,28 @@ class MeshtasticParser(TextParser):
             except Exception as e:
                 logger.debug("Decrypt/decode failed for !%08x: %s", out["src"], e)
 
-        # Annotate src address with cached names/role/hw_model (if known)
+        # Annotate src address with cached information
         if src in self.nodes:
+            cached = self.nodes[src]
             for key, field in (
-                ("short_name", "src_short_name"), ("long_name", "src_long_name"),
-                ("role", "src_role"), ("hw_model", "src_hw_model")
+                ("short_name", "short_name"), ("long_name", "long_name"),
+                ("role", "role"), ("hw_model", "hw_model"),
+                ("lat", "lat"), ("lon", "lon"), ("alt", "alt")
                 ):
-                if key in self.nodes[src]:
-                    out[field] = self.nodes[src][key]
+                if key in cached:
+                    out[field] = cached[key]
 
-        # Annotate dst address with cached names/role/hw_model (if known)
+        # Annotate dst address with cached information
         if dst != 0xFFFFFFFF and dst in self.nodes:
+            cached = self.nodes[dst]
             for key, field in (("short_name", "dst_short_name"), ("long_name", "dst_long_name")):
-                if key in self.nodes[dst]:
-                    out[field] = self.nodes[dst][key]
+                if key in cached:
+                    out[field] = cached[key]
 
         # Update map marker
         if "lat" in out and "lon" in out:
             loc = MeshtasticLocation(out["lat"], out["lon"], out)
-            Map.getSharedInstance().updateLocation(f"!{src:08x}", loc, "Meshtastic", self._band)
+            Map.getSharedInstance().updateLocation(f"!{src:08x}", loc, "Meshtastic", self.band)
 
         # Report received packet
         ReportingEngine.getSharedInstance().spot(out)
