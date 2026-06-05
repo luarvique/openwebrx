@@ -1,4 +1,5 @@
 from owrx.toolbox import TextParser
+from owrx.color import ColorCache
 from owrx.reporting import ReportingEngine
 from owrx.map import Map, LatLngLocation
 from owrx.bands import Bandplan, Band
@@ -77,7 +78,7 @@ def _expand_short_psk(index):
 
 def _resolve_key(raw_key):
     raw = raw_key.strip()
-    if raw.lower() in ("default", "aq=="):
+    if raw.lower() in ["default", "aq=="]:
         return _expand_short_psk(1)
     candidate = raw[2:] if raw.lower().startswith("0x") else raw
     candidate = candidate.replace(":", "").replace("-", "")
@@ -87,14 +88,14 @@ def _resolve_key(raw_key):
         key = base64.b64decode(raw, validate=True)
     if len(key) == 1:
         return _expand_short_psk(key[0])
-    if len(key) in (16, 32):
+    elif if len(key) in [16, 32]:
         return key
-    if 1 < len(key) < 16:
+    elif if 1 < len(key) < 16:
         return key + b"\x00" * (16 - len(key))
-    if 16 < len(key) < 32:
+    elif if 16 < len(key) < 32:
         return key + b"\x00" * (32 - len(key))
-    raise ValueError(f"Unsupported key length: {len(key)}")
-
+    else:
+        raise ValueError(f"Unsupported key length: {len(key)}")
 
 def _telemetry_summary(data):
     sections = [
@@ -200,14 +201,14 @@ def _summarize_fields(data, preferred=None, limit=4):
 class MeshtasticLocation(LatLngLocation):
     def __init__(self, lat, lon, data):
         super().__init__(lat, lon)
-        self.data = data
-
-    def getTTL(self) -> timedelta:
-        return timedelta(hours=4)
+        self.data = { k: v for k, v in data.items() if k in [
+            "altitude", "short_name", "long_name", "device", "role"
+        ]}
+        # @@@ Make TTL configurable!
+        self.data["ttl"] = data["timestamp"] + 4 * 60 * 60 * 1000
 
     def __dict__(self):
         res = super().__dict__()
-        res["ttl"] = round((datetime.now(timezone.utc) + self.getTTL()).timestamp() * 1000)
         res.append(data)
         return res
 
@@ -215,6 +216,7 @@ class MeshtasticLocation(LatLngLocation):
 class MeshtasticParser(TextParser):
     CACHE_FILENAME = "meshtastic.json"
     CACHE_SAVE_INTERVAL = 60 * 60
+    CACHE_TTL = 7 * 24 * 60 * 60
     DEDUP_TTL = 60
     DEDUP_MAX = 4096
 
@@ -222,10 +224,11 @@ class MeshtasticParser(TextParser):
         super().__init__(filePrefix="MHTC", service=service)
         self.fileName = Storage.getFilePath(self.CACHE_FILENAME)
         self.lastSave = time.monotonic()
-        self.nodes = self.loadNodeCache(self.fileName)
-        self.band = None
-        self.seen = {}
-        self.key  = _resolve_key("AQ==")
+        self.nodes    = self.loadNodeCache(self.fileName)
+        self.colors   = ColorCache()
+        self.band     = None
+        self.seen     = {}
+        self.key      = _resolve_key("AQ==")
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
@@ -234,7 +237,9 @@ class MeshtasticParser(TextParser):
     def loadNodeCache(self, fileName: str):
         try:
             with open(fileName, "r") as f:
-                return json.load(f)
+                nodes = json.load(f)
+                now   = time.monotonic()
+                return { x for x in nodes if now - x["seen"] < self.CACHE_TTL }
         except Exception as e:
             logger.debug("Failed loading node cache from '%s': %s", fileName, e)
         return {}
@@ -254,9 +259,9 @@ class MeshtasticParser(TextParser):
             now = time.monotonic()
             # Collect cacheable fields
             updates = {}
-            for key in ("lat", "lon", "alt", "long_name", "short_name", "role", "hw_model", "is_licensed"):
+            for key in ["lat", "lon", "altitude", "long_name", "short_name", "role", "hw_model", "is_licensed"]:
                 if key in data:
-                    update[key] = data[key]
+                    updates[key] = data[key]
             # Update cached node information
             if updates:
                 if node in self.nodes:
@@ -315,20 +320,22 @@ class MeshtasticParser(TextParser):
         if self.isDuplicatePacket(src, packet_id):
             return None
 
+        # Parse rest of header
+        hop_limit    = flags & 0x07
+        hop_start    = (flags >> 5) & 0xE0
+        want_ack     = bool(flags & 0x08)
+        via_mqtt     = bool(flags & 0x10)
+        channel_hash = data[13]
+        next_hop     = data[14]
+        relay_node   = data[15]
+
         # Place header data into the output
         out = {
-            "mode":         "Meshtastic",
-            "timestamp":    round(datetime.now(timezone.utc).timestamp() * 1000),
-            "dst":          dst,
-            "src":          src,
-            "packet_id":    packet_id,
-            "hop_limit":    flags & 0x07,
-            "hop_start":    (flags >> 5) & 0xE0,
-            "want_ack":     bool(flags & 0x08),
-            "via_mqtt":     bool(flags & 0x10),
-            "channel_hash": data[13],
-            "next_hop":     data[14],
-            "relay_node":   data[15],
+            "mode":      "Meshtastic",
+            "timestamp": round(datetime.now(timezone.utc).timestamp() * 1000),
+            "dst":       dst,
+            "src":       src,
+            "color":     self.colors.getColor(src),
         }
 
         # Add reception frequency, if known
@@ -354,18 +361,18 @@ class MeshtasticParser(TextParser):
         # Annotate src address with cached information
         if src in self.nodes:
             cached = self.nodes[src]
-            for key, field in (
+            for key, field in [
                 ("short_name", "short_name"), ("long_name", "long_name"),
-                ("role", "role"), ("hw_model", "hw_model"),
-                ("lat", "lat"), ("lon", "lon"), ("alt", "alt")
-                ):
+                ("role", "role"), ("hw_model", "device"),
+                ("lat", "lat"), ("lon", "lon"), ("altitude", "altitude")
+                ]:
                 if key in cached:
                     out[field] = cached[key]
 
         # Annotate dst address with cached information
         if dst != 0xFFFFFFFF and dst in self.nodes:
             cached = self.nodes[dst]
-            for key, field in (("short_name", "dst_short_name"), ("long_name", "dst_long_name")):
+            for key, field in [("short_name", "dst_short_name"), ("long_name", "dst_long_name")]:
                 if key in cached:
                     out[field] = cached[key]
 
@@ -389,11 +396,8 @@ class MeshtasticParser(TextParser):
         out["port_name"] = portnums_pb2.PortNum.Name(port)
 
         # For text messages, add text
-        if port in (1, 7):
-            try:
-                out["message"] = payload.decode("utf-8")
-            except Exception:
-                out["message"] = payload.decode("utf-8", errors="replace")
+        if port in [1, 7]:
+            out["message"] = payload.decode("utf-8", errors="replace")
             return
 
         cls = APP_PROTO_DECODERS.get(port)
@@ -412,7 +416,7 @@ class MeshtasticParser(TextParser):
                 if "longitude_i" in data:
                     out["lon"] = int(data["longitude_i"]) / 10000000
                 if "altitude" in data:
-                    out["alt"] = int(data["altitude"])
+                    out["altitude"] = int(data["altitude"])
                 self.cacheNode(src, out)
             elif port == 4:
                 out["comment"] = _nodeinfo_summary(data)
