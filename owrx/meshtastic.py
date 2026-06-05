@@ -382,8 +382,8 @@ class MeshtasticParser(TextParser):
     #
     def parsePayload(self, out, port, payload):
         # Add port number and name
-        out["port"]     = port
-        out["portName"] = portnums_pb2.PortNum.Name(port)
+        out["port"]      = port
+        out["port_name"] = portnums_pb2.PortNum.Name(port)
 
         # For text messages, add text
         if port in (1, 7):
