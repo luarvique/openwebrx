@@ -96,21 +96,6 @@ def _resolve_key(raw_key):
     raise ValueError(f"Unsupported key length: {len(key)}")
 
 
-def _portnum_name(portnum):
-    if not _protobuf_available:
-        return f"PORTNUM_{portnum}"
-    try:
-        return portnums_pb2.PortNum.Name(portnum)
-    except Exception:
-        return f"UNKNOWN_{portnum}"
-
-
-def _append_metric(metrics, key, label, parts, unit=""):
-    value = metrics.get(key)
-    if value is not None:
-        parts.append(f"{label}={value}{unit}")
-
-
 def _telemetry_summary(data):
     sections = [
         ("device_metrics", [
@@ -137,14 +122,12 @@ def _telemetry_summary(data):
     ]
     for section, fields in sections:
         metrics = data.get(section)
-        if not isinstance(metrics, dict):
-            continue
-        parts = []
-        for key, label, unit in fields:
-            _append_metric(metrics, key, label, parts, unit)
-        if parts:
-            return f"{section}: " + ", ".join(parts)
-        return section
+        if isinstance(metrics, dict):
+            parts = []
+            for key, label, unit in fields:
+                if key in metrics:
+                    parts.append(f"{label}={metrics[key]}{unit}")
+            return f"{section}: " + ", ".join(parts) if parts else section
     return None
 
 
@@ -230,23 +213,62 @@ class MeshtasticLocation(LatLngLocation):
 
 
 class MeshtasticParser(TextParser):
-    CACHE_SAVE_INTERVAL = 60
+    CACHE_FILENAME = "meshtastic.json"
+    CACHE_SAVE_INTERVAL = 60 * 60
     DEDUP_TTL = 60
     DEDUP_MAX = 4096
 
     def __init__(self, service: bool = False) -> None:
         super().__init__(filePrefix="MHTC", service=service)
-        self._key:              bytes = _resolve_key("AQ==")
-        self._band:             Band | None = None
-        self._seen:             dict[tuple[int, int], float] = {}
-        self._cache_file:       str   = Storage.getFilePath("meshtastic_nodes.json")
-        self._cache_dirty:      bool  = False
-        self._cache_last_saved: float = 0.0
-        self._node_cache:       dict[str, dict[str, str | int | float | bool | None]] = self._load_node_cache()
+        self.fileName = Storage.getFilePath(self.CACHE_FILENAME)
+        self.lastSave = time.monotonic()
+        self.nodes = self.loadNodeCache(self.fileName)
+        self.band = None
+        self.seen = {}
+        self.key  = _resolve_key("AQ==")
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
         self._band = Bandplan.getSharedInstance().findBand(frequency)
+
+    def loadNodeCache(fileName: str):
+        try:
+            with open(fileName, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.debug("Failed loading node cache from '%s': %s", fileName, e)
+        return {}
+
+    def saveNodeCache(fileName: str, data) -> boolean:
+        try:
+            with open(fileName, "w") as f:
+                json.dump(data, f)
+                return True
+        except Exception as e:
+            logger.debug("Failed saving node cache to '%s': %s", fileName, e)
+        return False
+
+    def cacheNode(node: int, data):
+        with self.nodes:
+            # Our current time
+            now = time.monotonic()
+            # Collect cacheable fields
+            updates = {}
+            for key in ("lat", "lon", "alt", "long_name", "short_name", "role", "hw_model", "is_licensed"):
+                if key in data:
+                    update[key] = data[key]
+            # Update cached node information
+            if updates:
+                if node in self.nodes:
+                    self.nodes[node].update(updates)
+                else:
+                    self.nodes[node] = updates
+                # Save last-seen timestamp
+                self.nodes[node]["seen"] = now
+            # If it is time to save...
+            if now - self.lastSave >= CACHE_SAVE_INTERVAL:
+                self.saveNodeCache(self.FileName, self.nodes)
+                self.lastSave = now
 
     # Parse Meshtastic message received by LoraRX
     def parse(self, msg: bytes):
@@ -267,12 +289,12 @@ class MeshtasticParser(TextParser):
     def isDuplicatePacket(self, src: int, packetId: int) -> bool:
         now = time.monotonic()
         key = (src, packetId)
-        if key in self._seen and now - self._seen[key] < self.DEDUP_TTL:
+        if key in self.seen and now - self.seen[key] < self.DEDUP_TTL:
             return True
-        self._seen[key] = now
-        if len(self._seen) > self.DEDUP_MAX:
+        self.seen[key] = now
+        if len(self.seen) > self.DEDUP_MAX:
             cutoff = now - self.DEDUP_TTL
-            self._seen = {k: v for k, v in self._seen.items() if v > cutoff}
+            self.seen = { k: v for k, v in self.seen.items() if v > cutoff }
         return False
 
     #
@@ -319,7 +341,7 @@ class MeshtasticParser(TextParser):
                 # Prepare decryption engine
                 prefix = packet_id.to_bytes(8, "little") + src.to_bytes(4, "little")
                 ctr    = Counter.new(32, prefix=prefix, initial_value=0)
-                cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
+                cipher = AES.new(self.key, AES.MODE_CTR, counter=ctr)
 
                 # Decrypt and parse packet data
                 parsed = mesh_pb2.Data()
@@ -330,20 +352,19 @@ class MeshtasticParser(TextParser):
                 logger.debug("Decrypt/decode failed for !%08x: %s", out["src"], e)
 
         # Annotate src address with cached names/role/hw_model (if known)
-        for key, field in (
-            ("short_name", "src_short_name"), ("long_name", "src_long_name"),
-            ("role", "src_role"), ("hw_model", "src_hw_model")
-            ):
-            val = self._cache_str(out["src"], key)
-            if val:
-               out[field] = val
+        if src in self.nodes:
+            for key, field in (
+                ("short_name", "src_short_name"), ("long_name", "src_long_name"),
+                ("role", "src_role"), ("hw_model", "src_hw_model")
+                ):
+                if key in self.nodes[src]:
+                    out[field] = self.nodes[src][key]
 
         # Annotate dst address with cached names/role/hw_model (if known)
-        if dst != 0xFFFFFFFF:
+        if dst != 0xFFFFFFFF and dst in self.nodes:
             for key, field in (("short_name", "dst_short_name"), ("long_name", "dst_long_name")):
-                val = self._cache_str(out["dst"], key)
-                if val:
-                    out[field] = val
+                if key in self.nodes[dst]:
+                    out[field] = self.nodes[dst][key]
 
         # Update map marker
         if "lat" in out and "lon" in out:
@@ -353,11 +374,6 @@ class MeshtasticParser(TextParser):
         # Report received packet
         ReportingEngine.getSharedInstance().spot(out)
 
-        # Update last_heard after all per-packet data is cached, so a flush
-        # triggered here always sees the complete entry, including any
-        # freshly cached position.
-        self._touch_last_heard(src)
-
         # Done
         return out
 
@@ -365,9 +381,9 @@ class MeshtasticParser(TextParser):
     # Parse decrypted Meshtastic payload
     #
     def parsePayload(self, out, port, payload):
-        # Add port number
-        out["portnum"]      = port
-        out["portnum_name"] = _portnum_name(port)
+        # Add port number and name
+        out["port"]     = port
+        out["portName"] = portnums_pb2.PortNum.Name(port)
 
         # For text messages, add text
         if port in (1, 7):
@@ -385,6 +401,7 @@ class MeshtasticParser(TextParser):
             msg = cls()
             msg.ParseFromString(payload)
             data = MessageToDict(msg, preserving_proto_field_name=True)
+            out["data"] = data
 
             if port == 3:
                 if "latitude_i" in data:
@@ -393,8 +410,10 @@ class MeshtasticParser(TextParser):
                     out["lon"] = int(data["longitude_i"]) / 10000000
                 if "altitude" in data:
                     out["alt"] = int(data["altitude"])
+                self.cacheNode(src, out)
             elif port == 4:
                 out["comment"] = _nodeinfo_summary(data)
+                self.cacheNode(src, data)
             elif port == 5:
                 out["comment"] = _routing_summary(data)
             elif port == 6:
@@ -422,59 +441,3 @@ class MeshtasticParser(TextParser):
     except Exception:
         logger.debug("Payload parsing failed for !%08x: %s", out["src"], e)
         return None
-
-    def _load_node_cache(self) -> dict[str, dict[str, str | int | float | bool | None]]:
-        try:
-            with open(self._cache_file, "r") as f:
-                data = json.load(f)
-                if isinstance(data, dict):
-                    return data  # type: ignore[return-value]
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
-        return {}
-
-    def _mark_cache_dirty(self) -> None:
-        self._cache_dirty = True
-        if time.monotonic() - self._cache_last_saved >= self._CACHE_SAVE_INTERVAL:
-            self._flush_node_cache()
-
-    def _flush_node_cache(self) -> None:
-        if not self._cache_dirty:
-            return
-        try:
-            with open(self._cache_file, "w") as f:
-                json.dump(self._node_cache, f, indent=2)
-            self._cache_dirty = False
-            self._cache_last_saved = time.monotonic()
-            logger.debug("Meshtastic: node cache saved (%d entries)", len(self._node_cache))
-        except Exception:
-            logger.exception("Meshtastic: failed to save node cache")
-
-    def _cache_str(self, src_hex: str, key: str) -> str | None:
-        val = self._node_cache.get(src_hex, {}).get(key)
-        return str(val) if val is not None else None
-
-    def _update_node_cache(self, src: int, data: dict[str, object]) -> None:
-        src_hex = f"{src:08x}"
-        entry: dict[str, str | int | float | bool | None] = dict(self._node_cache.get(src_hex, {}))
-        for key in ("long_name", "short_name", "role", "hw_model", "is_licensed"):
-            val = data.get(key)
-            if val is not None and val != "":
-                entry[key] = str(val) if not isinstance(val, bool) else val
-        node_id_val = data.get("id")
-        if node_id_val:
-            entry["node_id"] = str(node_id_val)
-        entry["last_heard"] = round(datetime.now(timezone.utc).timestamp() * 1000)
-        self._node_cache[src_hex] = entry
-        logger.debug("Meshtastic: cached node %s: %s", src_hex, entry)
-        self._mark_cache_dirty()
-
-    def _touch_last_heard(self, src: int) -> None:
-        src_hex = f"{src:08x}"
-        entry: dict[str, str | int | float | bool | None] = dict(self._node_cache.get(src_hex, {}))
-        entry["last_heard"] = round(datetime.now(timezone.utc).timestamp() * 1000)
-        self._node_cache[src_hex] = entry
-        self._mark_cache_dirty()
-
-    def _node_display_name(self, src_hex: str) -> str | None:
-        return self._cache_str(src_hex, "long_name") or self._cache_str(src_hex, "short_name")
