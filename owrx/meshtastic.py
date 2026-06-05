@@ -438,6 +438,6 @@ class MeshtasticParser(TextParser):
             else:
                 out["comment"] = _summarize_fields(data)
 
-    except Exception:
-        logger.debug("Payload parsing failed for !%08x: %s", out["src"], e)
-        return None
+        except Exception as e:
+            logger.debug("Payload parsing failed for !%08x: %s", out["src"], e)
+            return None
