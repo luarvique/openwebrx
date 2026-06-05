@@ -470,11 +470,13 @@ class Services(object):
         for key, source in changes.items():
             if source is PropertyDeleted:
                 if key in Services.handlers:
-                    Services.handlers[key].shutdown()
+                    handler = Services.handlers[key]
                     del Services.handlers[key]
+                    handler.shutdown()
                 if key in Services.schedulers:
-                    Services.schedulers[key].shutdown()
+                    scheduler = Services.schedulers[key]
                     del Services.schedulers[key]
+                    scheduler.shutdown()
             else:
                 Services.schedulers[key] = ServiceScheduler(source)
                 if Config.get()["services_enabled"]:
