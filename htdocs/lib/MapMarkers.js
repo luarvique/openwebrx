@@ -19,7 +19,7 @@ function MarkerManager() {
         'VDL2'      : '#000080',
         'ADSB'      : '#000000',
         'UAT'       : '#800080',
-        'Meshtastic': '#2e8b57'
+        'Meshtastic': '#2E8B57'
     };
 
     // Symbols used for marker types
@@ -214,19 +214,10 @@ FeatureMarker.prototype.update = function(update) {
     this.mmode    = update.location.mmode;
     // Generic vendor-specific details
     this.details  = update.location.details;
-
-    // Meshtastic stuff
-    if (this.mode === 'Meshtastic') {
-        this.src       = update.location.src;
-        this.hop_limit = update.location.hop_limit;
-        this.hop_start = update.location.hop_start;
-        this.comment   = update.location.summary;
-        // Preserve previously cached names/role/hw_model — only overwrite when present in this update
-        if (update.location.long_name)  this.long_name  = update.location.long_name;
-        if (update.location.short_name) this.short_name = update.location.short_name;
-        if (update.location.role)       this.role       = update.location.role;
-        if (update.location.hw_model)   this.hw_model   = update.location.hw_model;
-    }
+    // Meshtastic stuff (also message, comment, device, altitude)
+    this.longName = update.location.long_name;
+    this.nickName = update.location.short_name;
+    this.role     = update.location.role;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -356,23 +347,18 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         }
     }
 
-    //
     // Meshtastic data
-    //
-    if (this.long_name) {
-        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.long_name));
+    if (this.longName) {
+        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.longName));
     }
-    if (this.short_name) {
-        detailsString += Utils.makeListItem('Short Name', Utils.htmlEscape(this.short_name));
-    }
-    if (this.src) {
-        detailsString += Utils.makeListItem('Node ID', Utils.htmlEscape('!' + this.src));
+    if (this.nickName) {
+        detailsString += Utils.makeListItem('Nickname', Utils.htmlEscape(this.nickName));
     }
     if (this.role) {
         detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
     }
-    if (this.hop_limit && this.hop_start) {
-        detailsString += Utils.makeListItem('Hops', this.hop_limit + ' / ' + this.hop_start);
+    if (this.message) {
+        commentString += '<div align="center">' + Utils.htmlEscape(this.message) + '</div>';
     }
 
     var moreDetails = this.detailsData;
