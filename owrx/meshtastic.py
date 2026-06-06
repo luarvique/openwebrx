@@ -288,7 +288,7 @@ class MeshtasticParser(TextParser):
         # Message could not be parsed
         msg = msg.decode("utf-8", errors="replace")
         logger.info("Failed parsing message: '%s'", msg)
-        return msg + "\n"
+        return None
 
     # Return TRUE if we got a duplicate packet, else FALSE
     def isDuplicatePacket(self, src: int, packetId: int) -> bool:
