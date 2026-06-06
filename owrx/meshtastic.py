@@ -202,7 +202,7 @@ class MeshtasticLocation(LatLngLocation):
     def __init__(self, lat, lon, data):
         super().__init__(lat, lon)
         self.data = { k: v for k, v in data.items() if k in [
-            "altitude", "short_name", "long_name", "device", "role"
+            "message", "comment", "altitude", "short_name", "long_name", "device", "role"
         ]}
         # @@@ Make TTL configurable!
         self.data["ttl"] = data["timestamp"] + 4 * 60 * 60 * 1000
