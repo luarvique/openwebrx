@@ -409,7 +409,7 @@ class MeshtasticParser(TextParser):
         # Update map marker
         if "lat" in out and "lon" in out:
             loc = MeshtasticLocation(out["lat"], out["lon"], out)
-            Map.getSharedInstance().updateLocation(f"!{src:08x}", loc, "Meshtastic", self.band)
+            Map.getSharedInstance().updateLocation(f"!{src:08X}", loc, "Meshtastic", self.band)
 
         # Report received packet
         ReportingEngine.getSharedInstance().spot(out)
