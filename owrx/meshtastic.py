@@ -280,7 +280,7 @@ class MeshtasticLocation(LatLngLocation):
 
     def __dict__(self):
         res = super().__dict__()
-        res.update(data)
+        res.update(self.data)
         return res
 
 
@@ -362,6 +362,7 @@ class MeshtasticParser(TextParser):
         out = {
             "mode":      "Meshtastic",
             "timestamp": round(datetime.now(timezone.utc).timestamp() * 1000),
+            "comment":   f"{len(data)} bytes, hop {hop_start}/{hop_limit}",
             "dst":       dst,
             "src":       src,
             "color":     self.colors.getColor(src),

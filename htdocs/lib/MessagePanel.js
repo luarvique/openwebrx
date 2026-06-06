@@ -1069,7 +1069,7 @@ MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
     var tstamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
     var data   = msg.message || msg.comment || msg.type || '';
     var src    = '!' + msg.src.toString(16);
-    var dst    = msg.dst == 0xFFFFFFFF? '<ALL>' : '!' + msg.dst.toString(16);
+    var dst    = msg.dst == 0xFFFFFFFF? '&lt;ALL&gt;' : '!' + msg.dst.toString(16);
 
     // Append report
     var $b = $(this.el).find('tbody');
