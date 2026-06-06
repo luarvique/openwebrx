@@ -88,11 +88,11 @@ def _resolve_key(raw_key):
         key = base64.b64decode(raw, validate=True)
     if len(key) == 1:
         return _expand_short_psk(key[0])
-    elif if len(key) in [16, 32]:
+    elif len(key) in [16, 32]:
         return key
-    elif if 1 < len(key) < 16:
+    elif 1 < len(key) < 16:
         return key + b"\x00" * (16 - len(key))
-    elif if 16 < len(key) < 32:
+    elif 16 < len(key) < 32:
         return key + b"\x00" * (32 - len(key))
     else:
         raise ValueError(f"Unsupported key length: {len(key)}")
@@ -244,7 +244,7 @@ class MeshtasticParser(TextParser):
             logger.debug("Failed loading node cache from '%s': %s", fileName, e)
         return {}
 
-    def saveNodeCache(self, fileName: str, data) -> boolean:
+    def saveNodeCache(self, fileName: str, data) -> bool:
         try:
             with open(fileName, "w") as f:
                 json.dump(data, f)
