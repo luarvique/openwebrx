@@ -6,6 +6,7 @@ from owrx.bands import Bandplan, Band
 from owrx.storage import Storage
 from datetime import datetime, timezone, timedelta
 
+import threading
 import base64
 import json
 import logging
@@ -198,6 +199,76 @@ def _summarize_fields(data, preferred=None, limit=4):
     return ", ".join(parts) if parts else f"fields={','.join(list(data.keys())[:4])}"
 
 
+class MeshtasticCache():
+    CACHE_FILENAME = "meshtastic.json"
+    CACHE_SAVE_INTERVAL = 60 * 60
+    CACHE_TTL = 7 * 24 * 60 * 60
+
+    sharedInstance = None
+    creationLock = threading.Lock()
+
+    # Return a global instance of the Meshtastic node cache.
+    @staticmethod
+    def getSharedInstance():
+        with MeshtasticCache.creationLock:
+            if MeshtasticCache.sharedInstance is None:
+                MeshtasticCache.sharedInstance = MeshtasticCache()
+        return MeshtasticCache.sharedInstance
+
+    def __init__(self):
+        self.fileName  = Storage.getFilePath(self.CACHE_FILENAME)
+        self.lastSave  = time.monotonic()
+        self.cacheLock = threading.Lock()
+        self.nodeCache = self.loadNodeCache(self.fileName)
+
+    def loadNodeCache(self, fileName: str):
+        with self.cacheLock:
+            try:
+                with open(fileName, "r") as f:
+                    nodes = json.load(f)
+                    now   = time.monotonic()
+                    return { x for x in nodes if now - x["seen"] < CACHE_TTL }
+            except Exception as e:
+                logger.error("Failed loading node cache from '%s': %s", fileName, e)
+        return {}
+
+    def saveNodeCache(self, fileName: str, data) -> bool:
+        with self.cacheLock:
+            try:
+                with open(fileName, "w") as f:
+                    json.dump(data, f)
+                    return True
+            except Exception as e:
+                logger.error("Failed saving node cache to '%s': %s", fileName, e)
+        return False
+
+    def getNode(self, node: int):
+        with self.cacheLock:
+            return self.nodeCache[node] if node in self.nodeCache else None
+
+    def cacheNode(self, node: int, data):
+        with self.cacheLock:
+            # Our current time
+            now = time.monotonic()
+            # Collect cacheable fields
+            updates = {}
+            for key in ["lat", "lon", "altitude", "long_name", "short_name", "role", "hw_model", "is_licensed"]:
+                if key in data:
+                    updates[key] = data[key]
+            # Update cached node information
+            if updates:
+                if node in self.nodeCache:
+                    self.nodeCache[node].update(updates)
+                else:
+                    self.nodeCache[node] = updates
+                # Save last-seen timestamp
+                self.nodeCache[node]["seen"] = now
+            # If it is time to save...
+            if now - self.lastSave >= self.CACHE_SAVE_INTERVAL:
+                self.saveNodeCache(self.fileName, self.nodeCache)
+                self.lastSave = now
+
+
 class MeshtasticLocation(LatLngLocation):
     def __init__(self, lat, lon, data):
         super().__init__(lat, lon)
@@ -209,85 +280,41 @@ class MeshtasticLocation(LatLngLocation):
 
     def __dict__(self):
         res = super().__dict__()
-        res.append(data)
+        res.update(data)
         return res
 
 
 class MeshtasticParser(TextParser):
-    CACHE_FILENAME = "meshtastic.json"
-    CACHE_SAVE_INTERVAL = 60 * 60
-    CACHE_TTL = 7 * 24 * 60 * 60
     DEDUP_TTL = 60
     DEDUP_MAX = 4096
 
     def __init__(self, service: bool = False) -> None:
         super().__init__(filePrefix="MHTC", service=service)
-        self.fileName = Storage.getFilePath(self.CACHE_FILENAME)
-        self.lastSave = time.monotonic()
-        self.nodes    = self.loadNodeCache(self.fileName)
-        self.colors   = ColorCache()
-        self.band     = None
-        self.seen     = {}
-        self.key      = _resolve_key("AQ==")
+        self.colors = ColorCache()
+        self.band   = None
+        self.seen   = {}
+        self.key    = _resolve_key("AQ==")
 
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
         self.band = Bandplan.getSharedInstance().findBand(frequency)
 
-    def loadNodeCache(self, fileName: str):
-        try:
-            with open(fileName, "r") as f:
-                nodes = json.load(f)
-                now   = time.monotonic()
-                return { x for x in nodes if now - x["seen"] < self.CACHE_TTL }
-        except Exception as e:
-            logger.debug("Failed loading node cache from '%s': %s", fileName, e)
-        return {}
-
-    def saveNodeCache(self, fileName: str, data) -> bool:
-        try:
-            with open(fileName, "w") as f:
-                json.dump(data, f)
-                return True
-        except Exception as e:
-            logger.debug("Failed saving node cache to '%s': %s", fileName, e)
-        return False
-
-    def cacheNode(self, node: int, data):
-        with self.nodes:
-            # Our current time
-            now = time.monotonic()
-            # Collect cacheable fields
-            updates = {}
-            for key in ["lat", "lon", "altitude", "long_name", "short_name", "role", "hw_model", "is_licensed"]:
-                if key in data:
-                    updates[key] = data[key]
-            # Update cached node information
-            if updates:
-                if node in self.nodes:
-                    self.nodes[node].update(updates)
-                else:
-                    self.nodes[node] = updates
-                # Save last-seen timestamp
-                self.nodes[node]["seen"] = now
-            # If it is time to save...
-            if now - self.lastSave >= CACHE_SAVE_INTERVAL:
-                self.saveNodeCache(self.FileName, self.nodes)
-                self.lastSave = now
-
     # Parse Meshtastic message received by LoraRX
     def parse(self, msg: bytes):
+        # Try parsing JSON, drop out if failed (not JSON)
         try:
-            # Try parsing JSON
             data = json.loads(msg)
-            # Meshtastic packet must have payload and valid CRC
-            if "payload" in data and "crc" in data and data["crc"] >= 1:
-                return self.parsePacket(base64.b64decode(data["payload"]))
+        except Exception:
+            return None
+        # Meshtastic packet must have payload and valid CRC
+        if "payload" not in data or "crc" not in data or data["crc"] < 1:
+            return None
+        # Try parsing Meshtastic packer
+        try:
+            return self.parsePacket(base64.b64decode(data["payload"]))
         except Exception as e:
-            logger.error("Exception parsing message: %s", str(e))
-        # Message could not be parsed
-        msg = msg.decode("utf-8", errors="replace")
-        logger.info("Failed parsing message: '%s'", msg)
+            logger.error("Initial parse failed: %s", e)
+        # Could not parse
         return None
 
     # Return TRUE if we got a duplicate packet, else FALSE
@@ -315,6 +342,8 @@ class MeshtasticParser(TextParser):
         src       = int.from_bytes(data[4:8], "little")
         packet_id = int.from_bytes(data[8:12], "little")
         flags     = data[12]
+
+        logger.info("Parsing %d-byte packet from !%08X to !%08X", len(data), src, dst)
 
         # Drop duplicates
         if self.isDuplicatePacket(src, packet_id):
@@ -356,11 +385,11 @@ class MeshtasticParser(TextParser):
                 self.parsePayload(out, int(parsed.portnum), parsed.payload)
 
             except Exception as e:
-                logger.debug("Decrypt/decode failed for !%08x: %s", out["src"], e)
+                logger.error("Decrypt/decode failed for !%08x: %s", src, e)
 
         # Annotate src address with cached information
-        if src in self.nodes:
-            cached = self.nodes[src]
+        cached = MeshtasticCache.getSharedInstance().getNode(src)
+        if cached:
             for key, field in [
                 ("short_name", "short_name"), ("long_name", "long_name"),
                 ("role", "role"), ("hw_model", "device"),
@@ -370,8 +399,8 @@ class MeshtasticParser(TextParser):
                     out[field] = cached[key]
 
         # Annotate dst address with cached information
-        if dst != 0xFFFFFFFF and dst in self.nodes:
-            cached = self.nodes[dst]
+        cached = MeshtasticCache.getSharedInstance().getNode(dst)
+        if dst != 0xFFFFFFFF and cached:
             for key, field in [("short_name", "dst_short_name"), ("long_name", "dst_long_name")]:
                 if key in cached:
                     out[field] = cached[key]
@@ -385,27 +414,30 @@ class MeshtasticParser(TextParser):
         ReportingEngine.getSharedInstance().spot(out)
 
         # Done
+        logger.info(f"@@@ SUCCESS: {out}")
         return out
 
     #
     # Parse decrypted Meshtastic payload
     #
     def parsePayload(self, out, port, payload):
+        logger.info("Parsing payload for port %d", port)
+
         # Add port number and name
-        out["port"]      = port
-        out["port_name"] = portnums_pb2.PortNum.Name(port)
+        out["port"] = port
+        out["type"] = portnums_pb2.PortNum.Name(port)
 
         # For text messages, add text
         if port in [1, 7]:
             out["message"] = payload.decode("utf-8", errors="replace")
             return
 
-        cls = APP_PROTO_DECODERS.get(port)
-        if cls is None:
+        # If no protobuf decoder for the port, drop out
+        if port not in APP_PROTO_DECODERS:
             return
 
         try:
-            msg = cls()
+            msg = APP_PROTO_DECODERS[port]()
             msg.ParseFromString(payload)
             data = MessageToDict(msg, preserving_proto_field_name=True)
             out["data"] = data
@@ -417,10 +449,10 @@ class MeshtasticParser(TextParser):
                     out["lon"] = int(data["longitude_i"]) / 10000000
                 if "altitude" in data:
                     out["altitude"] = int(data["altitude"])
-                self.cacheNode(src, out)
+                MeshtasticCache.getSharedInstance().cacheNode(out["src"], out)
             elif port == 4:
                 out["comment"] = _nodeinfo_summary(data)
-                self.cacheNode(src, data)
+                MeshtasticCache.getSharedInstance().cacheNode(out["src"], data)
             elif port == 5:
                 out["comment"] = _routing_summary(data)
             elif port == 6:
@@ -446,5 +478,4 @@ class MeshtasticParser(TextParser):
                 out["comment"] = _summarize_fields(data)
 
         except Exception as e:
-            logger.debug("Payload parsing failed for !%08x: %s", out["src"], e)
-            return None
+            logger.error("Payload parsing failed for !%08x: %s", out["src"], e)

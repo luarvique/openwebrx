@@ -1064,11 +1064,10 @@ MeshtasticMessagePanel.prototype.render = function() {
 };
 
 MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
-    var bcolor = msg.color?  msg.color : '#000';
-    var fcolor = msg.color?  '#000' : '#FFF';
-    var data   = msg.type?   msg.type : '';
+    var bcolor = msg.color? msg.color : '#000';
+    var fcolor = msg.color? '#000' : '#FFF';
     var tstamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
-    var data   = msg.message || msg.comment;
+    var data   = msg.message || msg.comment || msg.type || '';
     var src    = '!' + msg.src.toString(16);
     var dst    = msg.dst == 0xFFFFFFFF? '<ALL>' : '!' + msg.dst.toString(16);
 
