@@ -1093,7 +1093,7 @@ MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
     }
 
     // Output regular values as they are
-    return('<tr><td class="attr" colspan="4">' +
+    return('<tr><td colspan="4">' +
         '<div style="border-bottom:1px dotted;">' +
         '<span style="float:left;">' + prefix + key + '</span>' +
         '<span style="float:right;word-break:break-all;">' + v + '</span>' +
@@ -1105,7 +1105,7 @@ MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
     var bcolor = msg.color? msg.color : '#000';
     var fcolor = msg.color? '#000' : '#FFF';
     var tstamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
-    var text   = msg.message || msg.type || msg.longName || msg.comment || '';
+    var text   = msg.type || msg.longName || msg.comment || '';
     var src    = msg.nickName || this.makeAddr(msg.src);
     var dst    = msg.dst == 0xFFFFFFFF? 'ALL'
                : (msg.dstNickName || this.makeAddr(msg.dst));
@@ -1120,6 +1120,15 @@ MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
             '<td class="data" style="text-align:left;">' + text + '</td>' +
         '</tr>'
     ).css('background-color', bcolor).css('color', fcolor));
+
+    // Append message
+    if (msg.message) {
+        $b.append($(
+            '<tr>' +
+                '<td colspan="4">' + Utils.htmlEscape(msg.message) + '</td>' +
+            '</tr>'
+        ));
+    }
 
     // Append data
     if (msg.data) {
