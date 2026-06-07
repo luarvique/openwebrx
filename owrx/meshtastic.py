@@ -262,7 +262,7 @@ class MeshtasticParser(TextParser):
         out = {
             "mode":      "Meshtastic",
             "timestamp": round(datetime.now(timezone.utc).timestamp() * 1000),
-            "comment":   f"{len(data)} bytes, hop {hop_limit}/{hop_start}",
+            "comment":   f"{len(data)} bytes, hop {hop_start-hop_limit}/{hop_start}",
             "dst":       dst,
             "src":       src,
             "color":     self.colors.getColor(src),
