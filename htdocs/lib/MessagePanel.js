@@ -1080,6 +1080,18 @@ MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
         return(result);
     }
 
+    // Perform conversions
+    switch (key) {
+    case 'time':
+    case 'timestamp':
+        v = (new Date(v * 1000)).toString();
+        break;
+    case 'latitude_i':
+    case 'longitude_i':
+        v = v / 10000000.0;
+        break;
+    }
+
     // Output regular values as they are
     return('<tr><td class="attr" colspan="4">' +
         '<div style="border-bottom:1px dotted;">' +
