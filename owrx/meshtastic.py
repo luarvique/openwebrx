@@ -251,7 +251,7 @@ class MeshtasticParser(TextParser):
 
         # Parse rest of header
         hop_limit    = flags & 0x07
-        hop_start    = (flags >> 5) & 0xE0
+        hop_start    = (flags >> 5) & 0x07
         want_ack     = bool(flags & 0x08)
         via_mqtt     = bool(flags & 0x10)
         channel_hash = data[13]
