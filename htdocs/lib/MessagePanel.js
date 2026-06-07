@@ -1067,11 +1067,24 @@ MeshtasticMessagePanel.prototype.makeAddr = function(addr) {
   return '!' + ('0000000' + addr.toString(16)).slice(-8).toUpperCase();
 };
 
-MeshtasticMessagePanel.prototype.formatAttr = function(data, key) {
+MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
+    var v = data[key];
+
+    // If value is a dictionary, iterate over its contents
+    if ((typeof(v) === 'object') && (Object.getPrototypeOf(v) === Object.prototype)) {
+        var result = '';
+        prefix += '::' + key;
+        for (var key in v) {
+            result += this.formatAttr(v, key, prefix);
+        }
+        return(result);
+    }
+
+    // Output regular values as they are
     return('<tr><td class="attr" colspan="4">' +
         '<div style="border-bottom:1px dotted;">' +
-        '<span style="float:left;">' + key + '</span>' +
-        '<span style="float:right;word-break:break-all;">' + data[key] + '</span>' +
+        '<span style="float:left;">' + prefix + key + '</span>' +
+        '<span style="float:right;word-break:break-all;">' + v + '</span>' +
         '</div></td></tr>'
     );
 };
