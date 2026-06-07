@@ -1067,12 +1067,12 @@ MeshtasticMessagePanel.prototype.makeAddr = function(addr) {
   return '!' + ('0000000' + addr.toString(16)).slice(-8).toUpperCase();
 };
 
-MeshtasticMessagePanel.prototype.formatAttr = function(key, data) {
-    return('<td class="attr" colspan="4">' +
+MeshtasticMessagePanel.prototype.formatAttr = function(data, key) {
+    return('<tr><td class="attr" colspan="4">' +
         '<div style="border-bottom:1px dotted;">' +
         '<span style="float:left;">' + key + '</span>' +
-        '<span style="float:right;word-break:break-all;">' + data + '</span>' +
-        '</div></td>'
+        '<span style="float:right;word-break:break-all;">' + data[key] + '</span>' +
+        '</div></td></tr>'
     );
 };
 
@@ -1099,7 +1099,7 @@ MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
     // Append data
     if (msg.data) {
         for (var key in msg.data) {
-            $b.append($('<tr>' + this.formatAttr(key, msg.data[key]) + '</tr>'));
+            $b.append($(this.formatAttr(msg.data, key)));
         }
     }
 
