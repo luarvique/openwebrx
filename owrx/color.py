@@ -10,7 +10,7 @@ class ColorCache(object):
         self.colorBuf = {}
 
     # Get a unique color for a given ID, reusing colors as we go
-    def getColor(self, id: str) -> str:
+    def getColor(self, id) -> str:
         if id in self.colorBuf:
             # Sort entries in order of freshness
             color = self.colorBuf.pop(id)

@@ -1,6 +1,6 @@
 from owrx.toolbox import TextParser
-from owrx.aprs import AprsParser, thirdpartyeRegex
 from owrx.reporting import ReportingEngine
+from owrx.aprs import AprsParser, thirdpartyeRegex
 
 import base64
 import json
@@ -75,38 +75,3 @@ class LoraParser(TextParser):
                 "data"        : info.encode("utf-8"),
                 "raw"         : "".join("{:02X}".format(x) for x in data),
             })
-
-
-class MeshtasticParser(TextParser):
-    def __init__(self, service: bool = False):
-        # Construct parent object
-        super().__init__(filePrefix="MESHTASTIC", service=service)
-
-    def parse(self, msg: bytes):
-        try:
-            # Try parsing as JSON first
-            out = json.loads(msg)
-        except Exception as e:
-            # Not JSON, return as string
-            return msg.decode("utf-8") + "\n"
-
-        # Add mode name
-        out["mode"] = "MESHTASTIC"
-
-        # Add frequency, if known
-        if self.frequency:
-            out["freq"] = self.frequency
-
-        # Try decoding payload
-        if "payload" in out:
-            try:
-                # @@@ Add code here!
-                pass
-            except Exception as e:
-                logger.error("Exception parsing LoRa payload: %s", str(e))
-
-        # Report message
-        ReportingEngine.getSharedInstance().spot(out)
-
-        # Return JSON data
-        return out

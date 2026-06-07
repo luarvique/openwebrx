@@ -1377,6 +1377,38 @@ img.openwebrx-mirror-img
     text-align: right;
 }
 
+#openwebrx-panel-meshtastic-message {
+    height: 310px;
+}
+
+#openwebrx-panel-meshtastic-message a {
+    color: inherit;
+}
+
+#openwebrx-panel-meshtastic-message tbody {
+    height: 280px;
+}
+
+#openwebrx-panel-meshtastic-message .timestamp {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .src {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .dst {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .data {
+    width: 326px;
+    text-align: center;
+}
+
 #openwebrx-panel-skimmer-message {
     height: 310px;
 }
@@ -1640,6 +1672,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft8"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wspr"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt65"]    #openwebrx-digimode-select-channel,
@@ -1715,7 +1748,8 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-canvas-container
 {
     height: 200px;
     margin: -10px;

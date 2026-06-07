@@ -1,7 +1,8 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.lora import LoraModule
 from pycsdr.types import Format
-from owrx.lora import LoraParser, MeshtasticParser
+from owrx.lora import LoraParser
+from owrx.meshtastic import MeshtasticParser
 
 import logging
 

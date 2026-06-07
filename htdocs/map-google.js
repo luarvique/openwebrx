@@ -179,7 +179,7 @@ MapManager.prototype.processUpdates = function(updates) {
                             marker = new GAprsMarker();
                             break;
                         case 'KiwiSDR': case 'WebSDR': case 'OpenWebRX':
-                        case 'Stations': case 'Repeaters':
+                        case 'Stations': case 'Repeaters': case 'Meshtastic':
                             marker = new GFeatureMarker();
                             // If no symbol or color supplied, use defaults by type
                             if (!update.location.symbol) update.location.symbol = self.mman.getSymbol(update.mode);

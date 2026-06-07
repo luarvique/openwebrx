@@ -1,4 +1,5 @@
 **1.2.116**
+- Added Meshtastic decoder [Stanislav Lechev].
 - Added Sondehub reporter for RS41 telemetry [Hai Tran].
 - Added paho-mqtt 2.0 compatibility [Marc Fontaine].
 - Added LoRa APRS parser [Stefan DC4HF].
