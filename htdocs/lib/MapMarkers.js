@@ -349,7 +349,7 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     // Meshtastic data
     if (this.longName) {
-        commentString = '<div align="center">' + Utils.htmlEscape(this.longName) + '</div>'';
+        commentString = '<div align="center">' + Utils.htmlEscape(this.longName) + '</div>';
     }
     if (this.nickName) {
         detailsString += Utils.makeListItem('Nickname', Utils.htmlEscape(this.nickName));
