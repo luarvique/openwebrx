@@ -1073,7 +1073,7 @@ MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
     // If value is a dictionary, iterate over its contents
     if ((typeof(v) === 'object') && (Object.getPrototypeOf(v) === Object.prototype)) {
         var result = '';
-        prefix += '::' + key;
+        prefix += key + '.';
         for (var key in v) {
             result += this.formatAttr(v, key, prefix);
         }
@@ -1084,7 +1084,7 @@ MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
     switch (key) {
     case 'time':
     case 'timestamp':
-        v = (new Date(v * 1000)).toString();
+        v = (new Date(v * 1000)).toUTCString();
         break;
     case 'latitude_i':
     case 'longitude_i':
