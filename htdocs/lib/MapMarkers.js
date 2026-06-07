@@ -19,7 +19,7 @@ function MarkerManager() {
         'VDL2'      : '#000080',
         'ADSB'      : '#000000',
         'UAT'       : '#800080',
-        'Meshtastic': '#2E8B57'
+        'Meshtastic': '#004000'
     };
 
     // Symbols used for marker types
@@ -349,16 +349,13 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
 
     // Meshtastic data
     if (this.longName) {
-        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.longName));
+        commentString = '<div align="center">' + Utils.htmlEscape(this.longName) + '</div>'';
     }
     if (this.nickName) {
         detailsString += Utils.makeListItem('Nickname', Utils.htmlEscape(this.nickName));
     }
     if (this.role) {
         detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
-    }
-    if (this.message) {
-        commentString += '<div align="center">' + Utils.htmlEscape(this.message) + '</div>';
     }
 
     var moreDetails = this.detailsData;
