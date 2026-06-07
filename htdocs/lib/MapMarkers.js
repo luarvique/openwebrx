@@ -215,8 +215,8 @@ FeatureMarker.prototype.update = function(update) {
     // Generic vendor-specific details
     this.details  = update.location.details;
     // Meshtastic stuff (also message, comment, device, altitude)
-    this.longName = update.location.long_name;
-    this.nickName = update.location.short_name;
+    this.longName = update.location.longName;
+    this.nickName = update.location.nickName;
     this.role     = update.location.role;
 
     // Implementation-dependent function call

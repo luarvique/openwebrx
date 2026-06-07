@@ -1063,13 +1063,27 @@ MeshtasticMessagePanel.prototype.render = function() {
     ));
 };
 
+MeshtasticMessagePanel.prototype.makeAddr = function(addr) {
+  return '!' + ('0000000' + addr.toString(16)).slice(-8).toUpperCase();
+};
+
+MeshtasticMessagePanel.prototype.formatAttr = function(key, data) {
+    return('<td class="attr" colspan="4">' +
+        '<div style="border-bottom:1px dotted;">' +
+        '<span style="float:left;">' + key + '</span>' +
+        '<span style="float:right;word-break:break-all;">' + data + '</span>' +
+        '</div></td>'
+    );
+};
+
 MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
     var bcolor = msg.color? msg.color : '#000';
     var fcolor = msg.color? '#000' : '#FFF';
     var tstamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
-    var data   = msg.message || msg.comment || msg.type || '';
-    var src    = '!' + msg.src.toString(16);
-    var dst    = msg.dst == 0xFFFFFFFF? 'ALL' : '!' + msg.dst.toString(16);
+    var text   = msg.message || msg.type || msg.longName || msg.comment || '';
+    var src    = msg.nickName || this.makeAddr(msg.src);
+    var dst    = msg.dst == 0xFFFFFFFF? 'ALL'
+               : (msg.dstNickName || this.makeAddr(msg.dst));
 
     // Append report
     var $b = $(this.el).find('tbody');
@@ -1078,9 +1092,16 @@ MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
             '<td class="timestamp">' + tstamp + '</td>' +
             '<td class="src">' + src + '</td>' +
             '<td class="dst">' + dst + '</td>' +
-            '<td class="data" style="text-align:left;">' + data + '</td>' +
+            '<td class="data" style="text-align:left;">' + text + '</td>' +
         '</tr>'
     ).css('background-color', bcolor).css('color', fcolor));
+
+    // Append data
+    if (msg.data) {
+        for (var key in msg.data) {
+            $b.append($('<tr>' + this.formatAttr(key, msg.data[key]) + '</tr>'));
+        }
+    }
 
     // Jump list to the last received message
     this.scrollToBottom();

@@ -98,106 +98,6 @@ def _resolve_key(raw_key):
     else:
         raise ValueError(f"Unsupported key length: {len(key)}")
 
-def _telemetry_summary(data):
-    sections = [
-        ("device_metrics", [
-            ("battery_level", "bat", "%"), ("voltage", "v", "V"),
-            ("channel_utilization", "ch_util", "%"), ("air_util_tx", "air_tx", "%"),
-            ("uptime_seconds", "uptime", "s"),
-        ]),
-        ("power_metrics", [
-            ("ch1_voltage", "v1", "V"), ("ch1_current", "i1", "A"),
-            ("ch2_voltage", "v2", "V"), ("ch2_current", "i2", "A"),
-        ]),
-        ("environment_metrics", [
-            ("temperature", "temp", "C"), ("relative_humidity", "rh", "%"),
-            ("barometric_pressure", "press", "hPa"), ("gas_resistance", "gas", ""),
-            ("iaq", "iaq", ""),
-        ]),
-        ("air_quality_metrics", [
-            ("pm10_standard", "pm10", ""), ("pm25_standard", "pm25", ""),
-            ("pm100_standard", "pm100", ""), ("aqi", "aqi", ""),
-        ]),
-        ("health_metrics", [
-            ("heart_bpm", "bpm", ""), ("spo2", "spo2", "%"),
-        ]),
-    ]
-    for section, fields in sections:
-        metrics = data.get(section)
-        if isinstance(metrics, dict):
-            parts = []
-            for key, label, unit in fields:
-                if key in metrics:
-                    parts.append(f"{label}={metrics[key]}{unit}")
-            return f"{section}: " + ", ".join(parts) if parts else section
-    return None
-
-
-def _nodeinfo_summary(data):
-    parts = []
-    for key, label in [("long_name", "name"), ("short_name", "short"),
-                       ("id", "id"), ("hw_model", "hw"), ("role", "role")]:
-        value = data.get(key)
-        if value:
-            parts.append(f"{label}={value}")
-    return ", ".join(parts) if parts else None
-
-
-def _routing_summary(data):
-    parts = []
-    for key, label in [("error_reason", "error"), ("request_id", "req"),
-                       ("reply_id", "reply"), ("snr_towards", "snr"),
-                       ("route", "route"), ("relay_node", "relay"),
-                       ("route_back", "route_back"), ("want_ack", "want_ack")]:
-        value = data.get(key)
-        if value is None:
-            continue
-        if isinstance(value, (list, dict)) and not value:
-            continue
-        parts.append(f"{label}={value}")
-    if parts:
-        return ", ".join(parts)
-    if data:
-        return f"fields={','.join(list(data.keys())[:4])}"
-    return None
-
-
-def _summarize_fields(data, preferred=None, limit=4):
-    if not isinstance(data, dict) or not data:
-        return None
-    preferred = preferred or []
-    parts = []
-    used = set()
-
-    def append_part(label, value):
-        if value is None:
-            return
-        if isinstance(value, str):
-            text = value if len(value) <= 32 else f"{value[:29]}..."
-            parts.append(f"{label}={text}")
-        elif isinstance(value, list):
-            if value:
-                parts.append(f"{label}_count={len(value)}")
-        elif isinstance(value, dict):
-            if value:
-                parts.append(f"{label}_keys={len(value)}")
-        else:
-            parts.append(f"{label}={value}")
-
-    for key, label in preferred:
-        used.add(key)
-        append_part(label, data.get(key))
-        if len(parts) >= limit:
-            break
-    if len(parts) < limit:
-        for key in data:
-            if key in used:
-                continue
-            append_part(key, data.get(key))
-            if len(parts) >= limit:
-                break
-    return ", ".join(parts) if parts else f"fields={','.join(list(data.keys())[:4])}"
-
 
 class MeshtasticCache():
     CACHE_FILENAME = "meshtastic.json"
@@ -273,7 +173,7 @@ class MeshtasticLocation(LatLngLocation):
     def __init__(self, lat, lon, data):
         super().__init__(lat, lon)
         self.data = { k: v for k, v in data.items() if k in [
-            "message", "comment", "altitude", "short_name", "long_name", "device", "role"
+            "message", "altitude", "nickName", "longName", "device", "role"
         ]}
         # @@@ Make TTL configurable!
         self.data["ttl"] = data["timestamp"] + 4 * 60 * 60 * 1000
@@ -362,7 +262,7 @@ class MeshtasticParser(TextParser):
         out = {
             "mode":      "Meshtastic",
             "timestamp": round(datetime.now(timezone.utc).timestamp() * 1000),
-            "comment":   f"{len(data)} bytes, hop {hop_start}/{hop_limit}",
+            "comment":   f"{len(data)} bytes, hop {hop_limit}/{hop_start}",
             "dst":       dst,
             "src":       src,
             "color":     self.colors.getColor(src),
@@ -386,13 +286,13 @@ class MeshtasticParser(TextParser):
                 self.parsePayload(out, int(parsed.portnum), parsed.payload)
 
             except Exception as e:
-                logger.error("Decrypt/decode failed for !%08x: %s", src, e)
+                logger.error("Decrypt/decode failed for !%08X: %s", src, e)
 
         # Annotate src address with cached information
         cached = MeshtasticCache.getSharedInstance().getNode(src)
         if cached:
             for key, field in [
-                ("short_name", "short_name"), ("long_name", "long_name"),
+                ("short_name", "nickName"), ("long_name", "longName"),
                 ("role", "role"), ("hw_model", "device"),
                 ("lat", "lat"), ("lon", "lon"), ("altitude", "altitude")
                 ]:
@@ -402,7 +302,7 @@ class MeshtasticParser(TextParser):
         # Annotate dst address with cached information
         cached = MeshtasticCache.getSharedInstance().getNode(dst)
         if dst != 0xFFFFFFFF and cached:
-            for key, field in [("short_name", "dst_short_name"), ("long_name", "dst_long_name")]:
+            for key, field in [("short_name", "dstNickName"), ("long_name", "dstLongName")]:
                 if key in cached:
                     out[field] = cached[key]
 
@@ -452,12 +352,7 @@ class MeshtasticParser(TextParser):
                     out["altitude"] = int(data["altitude"])
                 MeshtasticCache.getSharedInstance().cacheNode(out["src"], out)
             elif port == 4:
-                out["comment"] = _nodeinfo_summary(data)
                 MeshtasticCache.getSharedInstance().cacheNode(out["src"], data)
-            elif port == 5:
-                out["comment"] = _routing_summary(data)
-            elif port == 6:
-                out["comment"] = _summarize_fields(data, [("set_owner", "owner"), ("set_config", "config"), ("reboot_seconds", "reboot")])
             elif port == 8:
                 if "name" in data and "latitude_i" in data and "longitude_i" in data:
                     out["waypoint"] = {
@@ -465,18 +360,6 @@ class MeshtasticParser(TextParser):
                         "lat"  : int(data["latitude_i"]) / 10000000,
                         "lon"  : int(data["longitude_i"]) / 10000000
                     }
-                else:
-                    out["comment"] = _summarize_fields(data)
-            elif port == 67:
-                out["comment"] = _telemetry_summary(data)
-            elif port == 70:
-                out["comment"] = _summarize_fields(data, [("route", "route"), ("route_back", "route_back")])
-            elif port == 71:
-                out["comment"] = _summarize_fields(data, [("node_id", "node"), ("neighbors", "neighbors")])
-            elif port == 72:
-                out["comment"] = _summarize_fields(data, [("contact", "contact"), ("group", "group")])
-            else:
-                out["comment"] = _summarize_fields(data)
 
         except Exception as e:
-            logger.error("Payload parsing failed for !%08x: %s", out["src"], e)
+            logger.error("Payload parsing failed for !%08X: %s", out["src"], e)
