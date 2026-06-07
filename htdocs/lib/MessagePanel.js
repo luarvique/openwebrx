@@ -1106,7 +1106,8 @@ MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
     var fcolor = msg.color? '#000' : '#FFF';
     var tstamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
     var text   = msg.type || msg.longName || msg.comment || '';
-    var src    = msg.nickName || this.makeAddr(msg.src);
+    var id     = this.makeAddr(msg.src);
+    var src    = Utils.linkToMap(id, msg.nickName || id);
     var dst    = msg.dst == 0xFFFFFFFF? 'ALL'
                : (msg.dstNickName || this.makeAddr(msg.dst));
 
