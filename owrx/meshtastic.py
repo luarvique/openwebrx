@@ -243,7 +243,7 @@ class MeshtasticParser(TextParser):
         packet_id = int.from_bytes(data[8:12], "little")
         flags     = data[12]
 
-        logger.info("Parsing %d-byte packet from !%08X to !%08X", len(data), src, dst)
+        logger.info("Parsing %d-byte packet from !%08x to !%08x", len(data), src, dst)
 
         # Drop duplicates
         if self.isDuplicatePacket(src, packet_id):
@@ -286,7 +286,7 @@ class MeshtasticParser(TextParser):
                 self.parsePayload(out, int(parsed.portnum), parsed.payload)
 
             except Exception as e:
-                logger.error("Decrypt/decode failed for !%08X: %s", src, e)
+                logger.error("Decrypt/decode failed for !%08x: %s", src, e)
 
         # Annotate src address with cached information
         cached = MeshtasticCache.getSharedInstance().getNode(src)
@@ -309,7 +309,7 @@ class MeshtasticParser(TextParser):
         # Update map marker
         if "lat" in out and "lon" in out:
             loc = MeshtasticLocation(out["lat"], out["lon"], out)
-            Map.getSharedInstance().updateLocation(f"!{src:08X}", loc, "Meshtastic", self.band)
+            Map.getSharedInstance().updateLocation(f"!{src:08x}", loc, "Meshtastic", self.band)
 
         # Report received packet
         ReportingEngine.getSharedInstance().spot(out)
@@ -362,4 +362,4 @@ class MeshtasticParser(TextParser):
                     }
 
         except Exception as e:
-            logger.error("Payload parsing failed for !%08X: %s", out["src"], e)
+            logger.error("Payload parsing failed for !%08x: %s", out["src"], e)

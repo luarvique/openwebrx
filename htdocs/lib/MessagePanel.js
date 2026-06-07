@@ -1064,7 +1064,7 @@ MeshtasticMessagePanel.prototype.render = function() {
 };
 
 MeshtasticMessagePanel.prototype.makeAddr = function(addr) {
-  return '!' + ('0000000' + addr.toString(16)).slice(-8).toUpperCase();
+  return '!' + ('0000000' + addr.toString(16)).slice(-8);
 };
 
 MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
