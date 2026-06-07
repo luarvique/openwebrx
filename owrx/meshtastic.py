@@ -118,7 +118,7 @@ class MeshtasticCache():
     def __init__(self):
         self.fileName  = Storage.getFilePath(self.CACHE_FILENAME)
         self.lastSave  = time.monotonic()
-        self.cacheLock = threading.Lock()
+        self.cacheLock = threading.RLock()
         self.nodeCache = self.loadNodeCache(self.fileName)
 
     def loadNodeCache(self, fileName: str):
@@ -127,7 +127,7 @@ class MeshtasticCache():
                 with open(fileName, "r") as f:
                     nodes = json.load(f)
                     now   = time.monotonic()
-                    return { x for x in nodes if now - x["seen"] < CACHE_TTL }
+                    return { x for x in nodes if now - x["seen"] < self.CACHE_TTL }
             except Exception as e:
                 logger.error("Failed loading node cache from '%s': %s", fileName, e)
         return {}
