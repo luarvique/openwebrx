@@ -18,8 +18,7 @@ function MarkerManager() {
         'HFDL'      : '#004000',
         'VDL2'      : '#000080',
         'ADSB'      : '#000000',
-        'UAT'       : '#800080',
-        'Meshtastic': '#004000'
+        'UAT'       : '#800080'
     };
 
     // Symbols used for marker types
@@ -214,10 +213,6 @@ FeatureMarker.prototype.update = function(update) {
     this.mmode    = update.location.mmode;
     // Generic vendor-specific details
     this.details  = update.location.details;
-    // Meshtastic stuff (also message, comment, device, altitude)
-    this.longName = update.location.longName;
-    this.nickName = update.location.nickName;
-    this.role     = update.location.role;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -347,17 +342,6 @@ FeatureMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         }
     }
 
-    // Meshtastic data
-    if (this.longName) {
-        commentString = '<div align="center">' + Utils.htmlEscape(this.longName) + '</div>';
-    }
-    if (this.nickName) {
-        detailsString += Utils.makeListItem('Nickname', Utils.htmlEscape(this.nickName));
-    }
-    if (this.role) {
-        detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
-    }
-
     var moreDetails = this.detailsData;
     if (typeof moreDetails === 'object') {
         Object.keys(moreDetails).sort().forEach(function (k, i) {
@@ -433,6 +417,13 @@ AprsMarker.prototype.update = function(update) {
     // SONDE
     this.battery  = update.location.battery;
     this.vspeed   = update.location.vspeed;
+    // Meshtastic stuff (also message, comment, device, altitude)
+    this.longName = update.location.longName;
+    this.nickName = update.location.nickName;
+    this.role     = update.location.role;
+    this.uptime   = update.location.uptime;
+    this.channelUtilization = update.location.channelUtilization;
+    this.airUtilTx = update.location.airUtilTx;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -552,7 +543,7 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         }
 
         if (this.weather.humidity) {
-            weatherString += Utils.makeListItem('Humidity', this.weather.humidity + '%');
+            weatherString += Utils.makeListItem('Humidity', this.weather.humidity.toFixed(1) + '%');
         }
 
         if (this.weather.barometricpressure) {
@@ -642,6 +633,26 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         detailsString += Utils.makeListItem('Country', Lookup.cdata2country([this.ccode, this.country]));
     } else if (this.mode === 'AIS') {
         detailsString += Utils.makeListItem('Country', Lookup.mmsi2country(name));
+    }
+
+    // Meshtastic data
+    if (this.longName) {
+        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.longName));
+    }
+    if (this.nickName) {
+        detailsString += Utils.makeListItem('Nickname', Utils.htmlEscape(this.nickName));
+    }
+    if (this.role) {
+        detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
+    }
+    if (this.uptime) {
+        detailsString += Utils.makeListItem('Uptime', this.uptime + ' s');
+    }
+    if (this.channelUtilization) {
+        detailsString += Utils.makeListItem('Channel Utilization', this.channelUtilization.toFixed(1) + ' %');
+    }
+    if (this.airUtilTx) {
+        detailsString += Utils.makeListItem('Air Util TX', this.airUtilTx.toFixed(1) + ' %');
     }
 
     if (detailsString.length > 0) {

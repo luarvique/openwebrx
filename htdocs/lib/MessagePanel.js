@@ -1073,7 +1073,7 @@ MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
     // If value is a dictionary, iterate over its contents
     if ((typeof(v) === 'object') && (Object.getPrototypeOf(v) === Object.prototype)) {
         var result = '';
-        prefix += key + '.';
+        // prefix += key + '.';
         for (var key in v) {
             result += this.formatAttr(v, key, prefix);
         }
@@ -1089,6 +1089,32 @@ MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
     case 'latitude_i':
     case 'longitude_i':
         v = v / 10000000.0;
+        break;
+    case 'voltage':
+    case 'ch1_voltage':
+    case 'ch2_voltage':
+        v = v.toFixed(2) + ' V';
+        break;
+    case 'ch1_current':
+    case 'ch2_current':
+        v = v.toFixed(3) + ' A';
+        break;
+    case 'battery_level':
+    case 'channel_utilization':
+    case 'air_util_tx':
+    case 'relative_humidity':
+        v = v.toFixed(0) + ' %';
+        break;
+    case 'temperature':
+        v = v.toFixed(1) + ' °C';
+        break;
+    case 'barometric_pressure':
+        v = v.toFixed(1) + ' hPa';
+        break;
+    case 'macaddr':
+        v = atob(v).split('').map(function(c) {
+            return ('0' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join('').toUpperCase();
         break;
     }
 

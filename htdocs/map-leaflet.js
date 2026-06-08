@@ -452,11 +452,11 @@ MapManager.prototype.processUpdates = function(updates) {
                         case 'ACARS': case 'UAT':
                             marker = new LAircraftMarker();
                             break;
-                        case 'APRS': case 'AIS': case 'HDR': case 'SONDE':
+                        case 'APRS': case 'AIS': case 'HDR': case 'SONDE': case 'Meshtastic':
                             marker = new LAprsMarker();
                             break;
                         case 'KiwiSDR': case 'WebSDR': case 'OpenWebRX':
-                        case 'Stations': case 'Repeaters': case 'Meshtastic':
+                        case 'Stations': case 'Repeaters':
                             marker = new LFeatureMarker();
                             // If no symbol or color supplied, use defaults by type
                             if (!update.location.symbol) update.location.symbol = self.mman.getSymbol(update.mode);
