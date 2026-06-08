@@ -1,8 +1,8 @@
 **1.2.116**
-- Added Meshtastic decoder [Stanislav Lechev].
+- Added LoRa Meshtastic parser [Stanislav Lechev].
+- Added LoRa APRS parser [Stefan DC4HF].
 - Added Sondehub reporter for RS41 telemetry [Hai Tran].
 - Added paho-mqtt 2.0 compatibility [Marc Fontaine].
-- Added LoRa APRS parser [Stefan DC4HF].
 - Added per-profile PPM correction option.
 - Fixed exception when stopping AdsbParser.
 - Fixed exception when stopping services.
