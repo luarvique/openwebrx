@@ -176,8 +176,8 @@ class MeshtasticLocation(LatLngLocation):
     def __init__(self, lat, lon, data):
         super().__init__(lat, lon)
         self.data = { k: v for k, v in data.items() if k in [
-            "symbol", "altitude", "nickName", "longName", "device", "role", "comment",
-            "weather", "battery", "uptime", "channelUtilization", "airUtilTx"
+            "symbol", "altitude", "nickName", "longName", "device", "role",
+            "weather", "battery", "uptime", "channelUse", "airtimeUse"
         ]}
         # @@@ Make TTL configurable!
         self.data["ttl"] = data["timestamp"] + 4 * 60 * 60 * 1000
@@ -369,25 +369,27 @@ class MeshtasticParser(TextParser):
                         "lon"  : int(data["longitude_i"]) / 10000000
                     }
             elif port == 67: # TELEMETRY_APP
-                device_metrics = data.get("device_metrics", {})
-                if "voltage" in device_metrics:
-                    out["battery"] = device_metrics["voltage"]
-                if "uptime_seconds" in device_metrics:
-                    out["uptime"] = device_metrics["uptime_seconds"]
-                if "channel_utilization" in device_metrics:
-                    out["channelUtilization"] = device_metrics["channel_utilization"]
-                if "air_util_tx" in device_metrics:
-                    out["airUtilTx"] = device_metrics["air_util_tx"]
-                environment_metrics = data.get("environment_metrics", {})
-                weather = {}
-                if "temperature" in environment_metrics:
-                    weather["temperature"] = environment_metrics["temperature"]
-                if "relative_humidity" in environment_metrics:
-                    weather["humidity"] = environment_metrics["relative_humidity"]
-                if "barometric_pressure" in environment_metrics:
-                    weather["barometricpressure"] = environment_metrics["barometric_pressure"]
-                if weather:
-                    out["weather"] = weather
+                if "device_metrics" in data:
+                    metrics = data["device_metrics"]
+                    if "voltage" in metrics:
+                        out["battery"] = metrics["voltage"]
+                    if "uptime_seconds" in metrics:
+                        out["uptime"] = metrics["uptime_seconds"]
+                    if "channel_utilization" in metrics:
+                        out["channelUse"] = metrics["channel_utilization"]
+                    if "air_util_tx" in metrics:
+                        out["airtimeUse"] = metrics["air_util_tx"]
+                if "environment_metrics" in data:
+                    metrics = data["environment_metrics"]
+                    weather = {}
+                    if "temperature" in metrics:
+                        weather["temperature"] = metrics["temperature"]
+                    if "relative_humidity" in metrics:
+                        weather["humidity"] = metrics["relative_humidity"]
+                    if "barometric_pressure" in metrics:
+                        weather["barometricpressure"] = metrics["barometric_pressure"]
+                    if weather:
+                        out["weather"] = weather
 
         except Exception as e:
             logger.error("Payload parsing failed for !%08x: %s", out["src"], e)

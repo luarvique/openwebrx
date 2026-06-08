@@ -422,8 +422,8 @@ AprsMarker.prototype.update = function(update) {
     this.nickName = update.location.nickName;
     this.role     = update.location.role;
     this.uptime   = update.location.uptime;
-    this.channelUtilization = update.location.channelUtilization;
-    this.airUtilTx = update.location.airUtilTx;
+    this.channelUse = update.location.channelUse;
+    this.airtimeUse = update.location.airtimeUse;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -648,11 +648,11 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
     if (this.uptime) {
         detailsString += Utils.makeListItem('Uptime', this.uptime + ' s');
     }
-    if (this.channelUtilization) {
-        detailsString += Utils.makeListItem('Channel Utilization', this.channelUtilization.toFixed(1) + ' %');
+    if (this.channelUse) {
+        detailsString += Utils.makeListItem('Channel Use', this.channelUse.toFixed(1) + ' %');
     }
-    if (this.airUtilTx) {
-        detailsString += Utils.makeListItem('Air Util TX', this.airUtilTx.toFixed(1) + ' %');
+    if (this.airtimeUse) {
+        detailsString += Utils.makeListItem('Airtime Use', this.airtimeUse.toFixed(1) + ' %');
     }
 
     if (detailsString.length > 0) {

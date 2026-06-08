@@ -1106,7 +1106,7 @@ MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
         v = v.toFixed(0) + ' %';
         break;
     case 'temperature':
-        v = v.toFixed(1) + ' °C';
+        v = v.toFixed(1) + ' &deg;C';
         break;
     case 'barometric_pressure':
         v = v.toFixed(1) + ' hPa';
