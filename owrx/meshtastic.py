@@ -49,7 +49,7 @@ try:
     _protobuf_available = True
 except ImportError:
     _protobuf_available = False
-    logger.warning("Meshtastic package not installed, payload decoding disabled. No Debian package available, install with: 'pip install meshtastic'")
+    logger.warning("Meshtastic package not installed, payload decoding disabled. Install with: 'apt install python3-meshtastic' OR 'pip install meshtastic'")
 
 # Create a mapping from packet types to decoders
 if _protobuf_available:
@@ -71,6 +71,9 @@ if _protobuf_available:
         72: atak_pb2.TAKPacket,
         74: powermon_pb2.PowerStressMessage,
     }
+
+def getSymbolData(symbol, table):
+    return {"symbol": symbol, "table": table, "index": ord(symbol) - 33, "tableindex": ord(table) - 33}
 
 def _expand_short_psk(index):
     key = bytearray(DEFAULT_KEY)
@@ -173,7 +176,8 @@ class MeshtasticLocation(LatLngLocation):
     def __init__(self, lat, lon, data):
         super().__init__(lat, lon)
         self.data = { k: v for k, v in data.items() if k in [
-            "altitude", "nickName", "longName", "device", "role"
+            "symbol", "altitude", "nickName", "longName", "device", "role", "comment",
+            "weather", "battery", "uptime", "channelUtilization", "airUtilTx"
         ]}
         # @@@ Make TTL configurable!
         self.data["ttl"] = data["timestamp"] + 4 * 60 * 60 * 1000
@@ -266,6 +270,7 @@ class MeshtasticParser(TextParser):
             "dst":       dst,
             "src":       src,
             "color":     self.colors.getColor(src),
+            "symbol":    getSymbolData(",", "M"),
         }
 
         # Add reception frequency, if known
@@ -343,7 +348,7 @@ class MeshtasticParser(TextParser):
             data = MessageToDict(msg, preserving_proto_field_name=True)
             out["data"] = data
 
-            if port == 3:
+            if port == 3: # POSITION_APP
                 if "latitude_i" in data:
                     out["lat"] = int(data["latitude_i"]) / 10000000
                 if "longitude_i" in data:
@@ -351,15 +356,38 @@ class MeshtasticParser(TextParser):
                 if "altitude" in data:
                     out["altitude"] = int(data["altitude"])
                 MeshtasticCache.getSharedInstance().cacheNode(out["src"], out)
-            elif port == 4:
+            elif port == 4: # NODEINFO_APP
                 MeshtasticCache.getSharedInstance().cacheNode(out["src"], data)
-            elif port == 8:
+            elif port == 5: # ROUTING_APP
+                if data.get("error_reason") == "NONE":
+                    del data["error_reason"] # skip anoying messages
+            elif port == 8: # WAYPOINT_APP
                 if "name" in data and "latitude_i" in data and "longitude_i" in data:
                     out["waypoint"] = {
                         "name" : data["name"],
                         "lat"  : int(data["latitude_i"]) / 10000000,
                         "lon"  : int(data["longitude_i"]) / 10000000
                     }
+            elif port == 67: # TELEMETRY_APP
+                device_metrics = data.get("device_metrics", {})
+                if "voltage" in device_metrics:
+                    out["battery"] = device_metrics["voltage"]
+                if "uptime_seconds" in device_metrics:
+                    out["uptime"] = device_metrics["uptime_seconds"]
+                if "channel_utilization" in device_metrics:
+                    out["channelUtilization"] = device_metrics["channel_utilization"]
+                if "air_util_tx" in device_metrics:
+                    out["airUtilTx"] = device_metrics["air_util_tx"]
+                environment_metrics = data.get("environment_metrics", {})
+                weather = {}
+                if "temperature" in environment_metrics:
+                    weather["temperature"] = environment_metrics["temperature"]
+                if "relative_humidity" in environment_metrics:
+                    weather["humidity"] = environment_metrics["relative_humidity"]
+                if "barometric_pressure" in environment_metrics:
+                    weather["barometricpressure"] = environment_metrics["barometric_pressure"]
+                if weather:
+                    out["weather"] = weather
 
         except Exception as e:
             logger.error("Payload parsing failed for !%08x: %s", out["src"], e)
