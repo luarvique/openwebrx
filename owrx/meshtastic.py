@@ -320,7 +320,7 @@ class MeshtasticParser(TextParser):
         ReportingEngine.getSharedInstance().spot(out)
 
         # Done
-        logger.info(f"@@@ SUCCESS: {out}")
+        #logger.info(f"Decoded: {out}")
         return out
 
     #
