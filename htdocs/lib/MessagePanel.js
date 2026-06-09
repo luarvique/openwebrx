@@ -1037,3 +1037,140 @@ $.fn.skimmerMessagePanel = function() {
     }
     return this.data('panel');
 };
+
+MeshtasticMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+MeshtasticMessagePanel.prototype = Object.create(MessagePanel.prototype);
+
+MeshtasticMessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'Meshtastic';
+};
+
+MeshtasticMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="timestamp">Time</th>' +
+                '<th class="src">From</th>' +
+                '<th class="dst">To</th>' +
+                '<th class="data">Data</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+MeshtasticMessagePanel.prototype.makeAddr = function(addr) {
+  return '!' + ('0000000' + addr.toString(16)).slice(-8);
+};
+
+MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
+    var v = data[key];
+
+    // If value is a dictionary, iterate over its contents
+    if ((typeof(v) === 'object') && (Object.getPrototypeOf(v) === Object.prototype)) {
+        var result = '';
+        // prefix += key + '.';
+        for (var key in v) {
+            result += this.formatAttr(v, key, prefix);
+        }
+        return(result);
+    }
+
+    // Perform conversions
+    switch (key) {
+    case 'time':
+    case 'timestamp':
+        v = (new Date(v * 1000)).toUTCString();
+        break;
+    case 'latitude_i':
+    case 'longitude_i':
+        v = v / 10000000.0;
+        break;
+    case 'voltage':
+    case 'ch1_voltage':
+    case 'ch2_voltage':
+        v = v.toFixed(2) + ' V';
+        break;
+    case 'ch1_current':
+    case 'ch2_current':
+        v = v.toFixed(3) + ' A';
+        break;
+    case 'battery_level':
+    case 'channel_utilization':
+    case 'air_util_tx':
+    case 'relative_humidity':
+        v = v.toFixed(0) + ' %';
+        break;
+    case 'temperature':
+        v = v.toFixed(1) + ' &deg;C';
+        break;
+    case 'barometric_pressure':
+        v = v.toFixed(1) + ' hPa';
+        break;
+    case 'macaddr':
+        v = atob(v).split('').map(function(c) {
+            return ('0' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join('').toUpperCase();
+        break;
+    }
+
+    // Output regular values as they are
+    return('<tr><td colspan="4">' +
+        '<div style="border-bottom:1px dotted;">' +
+        '<span style="float:left;">' + prefix + key + '</span>' +
+        '<span style="float:right;word-break:break-all;">' + v + '</span>' +
+        '</div></td></tr>'
+    );
+};
+
+MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
+    var bcolor = msg.color? msg.color : '#000';
+    var fcolor = msg.color? '#000' : '#FFF';
+    var tstamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
+    var text   = msg.type || msg.longName || msg.comment || '';
+    var id     = this.makeAddr(msg.src);
+    var src    = Utils.linkToMap(id, msg.nickName || id);
+    var dst    = msg.dst == 0xFFFFFFFF? 'ALL'
+               : (msg.dstNickName || this.makeAddr(msg.dst));
+
+    // Append report
+    var $b = $(this.el).find('tbody');
+    $b.append($(
+        '<tr>' +
+            '<td class="timestamp">' + tstamp + '</td>' +
+            '<td class="src">' + src + '</td>' +
+            '<td class="dst">' + dst + '</td>' +
+            '<td class="data" style="text-align:left;">' + text + '</td>' +
+        '</tr>'
+    ).css('background-color', bcolor).css('color', fcolor));
+
+    // Append message
+    if (msg.message) {
+        $b.append($(
+            '<tr>' +
+                '<td colspan="4">' + Utils.htmlEscape(msg.message) + '</td>' +
+            '</tr>'
+        ));
+    }
+
+    // Append data
+    if (msg.data) {
+        for (var key in msg.data) {
+            $b.append($(this.formatAttr(msg.data, key)));
+        }
+    }
+
+    // Jump list to the last received message
+    this.scrollToBottom();
+};
+
+$.fn.meshtasticMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new MeshtasticMessagePanel(this));
+    }
+    return this.data('panel');
+};
