@@ -81,8 +81,9 @@ class TetraDemodModule(AutoStartModule):
             "-d", "{},{}".format(self._BAUD, self._IFWIDTH),
             "-t", "0,5000",
             "-w", self._pipePath,                     # audio -> named pipe (WAV wrapper)
-            "-v",                                     # verbose metadata -> stdout
+            #"-v",                                     # verbose metadata -> stdout (Not needed anymore since json out is avail)
             "-c", "1",                                # mono output
+            "-j", "/dev/stdout",                      # Send json metadata to stdout
         ]
         logger.info("TETRA: starting tetrarx: %s", tetrarx_cmd)
         self._tetrarx = Popen(tetrarx_cmd, stdin=PIPE, stdout=PIPE, stderr=DEVNULL)
