@@ -924,6 +924,96 @@ DrmMetaPanel.prototype.setIndicator = function(name, value, text = null) {
     if (text != null) $el.text(text);
 };
 
+function TetraMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.clear();
+}
+
+TetraMetaPanel.prototype = new MetaPanel();
+
+TetraMetaPanel.prototype.isSupported = function(data) {
+    // TetraParser emits data.mode = 'TETRA'
+    return data.mode === 'TETRA';
+};
+
+TetraMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    this.el.find('.openwebrx-meta-slot').addClass('active');
+
+    // Network name from MCC/MNC lookup, or raw MCC/MNC if unavailable
+    var network = data.network ||
+        (data.mcc !== undefined ? 'MCC ' + data.mcc + ' / MNC ' + data.mnc : '');
+    this.setNetwork(network);
+
+    // Colour Code: MCC,MNC,BCC
+    var cc = data.mcc !== undefined
+        ? data.mcc + ', ' + data.mnc + ', ' + data.bcc
+        : '';
+    this.setCC(cc);
+
+    // TX / RX frequencies
+    var freq = '';
+    if (data.tx_mhz !== undefined) {
+        freq = data.tx_mhz.toFixed(4) + ' MHz';
+        if (data.rx_mhz !== undefined) {
+            freq += ' / ' + data.rx_mhz.toFixed(4);
+        }
+    }
+    this.setFreq(freq);
+
+    // Signal level and frequency offset
+    var signal = '';
+    if (data.rfdb !== undefined) {
+        signal = data.rfdb.toFixed(1) + ' dB';
+        if (data.offset !== undefined && data.offset !== 0) {
+            signal += '  ' + data.offset + ' Hz';
+        }
+    }
+    this.setSignal(signal);
+
+    // Service flags
+    var flags = [];
+    if (data.voice_service) flags.push('Voice');
+    if (data.air_encrypted) flags.push('Encrypted');
+    this.setFlags(flags.join('  '));
+
+    // Subscriber identities
+    var ssi = [];
+    if (data.ssi && data.ssi.length) ssi = ssi.concat(data.ssi);
+    if (data.ussi && data.ussi.length) ssi = ssi.concat(data.ussi);
+    this.setSSI(ssi.length ? ssi.join(', ') : '');
+};
+
+TetraMetaPanel.prototype.setNetwork = function(v) {
+    this.el.find('.openwebrx-tetra-network').text(v || '');
+};
+TetraMetaPanel.prototype.setCC = function(v) {
+    this.el.find('.openwebrx-tetra-cc').text(v || '');
+};
+TetraMetaPanel.prototype.setFreq = function(v) {
+    this.el.find('.openwebrx-tetra-freq').text(v || '');
+};
+TetraMetaPanel.prototype.setSignal = function(v) {
+    this.el.find('.openwebrx-tetra-signal').text(v || '');
+};
+TetraMetaPanel.prototype.setFlags = function(v) {
+    this.el.find('.openwebrx-tetra-flags').text(v || '');
+};
+TetraMetaPanel.prototype.setSSI = function(v) {
+    this.el.find('.openwebrx-tetra-ssi').text(v || '');
+};
+
+TetraMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.setNetwork();
+    this.setCC();
+    this.setFreq();
+    this.setSignal();
+    this.setFlags();
+    this.setSSI();
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
@@ -933,7 +1023,8 @@ MetaPanel.types = {
     wfm: WfmMetaPanel,
     dab: DabMetaPanel,
     hdr: HdrMetaPanel,
-    drm: DrmMetaPanel
+    drm: DrmMetaPanel,
+    tetra: TetraMetaPanel
 };
 
 $.fn.metaPanel = function() {

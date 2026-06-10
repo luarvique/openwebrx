@@ -1154,6 +1154,26 @@ img.openwebrx-mirror-img
     content: "Conference: ";
 }
 
+.openwebrx-tetra-network:not(:empty):before {
+    content: "Network: ";
+}
+
+.openwebrx-tetra-cc:not(:empty):before {
+    content: "CC: ";
+}
+
+.openwebrx-tetra-freq:not(:empty):before {
+    content: "TX: ";
+}
+
+.openwebrx-tetra-signal:not(:empty):before {
+    content: "Signal: ";
+}
+
+.openwebrx-tetra-ssi:not(:empty):before {
+    content: "SSI: ";
+}
+
 .openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;

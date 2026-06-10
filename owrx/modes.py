@@ -337,6 +337,13 @@ class Modes(object):
             squelch=False,
             secondaryFft=False
         ),
+        AnalogMode(
+            "tetra",
+            "TETRA",
+            bandpass=Bandpass(-12500, 12500),
+            requirements=["tetra"],
+            squelch=False
+        ),
         # LoRa modes
         DigitalMode(
             "lora-wan",
