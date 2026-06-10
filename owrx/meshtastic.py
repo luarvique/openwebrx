@@ -247,7 +247,7 @@ class MeshtasticParser(TextParser):
         packet_id = int.from_bytes(data[8:12], "little")
         flags     = data[12]
 
-        logger.info("Parsing %d-byte packet from !%08x to !%08x", len(data), src, dst)
+        #logger.info("Parsing %d-byte packet from !%08x to !%08x", len(data), src, dst)
 
         # Drop duplicates
         if self.isDuplicatePacket(src, packet_id):
@@ -327,7 +327,7 @@ class MeshtasticParser(TextParser):
     # Parse decrypted Meshtastic payload
     #
     def parsePayload(self, out, port, payload):
-        logger.info("Parsing payload for port %d", port)
+        #logger.info("Parsing payload for port %d", port)
 
         # Add port number and name
         out["port"] = port
