@@ -966,11 +966,15 @@ TetraMetaPanel.prototype.update = function(data) {
     var signal = '';
     if (data.rfdb !== undefined) {
         signal = data.rfdb.toFixed(1) + ' dB';
-        if (data.offset !== undefined && data.offset !== 0) {
-            signal += '  ' + data.offset + ' Hz';
-        }
     }
     this.setSignal(signal);
+
+    // Offset
+    var offset = '';
+    if (data.offset !== undefined && data.offset !== 0) {
+            offset += '  ' + data.offset + ' Hz';
+    }
+    this.setOffset(offset);
 
     // Service flags
     var flags = [];
@@ -997,6 +1001,9 @@ TetraMetaPanel.prototype.setFreq = function(v) {
 TetraMetaPanel.prototype.setSignal = function(v) {
     this.el.find('.openwebrx-tetra-signal').text(v || '');
 };
+TetraMetaPanel.prototype.setOffset = function(v) {
+    this.el.find('.openwebrx-tetra-offset').text(v || '');
+};
 TetraMetaPanel.prototype.setFlags = function(v) {
     this.el.find('.openwebrx-tetra-flags').text(v || '');
 };
@@ -1010,6 +1017,7 @@ TetraMetaPanel.prototype.clear = function() {
     this.setCC();
     this.setFreq();
     this.setSignal();
+    this.setOffset();
     this.setFlags();
     this.setSSI();
 };

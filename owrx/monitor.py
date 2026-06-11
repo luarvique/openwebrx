@@ -10,6 +10,104 @@ import os
 
 logger = logging.getLogger(__name__)
 
+class FileMonitor(threading.Thread):
+    @staticmethod
+    def getNewFilePath(prefix: str = "openwebrx") -> str:
+        # Generate new file name
+        filePath = "{tmp_dir}/{prefix}_{uid}.sock".format(
+            tmp_dir = CoreConfig().get_temporary_directory(),
+            prefix = prefix,
+            uid = str(uuid.uuid4())[:8]
+        )
+        # Remove existing file, if present
+        if os.path.exists(filePath):
+            try:
+                os.unlink(filePath)
+            except OSError:
+                pass
+        # Done
+        return filePath
+
+    def __init__(self, file_path="/tmp/status.sock"):
+        super().__init__(daemon=True)
+        self.file_path = file_path
+        self.running = False
+        self.callbacks = []
+
+    def add_callback(self, callback):
+        self.callbacks.append(callback)
+
+    def remove_callback(self, callback):
+        if callback in self.callbacks:
+            self.callbacks.remove(callback)
+
+    def run(self):
+        self.running = True
+        reconnect_delay = 1.0
+        fr = None
+
+        while self.running:
+            try:
+                # Open File
+                fr  = open(self.file_path,'rb')
+                logger.debug(f"Monitor connected: {self.file_path}")
+
+                buffer = b""
+                while self.running:
+                    try:
+                        data = fr.read(4096)
+                        if not data:
+                            break
+
+                        buffer += data
+                        while b"\n" in buffer:
+                            line, buffer = buffer.split(b"\n", 1)
+                            try:
+                                decoded_line = line.decode("utf-8").strip()
+                                if decoded_line:
+                                    self._process_status(decoded_line)
+                            except UnicodeDecodeError as e:
+                                logger.error(f"Data decode error: {e}")
+
+                    except Exception as e:
+                        logger.error(f"Data read error: {e}")
+                        break
+
+            except (FileNotFoundError, ConnectionRefusedError):
+                logger.debug(f"File not ready: {self.file_path}")
+            except Exception as e:
+                logger.error(f"Monitor error: {e}")
+            finally:
+                time.sleep(reconnect_delay)
+                reconnect_delay = min(reconnect_delay * 1.5, 10.0)
+                if fr:
+                    try:
+                        fr.close()
+                    except:
+                        pass
+                    fr = None
+
+        # Monitor thread done
+        self.running = False
+        logger.debug(f"Monitor stopped: {self.file_path}")
+
+    def _process_status(self, json_str):
+        try:
+            status = json.loads(json_str)
+            logger.debug(f"Status: {status}")
+            for callback in self.callbacks:
+                try:
+                    callback(status)
+                except Exception as e:
+                    logger.error(f"Monitor callback error: {e}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON: '{json_str}'")
+
+    def stop(self):
+        self.running = False
+        if self.is_alive():
+            logger.debug(f"Stopping monitor: {self.file_path}")
+            self.join(timeout = 2.0)
 
 class SocketMonitor(threading.Thread):
     @staticmethod
@@ -110,7 +208,7 @@ class SocketMonitor(threading.Thread):
     def _process_status(self, json_str):
         try:
             status = json.loads(json_str)
-#            logger.debug(f"Status: {status}")
+            logger.debug(f"Status: {status}")
             for callback in self.callbacks:
                 try:
                     callback(status)
@@ -122,5 +220,5 @@ class SocketMonitor(threading.Thread):
     def stop(self):
         self.running = False
         if self.is_alive():
-            logger.info(f"Stopping monitor: {self.socket_path}")
+            logger.debug(f"Stopping monitor: {self.socket_path}")
             self.join(timeout = 2.0)

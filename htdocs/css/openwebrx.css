@@ -1155,7 +1155,7 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-tetra-network:not(:empty):before {
-    content: "Network: ";
+    content: "Net: ";
 }
 
 .openwebrx-tetra-cc:not(:empty):before {
@@ -1167,7 +1167,11 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-tetra-signal:not(:empty):before {
-    content: "Signal: ";
+    content: "Sig: ";
+}
+
+.openwebrx-tetra-offset:not(:empty):before {
+    content: "Off: ";
 }
 
 .openwebrx-tetra-ssi:not(:empty):before {
