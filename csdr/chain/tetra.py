@@ -61,7 +61,7 @@ class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, M
         # Forward Tetra status via metadata writer
         if self.metaWriter:
             try:
-                status = self.parser(status)
+                status = self.parser.parse(status)
                 if status:
                     self.metaWriter.write(pickle.dumps(status));
             except Exception as e:
