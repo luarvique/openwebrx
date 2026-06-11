@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider, DialFrequencyReceiver):
     def __init__(self):
-        filePath = FileMonitor.getNewFilePath("tetra")
+        filePath = FileMonitor.getNewPathName("tetra")
 
         self.metaWriter = None
         self.sampleRate = 96000
