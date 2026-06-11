@@ -5,14 +5,11 @@ logger = logging.getLogger(__name__)
 
 
 class TetraParser(object):
-    def __init__(self, socket_path="/tmp/tetra_status.sock"):
+    def __init__(self):
         self.frequency = 0
 
     def setDialFrequency(self, frequency: int) -> None:
         self.frequency = frequency
-
-    def __call__(self, data: dict):
-        return self.parse(data)
 
     def parse(self, data: dict):
         #logger.info("data: %s", data)
