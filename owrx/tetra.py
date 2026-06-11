@@ -1,42 +1,134 @@
-import json
-import logging
 from owrx.toolbox import TextParser
+
+import socket
+import json
+import threading
+import time
+import logging
+
 
 logger = logging.getLogger(__name__)
 
 
-class TetraParser(TextParser):
+class TetraMonitor(threading.Thread):
+    def __init__(self, socket_path="/tmp/tetra_status.sock"):
+        super().__init__(daemon=True)
+        self.socket_path = socket_path
+        self.frequency = 0
+        self.running = False
+        self.callbacks = []
 
-    def __init__(self, service: bool = False):
-        super().__init__(filePrefix="TETRA", service=service)
+    def add_callback(self, callback):
+        self.callbacks.append(callback)
 
-    def parse(self, line: bytes) -> dict | None:
-        try:
-            text = line.decode("ascii", errors="replace").strip()
-        except Exception:
-            return None
+    def remove_callback(self, callback):
+        if callback in self.callbacks:
+            self.callbacks.remove(callback)
 
-        if not text:
-            return None
+    def setDialFrequency(self, frequency: int) -> None:
+        self.frequency = frequency
 
+    def stop(self):
+        self.running = False
+        if self.is_alive():
+            logger.info(f"Stopping Tetra monitor: {self.socket_path}")
+            self.join(timeout = 2.0)
+
+    def run(self):
+        self.running = True
+        reconnect_delay = 1.0
+        sock = None
+
+        while self.running:
+            try:
+                # Connect new socket to Tetra status
+                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                sock.settimeout(5.0)
+                sock.connect(self.socket_path)
+                logger.debug(f"Tetra monitor connected: {self.socket_path}")
+                reconnect_delay = 1.0
+
+                # Keep reading Tetra status via socket
+                buffer = b""
+                while self.running:
+                    try:
+                        data = sock.recv(4096)
+                        if not data:
+                            break
+
+                        buffer += data
+                        while b'\n' in buffer:
+                            line, buffer = buffer.split(b'\n', 1)
+                            try:
+                                decoded_line = line.decode('utf-8').strip()
+                                if decoded_line:
+                                    self._process_status(decoded_line)
+                            except UnicodeDecodeError as e:
+                                logger.error(f"Tetra decode error: {e}")
+
+                    except socket.timeout:
+                        continue
+                    except Exception as e:
+                        logger.error(f"Tetra read error: {e}")
+                        break
+
+                # Clean up and close socket
+                if sock:
+                    try:
+                        sock.shutdown(socket.SHUT_RDWR)
+                        sock.close()
+                    except (OSError, AttributeError) as e:
+                        logger.debug(f"Socket cleanup error: {e}")
+                    sock = None
+
+            except (FileNotFoundError, ConnectionRefusedError):
+                logger.debug(f"Tetra socket not ready: {self.socket_path}")
+            except Exception as e:
+                logger.error(f"Tetra monitor error: {e}")
+            finally:
+                time.sleep(reconnect_delay)
+                reconnect_delay = min(reconnect_delay * 1.5, 10.0)
+                if sock:
+                    try:
+                        sock.close()
+                    except:
+                        pass
+                    sock = None
+
+        # Monitor thread done
+        self.running = False
+        logger.debug(f"Tetra monitor stopped: {self.socket_path}")
+
+    def _process_status(self, json_str):
+        status = self.parse(json_str)
+        if status:
+            logger.debug(f"Tetra status: {status}")
+            for callback in self.callbacks:
+                try:
+                    callback(status)
+                except Exception as e:
+                    logger.error(f"Tetra callback error: {e}")
+
+    def parse(self, text):
+        # Try parsing JSON
         try:
             data = json.loads(text)
         except json.JSONDecodeError:
-            logger.debug("TetraParser: not valid JSON: %r", text)
+            logger.debug("Cannot parse JSON: '%s'", text)
             return None
 
-        if not isinstance(data, dict):
+        # Must be a dictionary containing FTYP
+        if not isinstance(data, dict) or "FTYP" not in data:
             return None
 
-        return self._map(data)
-
-    def _map(self, data: dict) -> dict | None:
-        """Map a raw tetrarx JSON dict to the OpenWebRX internal format."""
-        if "FTYP" not in data:
+        # Only output data when there is voice traffic
+        if "AUDIO" not in data or data["AUDIO"] != 1:
             return None
 
-        out: dict = {"mode": "TETRA", "ft": int(data["FTYP"])}
+        # Start parsing
+        out = { "mode": "TETRA", "ft": int(data["FTYP"]) }
 
+        # Current frequency
         if self.frequency:
             out["freq"] = self.frequency
 
@@ -80,12 +172,12 @@ class TetraParser(TextParser):
             out["power_dbm"] = int(data["Po"])
 
         # Service flags
-        if data.get("VOICE"):
-            out["voice_service"] = True
-        if data.get("ENC"):
-            out["air_encrypted"] = True
-        if data.get("AUDIO"):
-            out["audio"] = True
+        if "VOICE" in data:
+            out["voice_service"] = data["VOICE"] == 1
+        if "ENC" in data:
+            out["air_encrypted"] = data["ENC"] == 1
+        if "AUDIO" in data:
+            out["audio"] = data["AUDIO"] == 1
 
         # Subscriber identity
         if "ssi" in data:
@@ -97,12 +189,9 @@ class TetraParser(TextParser):
         if "MAC" in data:
             out["mac"] = int(data["MAC"])
 
-        # Only output data when there is Voice traffic
-        if data.get("AUDIO") == 1:
+        # @@@ Why are we doing this?
+        if "AUDIO" in data and data["AUDIO"] == 1:
             out["air_encrypted"] = False
-            return out
-        else:
-            return None
 
-    def setDialFrequency(self, frequency: int) -> None:
-        super().setDialFrequency(frequency)
+        # Done
+        return out
