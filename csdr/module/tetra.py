@@ -22,7 +22,7 @@ class TetraModule(PopenModule):
 
     def getCommand(self):
         # Compose basic command line
-        cmd = [
+        return [
             "tetrarx",
             "-i", "/dev/stdin", "-f", "f32",
             "-w", "/dev/stdout", "-c", "1",
