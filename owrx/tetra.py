@@ -11,7 +11,11 @@ class TetraParser(object):
     def setDialFrequency(self, frequency: int) -> None:
         self.frequency = frequency
 
-    def parse(self, data):
+    def __call__(self, data: dict):
+        return self.parse(data)
+
+    def parse(self, data: dict):
+        #logger.info("data: %s", data)
         # Must have FTYP
         if "FTYP" not in data:
             return None

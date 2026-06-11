@@ -2,7 +2,7 @@ from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain,
 from pycsdr.modules import Agc, Writer
 from pycsdr.types import Format
 from csdr.module.tetra import TetraModule
-from owrx.monitor import SocketMonitor
+from owrx.monitor import FileMonitor
 from owrx.tetra import TetraParser
 
 import pickle
@@ -12,14 +12,14 @@ logger = logging.getLogger(__name__)
 
 class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider, DialFrequencyReceiver):
     def __init__(self):
-        socketPath = SocketMonitor.getNewSocketPath("tetra")
+        filePath = FileMonitor.getNewFilePath("tetra")
 
         self.metaWriter = None
         self.sampleRate = 96000
-        self.tetraModule = TetraModule(self.sampleRate, socketPath)
+        self.tetraModule = TetraModule(self.sampleRate, filePath)
         self.parser = TetraParser()
 
-        self.monitor = SocketMonitor(socketPath)
+        self.monitor = FileMonitor(filePath)
         self.monitor.add_callback(self._onTetraStatus)
         self.monitor.start()
 
