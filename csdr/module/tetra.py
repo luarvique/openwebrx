@@ -1,4 +1,4 @@
-from pycsdr.modules import PopenModule
+from csdr.module import PopenModule
 from pycsdr.types import Format
 
 import os
