@@ -19,7 +19,7 @@ class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, Met
         if FeatureDetector().is_available("dream-2-2"):
             # Monitor DRM decoder status
             socketPath = SocketMonitor.getNewSocketPath("dream_status")
-            self.monitor = SocketMonitor(self.drmModule.getSocketPath())
+            self.monitor = SocketMonitor(socketPath)
             self.monitor.add_callback(self._onDrmStatus)
             self.monitor.start()
         else:

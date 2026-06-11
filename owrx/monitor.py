@@ -17,6 +17,7 @@ class SocketMonitor(threading.Thread):
         # Generate new socket name
         socketPath = "{tmp_dir}/{prefix}_{uid}.sock".format(
             tmp_dir = CoreConfig().get_temporary_directory(),
+            prefix = prefix,
             uid = str(uuid.uuid4())[:8]
         )
         # Remove existing socket, if present
@@ -25,6 +26,8 @@ class SocketMonitor(threading.Thread):
                 os.unlink(socketPath)
             except OSError:
                 pass
+        # Done
+        return socketPath
 
     def __init__(self, socket_path="/tmp/status.sock"):
         super().__init__(daemon=True)
@@ -62,10 +65,10 @@ class SocketMonitor(threading.Thread):
                             break
 
                         buffer += data
-                        while b'\n' in buffer:
-                            line, buffer = buffer.split(b'\n', 1)
+                        while b"\n" in buffer:
+                            line, buffer = buffer.split(b"\n", 1)
                             try:
-                                decoded_line = line.decode('utf-8').strip()
+                                decoded_line = line.decode("utf-8").strip()
                                 if decoded_line:
                                     self._process_status(decoded_line)
                             except UnicodeDecodeError as e:
