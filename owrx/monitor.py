@@ -10,126 +10,28 @@ import os
 
 logger = logging.getLogger(__name__)
 
-class FileMonitor(threading.Thread):
+
+class Monitor(threading.Thread):
     @staticmethod
-    def getNewFilePath(prefix: str = "openwebrx") -> str:
-        # Generate new file name
-        filePath = "{tmp_dir}/{prefix}_{uid}.sock".format(
-            tmp_dir = CoreConfig().get_temporary_directory(),
-            prefix = prefix,
-            uid = str(uuid.uuid4())[:8]
-        )
-        # Remove existing file, if present
-        if os.path.exists(filePath):
-            try:
-                os.unlink(filePath)
-            except OSError:
-                pass
-        # Done
-        return filePath
-
-    def __init__(self, file_path="/tmp/status.sock"):
-        super().__init__(daemon=True)
-        self.file_path = file_path
-        self.running = False
-        self.callbacks = []
-
-    def add_callback(self, callback):
-        self.callbacks.append(callback)
-
-    def remove_callback(self, callback):
-        if callback in self.callbacks:
-            self.callbacks.remove(callback)
-
-    def run(self):
-        self.running = True
-        reconnect_delay = 1.0
-        fr = None
-
-        while self.running:
-            try:
-                # Open File
-                fr  = open(self.file_path,'rb')
-                logger.debug(f"Monitor connected: {self.file_path}")
-
-                buffer = b""
-                while self.running:
-                    try:
-                        data = fr.read(4096)
-                        if not data:
-                            break
-
-                        buffer += data
-                        while b"\n" in buffer:
-                            line, buffer = buffer.split(b"\n", 1)
-                            try:
-                                decoded_line = line.decode("utf-8").strip()
-                                if decoded_line:
-                                    self._process_status(decoded_line)
-                            except UnicodeDecodeError as e:
-                                logger.error(f"Data decode error: {e}")
-
-                    except Exception as e:
-                        logger.error(f"Data read error: {e}")
-                        break
-
-            except (FileNotFoundError, ConnectionRefusedError):
-                logger.debug(f"File not ready: {self.file_path}")
-            except Exception as e:
-                logger.error(f"Monitor error: {e}")
-            finally:
-                time.sleep(reconnect_delay)
-                reconnect_delay = min(reconnect_delay * 1.5, 10.0)
-                if fr:
-                    try:
-                        fr.close()
-                    except:
-                        pass
-                    fr = None
-
-        # Monitor thread done
-        self.running = False
-        logger.debug(f"Monitor stopped: {self.file_path}")
-
-    def _process_status(self, json_str):
-        try:
-            status = json.loads(json_str)
-            logger.debug(f"Status: {status}")
-            for callback in self.callbacks:
-                try:
-                    callback(status)
-                except Exception as e:
-                    logger.error(f"Monitor callback error: {e}")
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON: '{json_str}'")
-
-    def stop(self):
-        self.running = False
-        if self.is_alive():
-            logger.debug(f"Stopping monitor: {self.file_path}")
-            self.join(timeout = 2.0)
-
-class SocketMonitor(threading.Thread):
-    @staticmethod
-    def getNewSocketPath(prefix: str = "openwebrx") -> str:
-        # Generate new socket name
-        socketPath = "{tmp_dir}/{prefix}_{uid}.sock".format(
+    def getNewPathName(prefix: str = "openwebrx") -> str:
+        # Generate new pathname
+        pathName = "{tmp_dir}/{prefix}_{uid}".format(
             tmp_dir = CoreConfig().get_temporary_directory(),
             prefix = prefix,
             uid = str(uuid.uuid4())[:8]
         )
         # Remove existing socket, if present
-        if os.path.exists(socketPath):
+        if os.path.exists(pathName):
             try:
-                os.unlink(socketPath)
+                os.unlink(pathName)
             except OSError:
                 pass
         # Done
-        return socketPath
+        return pathName
 
-    def __init__(self, socket_path="/tmp/status.sock"):
+    def __init__(self, pathName: str):
         super().__init__(daemon=True)
-        self.socket_path = socket_path
+        self.pathName = pathName
         self.running = False
         self.callbacks = []
 
@@ -143,22 +45,20 @@ class SocketMonitor(threading.Thread):
     def run(self):
         self.running = True
         reconnect_delay = 1.0
-        sock = None
+        source = None
 
         while self.running:
             try:
-                # Connect new socket
-                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                sock.settimeout(5.0)
-                sock.connect(self.socket_path)
-                logger.debug(f"Monitor connected: {self.socket_path}")
+                # Open monitored file or socket
+                source = self._open(self.pathName)
+                logger.debug(f"Monitor connected: {self.pathName}")
                 reconnect_delay = 1.0
 
                 # Keep reading status via socket
                 buffer = b""
                 while self.running:
                     try:
-                        data = sock.recv(4096)
+                        data = self._read(source)
                         if not data:
                             break
 
@@ -179,31 +79,30 @@ class SocketMonitor(threading.Thread):
                         break
 
                 # Clean up and close socket
-                if sock:
+                if source:
                     try:
-                        sock.shutdown(socket.SHUT_RDWR)
-                        sock.close()
+                        self._close(source)
                     except (OSError, AttributeError) as e:
-                        logger.debug(f"Socket cleanup error: {e}")
-                    sock = None
+                        logger.debug(f"Cleanup error: {e}")
+                    source = None
 
             except (FileNotFoundError, ConnectionRefusedError):
-                logger.debug(f"Socket not ready: {self.socket_path}")
+                logger.debug(f"Not ready: {self.pathName}")
             except Exception as e:
                 logger.error(f"Monitor error: {e}")
             finally:
                 time.sleep(reconnect_delay)
                 reconnect_delay = min(reconnect_delay * 1.5, 10.0)
-                if sock:
+                if source:
                     try:
-                        sock.close()
+                        self._close(source)
                     except:
                         pass
-                    sock = None
+                    source = None
 
         # Monitor thread done
         self.running = False
-        logger.debug(f"Monitor stopped: {self.socket_path}")
+        logger.debug(f"Monitor stopped: {self.pathName}")
 
     def _process_status(self, json_str):
         try:
@@ -220,5 +119,40 @@ class SocketMonitor(threading.Thread):
     def stop(self):
         self.running = False
         if self.is_alive():
-            logger.debug(f"Stopping monitor: {self.socket_path}")
+            logger.debug(f"Stopping monitor: {self.pathName}")
             self.join(timeout = 2.0)
+
+    def _open(self, filePath: str):
+        return None
+
+    def _read(self, source):
+        return None
+
+    def _close(self, source):
+        pass
+
+
+class SocketMonitor(Monitor):
+    def _open(self, filePath: str):
+        source = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        source.settimeout(5.0)
+        source.connect(filePath)
+        return source
+
+    def _read(self, source):
+        return source.recv(4096)
+
+    def _close(self, source):
+        source.shutdown(socket.SHUT_RDWR)
+        source.close()
+
+
+class FileMonitor(Monitor):
+    def _open(self, filePath: str):
+        return open(filePath, "rb")
+
+    def _read(self, source):
+        return source.read(4096)
+
+    def _close(self, source):
+        source.close()
