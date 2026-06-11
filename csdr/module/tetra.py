@@ -1,9 +1,9 @@
-from pycsdr.modules import ExecModule
+from pycsdr.modules import PopenModule
 from pycsdr.types import Format
 
 import os
 
-class TetraModule(ExecModule):
+class TetraModule(PopenModule):
     # TETRA D4PSK: 18 kbit/s, 25 kHz channel
     baudRate = 18000
     ifWidth  = 20000 # 18kHz signal + 2kHz margin
@@ -12,7 +12,15 @@ class TetraModule(ExecModule):
         # Save sample rate and status socket path
         self.sampleRate = sampleRate
         self.socketPath = socketPath
+        super().__init__()
 
+    def getInputFormat(self) -> Format:
+        return Format.COMPLEX_FLOAT
+
+    def getOutputFormat(self) -> Format:
+        return Format.SHORT
+
+    def getCommand(self):
         # Compose basic command line
         cmd = [
             "tetrarx",
@@ -23,9 +31,6 @@ class TetraModule(ExecModule):
             "-t", "0,5000",
             "-j", self.socketPath,
         ]
-
-        # 8000Hz 16-bit PCM from tetrarx
-        super().__init__(Format.COMPLEX_FLOAT, Format.SHORT, cmd)
 
     def stop(self):
         # Stop execution
