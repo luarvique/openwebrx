@@ -1,124 +1,19 @@
-from owrx.toolbox import TextParser
-
-import socket
-import json
-import threading
-import time
 import logging
 
 
 logger = logging.getLogger(__name__)
 
 
-class TetraMonitor(threading.Thread):
+class TetraParser(object):
     def __init__(self, socket_path="/tmp/tetra_status.sock"):
-        super().__init__(daemon=True)
-        self.socket_path = socket_path
         self.frequency = 0
-        self.running = False
-        self.callbacks = []
-
-    def add_callback(self, callback):
-        self.callbacks.append(callback)
-
-    def remove_callback(self, callback):
-        if callback in self.callbacks:
-            self.callbacks.remove(callback)
 
     def setDialFrequency(self, frequency: int) -> None:
         self.frequency = frequency
 
-    def stop(self):
-        self.running = False
-        if self.is_alive():
-            logger.info(f"Stopping Tetra monitor: {self.socket_path}")
-            self.join(timeout = 2.0)
-
-    def run(self):
-        self.running = True
-        reconnect_delay = 1.0
-        sock = None
-
-        while self.running:
-            try:
-                # Connect new socket to Tetra status
-                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                sock.settimeout(5.0)
-                sock.connect(self.socket_path)
-                logger.debug(f"Tetra monitor connected: {self.socket_path}")
-                reconnect_delay = 1.0
-
-                # Keep reading Tetra status via socket
-                buffer = b""
-                while self.running:
-                    try:
-                        data = sock.recv(4096)
-                        if not data:
-                            break
-
-                        buffer += data
-                        while b'\n' in buffer:
-                            line, buffer = buffer.split(b'\n', 1)
-                            try:
-                                decoded_line = line.decode('utf-8').strip()
-                                if decoded_line:
-                                    self._process_status(decoded_line)
-                            except UnicodeDecodeError as e:
-                                logger.error(f"Tetra decode error: {e}")
-
-                    except socket.timeout:
-                        continue
-                    except Exception as e:
-                        logger.error(f"Tetra read error: {e}")
-                        break
-
-                # Clean up and close socket
-                if sock:
-                    try:
-                        sock.shutdown(socket.SHUT_RDWR)
-                        sock.close()
-                    except (OSError, AttributeError) as e:
-                        logger.debug(f"Socket cleanup error: {e}")
-                    sock = None
-
-            except (FileNotFoundError, ConnectionRefusedError):
-                logger.debug(f"Tetra socket not ready: {self.socket_path}")
-            except Exception as e:
-                logger.error(f"Tetra monitor error: {e}")
-            finally:
-                time.sleep(reconnect_delay)
-                reconnect_delay = min(reconnect_delay * 1.5, 10.0)
-                if sock:
-                    try:
-                        sock.close()
-                    except:
-                        pass
-                    sock = None
-
-        # Monitor thread done
-        self.running = False
-        logger.debug(f"Tetra monitor stopped: {self.socket_path}")
-
-    def _process_status(self, json_str):
-        status = self.parse(json_str)
-        if status:
-            logger.debug(f"Tetra status: {status}")
-            for callback in self.callbacks:
-                try:
-                    callback(status)
-                except Exception as e:
-                    logger.error(f"Tetra callback error: {e}")
-
-    def parse(self, text):
-        # Try parsing JSON
-        try:
-            data = json.loads(text)
-        except json.JSONDecodeError:
-            logger.debug("Cannot parse JSON: '%s'", text)
-            return None
-
-        # Must be a dictionary containing FTYP
-        if not isinstance(data, dict) or "FTYP" not in data:
+    def parse(self, data):
+        # Must have FTYP
+        if "FTYP" not in data:
             return None
 
         # Only output data when there is voice traffic
@@ -157,7 +52,7 @@ class TetraMonitor(threading.Thread):
                     out["mnc"] = int(parts[1])
                     out["bcc"] = int(parts[2])
                 except ValueError:
-                    logger.debug("TetraParser: malformed CC: %r", data["CC"])
+                    logger.debug("Malformed CC: %r", data["CC"])
 
         # TX / RX frequencies
         if "TX" in data:
