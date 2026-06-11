@@ -12,28 +12,27 @@ logger = logging.getLogger(__name__)
 
 class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider, DialFrequencyReceiver):
     def __init__(self):
+        socketPath = SocketMonitor.getNewSocketPath("tetra")
+
         self.metaWriter = None
         self.sampleRate = 96000
-        self.tetraModule = TetraModule(self.sampleRate)
+        self.tetraModule = TetraModule(self.sampleRate, socketPath)
+        self.parser = TetraParser()
+
+        self.monitor = SocketMonitor(socketPath)
+        self.monitor.add_callback(self._onTetraStatus)
+        self.monitor.start()
+
         agc = Agc(Format.SHORT)
         agc.setMaxGain(30)
         agc.setInitialGain(3)
+
         workers = [
             self.tetraModule,
             agc,
         ]
         super().__init__(workers)
 
-        # Monitor Tetra decoder status
-        socketPath = self.tetraModule.getSocketPath()
-        if socketPath is None:
-            self.parser = None
-            self.monitor = None
-        else:
-            self.parser = TetraParser()
-            self.monitor = SocketMonitor(socketPath)
-            self.monitor.add_callback(self._onTetraStatus)
-            self.monitor.start()
 
     def supportsSquelch(self) -> bool:
         return False
@@ -48,8 +47,7 @@ class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, M
         self.metaWriter = writer
 
     def setDialFrequency(self, frequency: int) -> None:
-        if self.monitor:
-            self.monitor.setDialFrequency(frequency)
+        self.parser.setDialFrequency(frequency)
 
     def stop(self):
         # Stop all components
@@ -61,7 +59,7 @@ class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, M
 
     def _onTetraStatus(self, status):
         # Forward Tetra status via metadata writer
-        if self.metaWriter and self.parser:
+        if self.metaWriter:
             try:
                 status = self.parser(status)
                 if status:
