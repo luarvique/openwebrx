@@ -1,14 +1,31 @@
+from owrx.config.core import CoreConfig
+
 import socket
 import json
 import threading
 import time
 import logging
-
+import uuid
+import os
 
 logger = logging.getLogger(__name__)
 
 
 class SocketMonitor(threading.Thread):
+    @staticmethod
+    def getNewSocketPath(prefix: str = "openwebrx") -> str:
+        # Generate new socket name
+        socketPath = "{tmp_dir}/{prefix}_{uid}.sock".format(
+            tmp_dir = CoreConfig().get_temporary_directory(),
+            uid = str(uuid.uuid4())[:8]
+        )
+        # Remove existing socket, if present
+        if os.path.exists(socketPath):
+            try:
+                os.unlink(socketPath)
+            except OSError:
+                pass
+
     def __init__(self, socket_path="/tmp/status.sock"):
         super().__init__(daemon=True)
         self.socket_path = socket_path
