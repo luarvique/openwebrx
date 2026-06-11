@@ -2,7 +2,7 @@ from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain,
 from pycsdr.modules import Convert, Downmix, Writer
 from pycsdr.types import Format
 from csdr.module.drm import DrmModule
-from owrx.drm import DrmStatusMonitor
+from owrx.monitor import SocketMonitor
 
 import pickle
 import logging
@@ -26,7 +26,7 @@ class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, Met
         if socketPath is None:
             self.monitor = None
         else:
-            self.monitor = DrmStatusMonitor(self.drmModule.getSocketPath())
+            self.monitor = SocketMonitor(self.drmModule.getSocketPath())
             self.monitor.add_callback(self._onDrmStatus)
             self.monitor.start()
 

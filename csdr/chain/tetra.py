@@ -2,7 +2,8 @@ from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain,
 from pycsdr.modules import Agc, Writer
 from pycsdr.types import Format
 from csdr.module.tetra import TetraModule
-from owrx.tetra import TetraMonitor
+from owrx.monitor import SocketMonitor
+from owrx.tetra import TetraParser
 
 import pickle
 import logging
@@ -26,9 +27,11 @@ class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, M
         # Monitor Tetra decoder status
         socketPath = self.tetraModule.getSocketPath()
         if socketPath is None:
+            self.parser = None
             self.monitor = None
         else:
-            self.monitor = TetraMonitor(socketPath)
+            self.parser = TetraParser()
+            self.monitor = SocketMonitor(socketPath)
             self.monitor.add_callback(self._onTetraStatus)
             self.monitor.start()
 
@@ -58,10 +61,11 @@ class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, M
 
     def _onTetraStatus(self, status):
         # Forward Tetra status via metadata writer
-        if self.metaWriter:
+        if self.metaWriter and self.parser:
             try:
-                status["mode"] = "TETRA"
-                self.metaWriter.write(pickle.dumps(status));
+                status = self.parser(status)
+                if status:
+                    self.metaWriter.write(pickle.dumps(status));
             except Exception as e:
-                logger.error("Tetra status error: {0}".format(e))
+                logger.error("Tetra status error: %s", e)
 
