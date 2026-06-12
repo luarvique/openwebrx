@@ -152,7 +152,12 @@ class FileMonitor(Monitor):
         return open(filePath, "rb")
 
     def _read(self, source):
-        return source.read(4096)
+        while True:
+            data = source.read(4096)
+            if data or not self.running:
+                return data
+            else:
+                time.sleep(1.0)
 
     def _close(self, source):
         source.close()
