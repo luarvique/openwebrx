@@ -7,12 +7,14 @@ from owrx.tetra import TetraParser
 
 import pickle
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 class Tetra(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider, DialFrequencyReceiver):
     def __init__(self):
         filePath = FileMonitor.getNewPathName("tetra")
+        os.mkfifo(filePath)
 
         self.metaWriter = None
         self.sampleRate = 96000
