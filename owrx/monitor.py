@@ -156,13 +156,17 @@ class FileMonitor(Monitor):
 
     def _read(self, source):
         while self.running:
-            select.select([source], [], [source], 1.0)
             try:
-                data = source.read()
-                if data:
-                    return data
+                r, w, x = select.select([source], [], [], 1.0)
+                if r:
+                    data = source.read()
+                    if data:
+                        return data
             except BlockingIOError:
                 pass
+            except Exception as e:
+                logger.error(f"Exception reading data: {e}")
+                return None
         return None
 
     def _close(self, source):
