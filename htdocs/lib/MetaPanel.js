@@ -942,45 +942,32 @@ TetraMetaPanel.prototype.update = function(data) {
     this.el.find('.openwebrx-meta-slot').addClass('active');
 
     // Network name from MCC/MNC lookup, or raw MCC/MNC if unavailable
-    var network = data.network ||
-        (data.mcc !== undefined ? 'MCC ' + data.mcc + ' / MNC ' + data.mnc : '');
-    this.setNetwork(network);
+    this.setNetwork(data.network || (data.mcc? 'MCC ' + data.mcc + ' / MNC ' + data.mnc : ''));
 
     // Colour Code: MCC,MNC,BCC
-    var cc = data.mcc !== undefined
-        ? data.mcc + ', ' + data.mnc + ', ' + data.bcc
-        : '';
-    this.setCC(cc);
+    this.setCC(data.mcc? data.mcc + ', ' + data.mnc + ', ' + data.bcc : '');
 
     // TX / RX frequencies
     var freq = '';
-    if (data.tx_mhz !== undefined) {
+    if (data.tx_mhz) {
         freq = data.tx_mhz.toFixed(4) + ' MHz';
-        if (data.rx_mhz !== undefined) {
+        if (data.rx_mhz) {
             freq += ' / ' + data.rx_mhz.toFixed(4);
         }
     }
     this.setFreq(freq);
 
     // Signal level and frequency offset
-    var signal = '';
-    if (data.rfdb !== undefined) {
-        signal = data.rfdb.toFixed(1) + ' dB';
-    }
-    this.setSignal(signal);
+    this.setSignal(data.rfdb? data.rfdb.toFixed(1) + ' dB' : '');
 
     // Offset
-    var offset = '';
-    if (data.offset !== undefined && data.offset !== 0) {
-            offset += '  ' + data.offset + ' Hz';
-    }
-    this.setOffset(offset);
+    this.setOffset(data.offset? data.offset + ' Hz' : '');
 
     // Service flags
     var flags = [];
     if (data.voice_service) flags.push('Voice');
     if (data.air_encrypted) flags.push('Encrypted');
-    this.setFlags(flags.join('  '));
+    this.setFlags(flags.join(' '));
 
     // Subscriber identities
     var ssi = [];
