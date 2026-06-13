@@ -1,5 +1,6 @@
 from owrx.config.core import CoreConfig
 
+import select
 import socket
 import json
 import threading
@@ -20,7 +21,7 @@ class Monitor(threading.Thread):
             prefix = prefix,
             uid = str(uuid.uuid4())[:8]
         )
-        # Remove existing socket, if present
+        # Remove existing file or socket, if present
         if os.path.exists(pathName):
             try:
                 os.unlink(pathName)
@@ -54,7 +55,7 @@ class Monitor(threading.Thread):
                 logger.debug(f"Monitor connected: {self.pathName}")
                 reconnect_delay = 1.0
 
-                # Keep reading status via socket
+                # Keep reading status
                 buffer = b""
                 while self.running:
                     try:
@@ -149,15 +150,20 @@ class SocketMonitor(Monitor):
 
 class FileMonitor(Monitor):
     def _open(self, filePath: str):
-        return open(filePath, "rb")
+        source = open(filePath, "rb")
+        os.set_blocking(source.fileno(), False)
+        return source
 
     def _read(self, source):
-        while True:
-            data = source.read(4096)
-            if data or not self.running:
-                return data
-            else:
-                time.sleep(1.0)
+        while self.running:
+            select.select([source], [], [source], 1.0)
+            try:
+                data = source.read()
+                if data:
+                    return data
+            except BlockingIOError:
+                pass
+        return None
 
     def _close(self, source):
         source.close()
