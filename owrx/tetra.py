@@ -79,15 +79,14 @@ class TetraParser(object):
         if "ssi" in data:
             out["ssi"] = [int(data["ssi"])]
 
+        if "SSI" in data:
+            out["SSI"] = [int(data["SSI"])]
+
         # Addressing (traffic frames)
         if "ADRTYP" in data:
             out["adr_type"] = int(data["ADRTYP"])
         if "MAC" in data:
             out["mac"] = int(data["MAC"])
-
-        # @@@ Why are we doing this?
-        if "AUDIO" in data and data["AUDIO"] == 1:
-            out["air_encrypted"] = False
 
         # Done
         return out
