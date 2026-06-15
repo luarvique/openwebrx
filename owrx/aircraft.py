@@ -889,7 +889,7 @@ class AcarsParser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
-        logger.debug("@@@ ACARS: {0}".format(data))
+        #logger.debug("@@@ ACARS: {0}".format(data))
 
         # Collect basic data first
         out = {
