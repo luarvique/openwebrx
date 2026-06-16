@@ -18,6 +18,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Conversion factor from mach numbers to knots
+MACH_TO_KNOTS = 666.738661
+
 
 #
 # Mode-S message formats
@@ -31,7 +34,6 @@ MODE_S_FORMATS = [
     "Comm-B Altitude", "Comm-B IDENT Reply", "Military", None,
     "Comm-D Message"
 ]
-
 
 #
 # Aircraft categories
@@ -71,113 +73,125 @@ MODE_CATEGORIES = {
   "UAT":   (0, 0)
 }
 
-
 #
-# ACARS message labels
-# 0: N/A, 1: downlink, 2: uplink, 3: both, 4: ground, 5: unknown
+# ACARS message labels (0: N/A, 1: downlink, 2: uplink, 3: both, 4: ground)
 #
 ACARS_LABELS = {
-    "_j" : (0, "---", "No information to send"),
+    "_j" : (0, "---", "No Information to Send"),
     "_d" : (3, "---", "Acknowledgement"),
-    "00" : (1, "HJK", "Emergency situation report"),
-    "14" : (5, "???", "General aviation free text"),
-    "15" : (5, "???", "General aviation position report"),
-    "16" : (5, "???", "General aviation weather request"),
-    "2S" : (0, "---", "Weather request"),
+    "00" : (1, "HJK", "Emergency Situation Report"),
+    "14" : (5, "???", "General Aviation Free Text"),
+    "15" : (5, "???", "General Aviation Position Report"),
+    "16" : (5, "???", "General Aviation Weather Request"),
+    "2S" : (0, "---", "Weather Request"),
     "2U" : (0, "---", "Weather"),
-    "4M" : (0, "---", "Cargo information"),
-    "51" : (0, "---", "Ground GMT request response"),
-    "52" : (0, "AGM", "Ground UTC request"),
-    "54" : (3, "---", "Aircrew initiated voice contact request"),
-    "57" : (1, "AEP", "Alternate aircrew initiated position report"),
-    "5D" : (1, "TIS", "ATIS request"),
-    "5P" : (1, "---", "Temporary suspension of ACARS"),
-    "5R" : (1, "AEP", "Aircraft initiated position report"),
-    "5U" : (1, "WXR", "Weather request"),
-    "5Y" : (1, "ETA", "Revision to previous ETA"),
-    "5Z" : (1, "AGM", "Airline designated downlink"),
-    "7A" : (1, "ENG", "Aircraft initiated engine data"),
-    "7B" : (1, "ABM", "Aircraft initiated misc.message"),
-    "80" : (1, "---", "Aircraft addressed downlink #1"),
-    "81" : (1, "---", "Aircraft addressed downlink #2"),
-    "82" : (1, "---", "Aircraft addressed downlink #3"),
-    "83" : (1, "---", "Aircraft addressed downlink #4"),
-    "84" : (1, "---", "Aircraft addressed downlink #5"),
-    "85" : (1, "---", "Aircraft addressed downlink #6"),
-    "86" : (1, "---", "Aircraft addressed downlink #7"),
-    "87" : (1, "---", "Aircraft addressed downlink #8"),
-    "88" : (1, "---", "Aircraft addressed downlink #9"),
-    "89" : (1, "---", "Aircraft addressed downlink #10"),
-    "A1" : (2, "CLX", "Deliver oceanic clearance"),
-    "A2" : (2, "CLD", "Deliver departure clearance"),
+    "4M" : (0, "---", "Cargo Information"),
+    "51" : (0, "---", "Ground GMT Request Response"),
+    "52" : (0, "AGM", "Ground UTC Request"),
+    "54" : (3, "---", "Aircrew Initiated Voice Contact Request"),
+    "57" : (1, "AEP", "Alternate Aircrew Initiated Position Report"),
+    "5D" : (1, "TIS", "ATIS Request"),
+    "5P" : (1, "---", "Temporary Suspension of ACARS"),
+    "5R" : (1, "AEP", "Aircraft Initiated Position Report"),
+    "5U" : (1, "WXR", "Weather Request"),
+    "5Y" : (1, "ETA", "Revision to Previous ETA"),
+    "5Z" : (1, "AGM", "Airline Designated Downlink"),
+    "7A" : (1, "ENG", "Aircraft Initiated Engine Data"),
+    "7B" : (1, "ABM", "Aircraft Initiated Miscellaneous Message"),
+    "80" : (1, "---", "Aircraft Addressed Downlink #1"),
+    "81" : (1, "---", "Aircraft Addressed Downlink #2"),
+    "82" : (1, "---", "Aircraft Addressed Downlink #3"),
+    "83" : (1, "---", "Aircraft Addressed Downlink #4"),
+    "84" : (1, "---", "Aircraft Addressed Downlink #5"),
+    "85" : (1, "---", "Aircraft Addressed Downlink #6"),
+    "86" : (1, "---", "Aircraft Addressed Downlink #7"),
+    "87" : (1, "---", "Aircraft Addressed Downlink #8"),
+    "88" : (1, "---", "Aircraft Addressed Downlink #9"),
+    "89" : (1, "---", "Aircraft Addressed Downlink #10"),
+    "A1" : (2, "CLX", "Deliver Oceanic Clearance"),
+    "A2" : (2, "CLD", "Deliver Departure Clearance"),
     "A4" : (2, "RCA", "Acknowledge PDC"),
-    "A5" : (2, "RPR", "Request position report"),
-    "A6" : (2, "RAR", "Request ADS report"),
-    "A7" : (2, "FTU", "Forward free text to aircraft"),
-    "A8" : (2, "DDS", "Deliver departure slot"),
-    "A9" : (2, "DAI", "Deliver ATIS information"),
-    "A0" : (2, "AFN", "ATIS Facilities notification"),
-    "B1" : (1, "RCL", "Request oceanic clearance"),
-    "B2" : (1, "CLA", "Request oceanic readback"),
-    "B3" : (1, "RCD", "Request departure clearance"),
-    "B4" : (1, "---", "Acknowledge departure clearance"),
-    "B5" : (1, "PPR", "Provide position report"),
-    "B6" : (1, "PAR", "Provide ADS report"),
-    "B7" : (1, "FTD", "Forward free text to ATS"),
-    "B8" : (1, "RDS", "Request departure slot"),
-    "B9" : (1, "RAI", "Request ATIS information"),
-    "C0" : (2, "---", "Uplink message to all cockpit printers"),
-    "C1" : (2, "---", "Uplink message to cockpit printer #1"),
-    "C2" : (2, "---", "Uplink message to cockpit printer #2"),
-    "C3" : (2, "---", "Uplink message to cockpit printer #3"),
-    "CA" : (0, "---", "Printer error"),
-    "CB" : (4, "---", "Printer busy"),
-    "CC" : (4, "---", "Printer in local or test mode"),
-    "CD" : (4, "---", "Printer out of paper"),
-    "CE" : (4, "---", "Printer buffer overrun"),
-    "CF" : (4, "---", "Printer reserved"),
-    "F3" : (1, "---", "Dedicated transceiver advisory"),
-    "H1" : (3, "---", "General message"),
-    "H2" : (5, "???", "Meteorological report"),
-    "H3" : (5, "???", "Icing report"),
-    "HF" : (5, "???", "HFDL message"),
-    "HX" : (1, "REJ", "Undelivered uplink report"),
-    "M1" : (1, "MVA", "IATA Departure message"),
-    "M2" : (1, "MVA", "IATA Arrival message"),
-    "M3" : (1, "MVA", "IATA Return to ramp message"),
-    "M4" : (1, "MVA", "IATA Return from airborne message"),
-    "Q0" : (0, "---", "ACARS link test"),
-    "Q1" : (1, "ETA", "Departure/arrival reports"),
-    "Q2" : (1, "ETA", "ETA reports"),
-    "Q3" : (1, "CLK", "Clock update"),
-    "Q4" : (2, "---", "Voice circuit busy (response to 54)"),
-    "Q5" : (4, "---", "Unable to process uplinked messages"),
-    "Q6" : (1, "---", "Voice-to-ACARS change-over"),
-    "Q7" : (1, "DLA", "Delay message"),
-    "QA" : (1, "DEP", "OUT: fuel report"),
-    "QB" : (1, "DEP", "OFF report"),
-    "QC" : (1, "ARR", "ON report"),
-    "QD" : (1, "ARR", "IN: fuel report"),
-    "QE" : (1, "DEP", "OUT: fuel destination report"),
-    "QF" : (1, "DEP", "OFF: destination report"),
-    "QG" : (1, "RTN", "OUT: return in report"),
-    "QH" : (1, "DEP", "OUT report"),
-    "QK" : (1, "ARR", "Landing report"),
-    "QL" : (1, "ARR", "Arrival report"),
-    "QM" : (1, "ARR", "Arrival information report"),
-    "QN" : (1, "DIV", "Diversion report"),
-    "QR" : (5, "???", "ON report"),
-    "QS" : (5, "???", "IN report"),
-    "QT" : (5, "???", "OUT: Return IN report"),
+    "A5" : (2, "RPR", "Request Position Report"),
+    "A6" : (2, "RAR", "Request ADS Report"),
+    "A7" : (2, "FTU", "Forward Free Text to Aircraft"),
+    "A8" : (2, "DDS", "Deliver Departure Slot"),
+    "A9" : (2, "DAI", "Deliver ATIS Information"),
+    "A0" : (2, "AFN", "ATIS Facilities Notification"),
+    "B1" : (1, "RCL", "Request Oceanic Clearance"),
+    "B2" : (1, "CLA", "Request Oceanic Readback"),
+    "B3" : (1, "RCD", "Request Departure Clearance"),
+    "B4" : (1, "---", "Acknowledge Departure Clearance"),
+    "B5" : (1, "PPR", "Provide Position Report"),
+    "B6" : (1, "PAR", "Provide ADS Report"),
+    "B7" : (1, "FTD", "Forward Free Text to ATS"),
+    "B8" : (1, "RDS", "Request Departure Slot"),
+    "B9" : (1, "RAI", "Request ATIS Information"),
+    "C0" : (2, "---", "Uplink Message to All Cockpit Printers"),
+    "C1" : (2, "---", "Uplink Message to Cockpit Printer #1"),
+    "C2" : (2, "---", "Uplink Message to Cockpit Printer #2"),
+    "C3" : (2, "---", "Uplink Message to Cockpit Printer #3"),
+    "CA" : (0, "---", "Printer Error"),
+    "CB" : (4, "---", "Printer Busy"),
+    "CC" : (4, "---", "Printer in Local or Test Mode"),
+    "CD" : (4, "---", "Printer Out of Paper"),
+    "CE" : (4, "---", "Printer Buffer Overrun"),
+    "CF" : (4, "---", "Printer Reserved"),
+    "F3" : (1, "---", "Dedicated Transceiver Advisory"),
+    "H1" : (3, "---", "General Message"),
+    "H2" : (5, "???", "Meteorological Report"),
+    "H3" : (5, "???", "Icing Report"),
+    "HF" : (5, "???", "HFDL Message"),
+    "HX" : (1, "REJ", "Undelivered Uplink Report"),
+    "M1" : (1, "MVA", "IATA Departure Message"),
+    "M2" : (1, "MVA", "IATA Arrival Message"),
+    "M3" : (1, "MVA", "IATA Return to Ramp Message"),
+    "M4" : (1, "MVA", "IATA Return from Airborne Message"),
+    "Q0" : (0, "---", "ACARS Link Test"),
+    "Q1" : (1, "ETA", "Departure/Arrival Reports"),
+    "Q2" : (1, "ETA", "ETA Reports"),
+    "Q3" : (1, "CLK", "Clock Update"),
+    "Q4" : (2, "---", "Voice Circuit Busy (response to 54)"),
+    "Q5" : (4, "---", "Unable to Process Uplinked Messages"),
+    "Q6" : (1, "---", "Voice-to-ACARS Change-Over"),
+    "Q7" : (1, "DLA", "Delay Message"),
+    "QA" : (1, "DEP", "OUT: Fuel Report"),
+    "QB" : (1, "DEP", "OFF Report"),
+    "QC" : (1, "ARR", "ON Report"),
+    "QD" : (1, "ARR", "IN: Fuel Report"),
+    "QE" : (1, "DEP", "OUT: Duel Destination Report"),
+    "QF" : (1, "DEP", "OFF: Destination Report"),
+    "QG" : (1, "RTN", "OUT: Return in Report"),
+    "QH" : (1, "DEP", "OUT Report"),
+    "QK" : (1, "ARR", "Landing Report"),
+    "QL" : (1, "ARR", "Arrival Report"),
+    "QM" : (1, "ARR", "Arrival Information Report"),
+    "QN" : (1, "DIV", "Diversion Report"),
+    "QR" : (5, "???", "ON Report"),
+    "QS" : (5, "???", "IN Report"),
+    "QT" : (5, "???", "OUT: Return IN Report"),
     "QX" : (1, "---", "Intercept"),
-    "RA" : (2, "RPR", "Command aircraft terminal to transmit data"),
-    "RB" : (1, "---", "Response of aircraft terminal to RA message"),
-    "S1" : (5, "???", "VHF network statistics report"),
-    "S2" : (5, "???", "VHF performance report"),
-    "S3" : (5, "???", "LRU configuration report"),
-    "SA" : (5, "???", "Media advisory"),
-    "SQ" : (2, "???", "Squitter message"),
-    ":;" : (2, "---", "Command aircraft to change frequency")
+    "RA" : (2, "RPR", "Tell Aircraft Terminal to Transmit Data"),
+    "RB" : (1, "---", "Aircraft Terminal Response to RA Message"),
+    "S1" : (5, "???", "VHF Network Statistics Report"),
+    "S2" : (5, "???", "VHF Performance Report"),
+    "S3" : (5, "???", "LRU Configuration Report"),
+    "SA" : (5, "???", "Media Advisory"),
+    "SQ" : (2, "???", "Squitter Message"),
+    ":;" : (2, "---", "Tell Aircraft to Change Frequency")
+}
+
+#
+# ACARS field mapping
+#
+ACARS_FIELDS = {
+    "reg"      : "aircraft",
+    "tail"     : "aircraft",
+    "flight"   : "flight",
+    "text"     : "message",
+    "msg_text" : "message",
+    "dsta"     : "destination",
+    "depa"     : "origin",
+    "eta"      : "eta",
 }
 
 
@@ -466,22 +480,6 @@ class AircraftParser(TextParser):
     def parseAircraft(self, msg: bytes):
         return None
 
-    # Common function to parse ACARS subframes in HFDL/VDL2/etc
-    def parseAcars(self, data, out):
-        # Collect data
-        out["type"] = "ACARS frame"
-        aircraft = data["reg"].strip()
-        message  = data["msg_text"].strip()
-        flight   = data["flight"].strip() if "flight" in data else ""
-        if len(aircraft)>0:
-            out["aircraft"] = aircraft
-        if len(message)>0:
-            out["message"] = message
-        if len(flight)>0:
-            out["flight"] = flight
-        # Done
-        return out
-
     # Common function to get country and aircraft registration from ICAO ID
     def parseIcaoId(self, icao, out):
         # Convert hex ICAO ID to an integer, if required
@@ -498,6 +496,143 @@ class AircraftParser(TextParser):
         # Done
         return out
 
+    # Common function to parse ACARS subframes in ACARS/HFDL/VDL2/etc
+    def parseAcars(self, data, out):
+        #logger.debug("@@@ ACARS: {0}".format(data))
+        # Look up human-readable frame type
+        label = data["label"]
+        if label not in ACARS_LABELS:
+            out["type"] = "ACARS frame with label [" + label + "]"
+        else:
+            label = ACARS_LABELS[label]
+            out["type"] = label[2]
+            if label[0] == 1:
+                out["direction"] = "D"
+            elif label[0] == 2:
+                out["direction"] = "U"
+            elif label[0] == 4:
+                out["direction"] = "G"
+
+        # Collect data
+        for key in ACARS_FIELDS:
+            if key in data:
+                value = data[key].strip()
+                if len(value)>0:
+                    out[ACARS_FIELDS[key]] = value
+
+        # Parse frequency change requests
+        if label == ":;":
+            try:
+                fMHz = int(out["message"]) / 1000
+                out["type"] = "Aircraft to Change Frequency to " + fMHz  + "MHz"
+                out.pop("message", None)
+            except ValueError:
+                pass
+
+        # Look for ARINC622 data decoded by LibACARS
+        if "libacars" in data and "arinc622" in data["libacars"]:
+            self.parseArinc622(data["libacars"]["arinc622"], out)
+
+        # Done
+        return out
+
+    # Parse ARINC622 information produced by LibACARS
+    def parseArinc622(self, data, out):
+        type = data["msg_type"].replace("_", " ").upper()
+        out["type"] = f"ARINC622 {type}"
+        out["aircraft"] = data["air_addr"]
+        out["gs"] = data["gs_addr"]
+
+        # CPDLC messages...
+        if "cpdlc" in data:
+            # Remove original message from output
+            out.pop("message", None)
+            # Parse CPDLC message
+            self.parseCpdlc(data["cpdlc"], out)
+
+        # ADS-C messages...
+        if "adsc" in data:
+            # Remove original message from output
+            out.pop("message", None)
+            # Parse ADSC message
+            self.parseAdsc(data["adsc"], out)
+
+        # Done
+        return out
+
+    # Parse ARINC622 CPDLC information produced by LibACARS
+    def parseCpdlc(self, data, out):
+        # Determine message direction and get data
+        if "atc_downlink_msg" in data:
+            out["direction"] = "D"
+            ts   = data["atc_downlink_msg"]["header"]["timestamp"]
+            data = data["atc_downlink_msg"]["atc_downlink_msg_element_id"]
+        elif "atc_uplink_msg" in data:
+            out["direction"] = "U"
+            ts = data["atc_uplink_msg"]["header"]["timestamp"]
+            data = data["atc_uplink_msg"]["atc_uplink_msg_element_id"]
+        else:
+            return None
+
+        # Parse explicit timestamp
+        out["msgtime"] = "%02d:%02d:%02d" % (ts["hour"], ts["min"], ts["sec"])
+
+        # Parse message contents
+        if "free_text" in data["data"]:
+            out["message"] = data["data"]["free_text"]
+        elif data["data"]:
+            out["message"] = data["choice_label"] + ":\n" + str(data["data"])
+        else:
+            out["message"] = data["choice_label"]
+        # TODO: Parse other data fields
+
+        # Done
+        return out
+
+    # Parse ARINC622 ADS-C information produced by LibACARS
+    def parseAdsc(self, data, out):
+        # ADS-C messages always go down from aircraft
+        out["direction"] = "D"
+        out["message"] = ""
+
+        # Look for position reports
+        if "tags" in data:
+            for tag in data["tags"]:
+                if "flight_id" in tag:
+                    out["flight"] = tag["flight_id"]["flight_id"]
+                elif "basic_report" in tag:
+                    pos = tag["basic_report"]
+                    out["lat"] = pos["lat"]
+                    out["lon"] = pos["lon"]
+                    out["altitude"] = pos["alt"]
+                elif "air_ref_data" in tag:
+                    pos = tag["air_ref_data"]
+                    if "speed" not in out:
+                        out["speed"]  = round(pos["spd_mach"] * MACH_TO_KNOTS)
+                        out["vspeed"] = round(pos["vspd_ftmin"])
+                    if pos["true_hdg_valid"] and "course" not in out:
+                        out["course"] = round(pos["true_hdg_deg"])
+                elif "earth_ref_data" in tag:
+                    # Making this preferable to air_ref_data
+                    pos = tag["earth_ref_data"]
+                    out["speed"]  = round(pos["gnd_spd_kts"])
+                    out["vspeed"] = round(pos["vspd_ftmin"])
+                    if pos["true_trk_valid"]:
+                        out["course"] = round(pos["true_trk_deg"])
+                elif "meteo_data" in tag:
+                    pos = tag["meteo_data"]
+                    wind = { "speed": round(pos["wind_spd_kts"]) }
+                    if pos["wind_dir_valid"]:
+                        wind["course"] = round(pos["wind_dir_true_deg"])
+                    out["temperature"] = pos["temp_c"]
+                    out["wind"] = wind
+                else:
+                    out["message"] += (",\n" if out["message"] else "") + str(tag)
+                # TODO: Parse other types
+
+        # Done
+        return out
+
 
 #
 # Parser for HFDL messages coming from DumpHFDL in JSON format.
@@ -510,23 +645,24 @@ class HfdlParser(AircraftParser):
         # Expect JSON data in text form
         data = json.loads(msg)
         # @@@ Only parse messages that have LDPU frames for now !!!
-        if "lpdu" not in data["hfdl"]:
-            return {}
+        if "hfdl" not in data or "lpdu" not in data["hfdl"]:
+            return None
+        data = data["hfdl"]
         # Collect basic data first
         out = {
             "mode"      : "HFDL",
-            "timestamp" : round(data["hfdl"]["t"]["sec"] * 1000 + data["hfdl"]["t"]["usec"] / 1000),
+            "timestamp" : round(data["t"]["sec"] * 1000 + data["t"]["usec"] / 1000),
             "data"      : data
         }
         # Parse LPDU if present
-        if "lpdu" in data["hfdl"]:
-            self.parseLpdu(data["hfdl"]["lpdu"], out)
+        if "lpdu" in data:
+            self.parseLpdu(data["lpdu"], out)
         # Parse SPDU if present
-        if "spdu" in data["hfdl"]:
-            self.parseSpdu(data["hfdl"]["spdu"], out)
+        if "spdu" in data:
+            self.parseSpdu(data["spdu"], out)
         # Parse MPDU if present
-        if "mpdu" in data["hfdl"]:
-            self.parseMpdu(data["hfdl"]["mpdu"], out)
+        if "mpdu" in data:
+            self.parseMpdu(data["mpdu"], out)
         # Done
         return out
 
@@ -597,26 +733,48 @@ class Vdl2Parser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
+        # @@@ Only parse messages that have AVLC frames for now !!!
+        if "vdl2" not in data or "avlc" not in data["vdl2"]:
+            return None
+        data = data["vdl2"]
+        avlc = data["avlc"]
+        # Ignore acknowledgements, if requested
+        if self.isAvlcAck(avlc):
+            pm = Config.get()
+            if pm["vdl2_ignore_acks"]:
+                return None
         # Collect basic data first
         out = {
             "mode"      : "VDL2",
-            "timestamp" : round(data["vdl2"]["t"]["sec"] * 1000 + data["vdl2"]["t"]["usec"] / 1000),
+            "timestamp" : round(data["t"]["sec"] * 1000 + data["t"]["usec"] / 1000),
             "data"      : data
         }
-        # Parse AVLC if present
-        if "avlc" in data["vdl2"]:
-            self.parseAvlc(data["vdl2"]["avlc"], out)
+        # Parse AVLC
+        self.parseAvlc(avlc, out)
         # Done
         return out
 
+    # Return TRUE if AVLC frame is an acknowledgement
+    def isAvlcAck(self, data):
+        if "frame_type" in data and data["frame_type"] == "S":
+            return True
+        elif "acars" in data and "label" in data["acars"]:
+            label = data["acars"]["label"]
+            return label == "_j" or label == "_d"
+        else:
+            return False
+
+    # Parse AVLC frame
     def parseAvlc(self, data, out):
         # Find if aircraft is message's source or destination
         if data["src"]["type"] == "Aircraft":
+            out["direction"] = "D"
             p = data["src"]
         elif data["dst"]["type"] == "Aircraft":
+            out["direction"] = "U"
             p = data["dst"]
         else:
-            return out
+            return None
         # Address is the ICAO ID
         out["icao"] = p["addr"]
         # Get country and aircraft registration from ICAO ID
@@ -877,110 +1035,24 @@ class UatParser(AircraftParser):
 class AcarsParser(AircraftParser):
     def __init__(self, service: bool = False):
         super().__init__(filePrefix="ACARS", service=service)
-        self.attrMap = {
-            "tail"   : "aircraft",
-            "flight" : "flight",
-            "text"   : "message",
-            "dsta"   : "destination",
-            "depa"   : "origin",
-            "eta"    : "eta",
-        }
 
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
-        #logger.debug("@@@ ACARS: {0}".format(data))
-
+        # Ignore acknowledgements, if requested
+        label = data["label"]
+        if label == "_j" or label == "_d":
+            pm = Config.get()
+            if pm["acars_ignore_acks"]:
+                return None
         # Collect basic data first
         out = {
             "mode"      : "ACARS",
             "timestamp" : round(data["timestamp"] * 1000),
             "data"      : data
         }
-
-        # Look up human-readable frame type
-        label = data["label"]
-        if label not in ACARS_LABELS:
-            out["type"] = "ACARS frame with label [" + label + "]"
-        else:
-            label = ACARS_LABELS[label]
-            out["type"] = label[2]
-            if label[0] == 1:
-                out["direction"] = "D"
-            elif label[0] == 2:
-                out["direction"] = "U"
-            elif label[0] == 4:
-                out["direction"] = "G"
-
-        # Fetch other data
-        for key in self.attrMap:
-            if key in data:
-                value = data[key].strip()
-                if len(value)>0:
-                    out[self.attrMap[key]] = value
-
-        # Look for ACARS622 data decoded by LibACARS
-        if "libacars" in data and "arinc622" in data["libacars"]:
-            self.parseAcars622(data["libacars"]["arinc622"], out)
-
+        # Parse ACARS frame
+        self.parseAcars(data, out)
         # Done
         return out
 
-    def parseAcars622(self, data, out):
-        type = data["msg_type"].replace("_", " ").upper()
-
-        out["type"] = f"ARINC622 {type}"
-        out["aircraft"] = data["air_addr"]
-        out["gs"] = data["gs_addr"]
-
-        # CPDLC messages...
-        if "cpdlc" in data:
-            # Remove original message from output
-            out.pop("message", None)
-            # Parse CPDLC message
-            self.parseCpdlc(data["cpdlc"], out)
-
-        # ADS-C messages...
-        if "adsc" in data:
-            # Remove original message from output
-            out.pop("message", None)
-            # Parse ADSC message
-            self.parseAdsc(data["adsc"], out)
-
-    def parseCpdlc(self, data, out):
-        # Message must be going up or down
-        if "atc_downlink_msg" in data:
-            out["direction"] = "D"
-            ts   = data["atc_downlink_msg"]["header"]["timestamp"]
-            data = data["atc_downlink_msg"]["atc_downlink_msg_element_id"]
-        elif "atc_uplink_msg" in data:
-            out["direction"] = "U"
-            ts = data["atc_uplink_msg"]["header"]["timestamp"]
-            data = data["atc_uplink_msg"]["atc_uplink_msg_element_id"]
-        else:
-            return
-        # Get actual message timestamp
-        out["msgtime"] = "%02d:%02d:%02d" % (ts["hour"], ts["min"], ts["sec"])
-        # Show message text or yet unparsed attributes
-        if "free_text" in data["data"]:
-            out["message"] = data["data"]["free_text"]
-        elif data["data"]:
-            out["message"] = data["choice_label"] + ":\n" + str(data["data"])
-        else:
-            out["message"] = data["choice_label"]
-        # TODO: Parse other data fields
-
-    def parseAdsc(self, data, out):
-        # ADS-C messages always go down from aircraft
-        out["direction"] = "D"
-        if "tags" in data:
-            # Look for position reports
-            for tag in data["tags"]:
-                if "basic_report" in tag:
-                    pos = tag["basic_report"]
-                    out["lat"] = pos["lat"]
-                    out["lon"] = pos["lon"]
-                    out["altitude"] = pos["alt"]
-            # Show yet unparsed attributes as text
-            out["message"] = str(data["tags"])
-        # TODO: Parse other types

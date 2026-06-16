@@ -443,6 +443,14 @@ HfdlMessagePanel.prototype.pushMessage = function(msg) {
     // Make data point to the map
     if (data.length && msg.mapid) data = Utils.linkToMap(msg.mapid, data);
 
+    // Add message direction to the aircraft
+    //if (aircraft && msg.direction) {
+    //    aircraft += (
+    //      msg.direction === 'U'? '&#9664;'
+    //    : msg.direction === 'D'? '&#9654;'
+    //    : '');
+    //}
+
     // Append report
     var $b = $(this.el).find('tbody');
     $b.append($(
