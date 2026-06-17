@@ -716,6 +716,8 @@ AircraftMarker.prototype.update = function(update) {
     this.squawk   = update.location.squawk;
     this.rssi     = update.location.rssi;
     this.msglog   = update.location.msglog;
+    this.temperature = update.location.temperature;
+    this.wind     = update.location.wind;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -865,6 +867,23 @@ AircraftMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         if (this.vspeed > 0) alt = '&uarr;' + this.vspeed + ' ft/m ' + alt;
         else if (this.vspeed < 0) alt = '&darr;' + (-this.vspeed) + ' ft/m ' + alt;
         detailsString += Utils.makeListItem('Altitude', alt);
+    }
+
+    if (this.temperature) {
+        detailsString += Utils.makeListItem('Temperature', this.temperature.toFixed(1) + '&deg;C');
+    }
+
+    if (this.wind) {
+        var wind = '';
+        if (this.wind.course) {
+            wind += Utils.degToCompass(this.wind.course);
+        }
+        if (this.wind.speed) {
+            wind += (wind? ' ':'') + this.wind.speed.toFixed(1) + ' kt';
+        }
+        if (wind) {
+            detailsString += Utils.makeListItem('Wind', wind);
+        }
     }
 
     if (this.rssi) {

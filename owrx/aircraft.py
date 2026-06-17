@@ -5,7 +5,7 @@ from owrx.aprs import getSymbolData
 from owrx.config import Config
 from owrx.reporting import ReportingEngine
 from owrx.icao import IcaoRegistration, IcaoCountry
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import threading
 import pickle
 import json
@@ -224,7 +224,7 @@ class AircraftLocation(LatLngLocation):
         res = super(AircraftLocation, self).__dict__()
         res["symbol"] = self.getSymbol()
         # Convert aircraft-specific data into APRS-like data
-        for x in ["icao", "aircraft", "flight", "country", "ccode", "speed", "altitude", "course", "destination", "origin", "vspeed", "squawk", "rssi", "msglog", "ttl"]:
+        for x in ["icao", "aircraft", "flight", "country", "ccode", "speed", "altitude", "course", "destination", "origin", "vspeed", "squawk", "rssi", "msglog", "ttl", "temperature", "wind"]:
             if x in self.data:
                 res[x] = self.data[x]
         # Return APRS-like dictionary object
@@ -498,19 +498,19 @@ class AircraftParser(TextParser):
 
     # Common function to parse ACARS subframes in ACARS/HFDL/VDL2/etc
     def parseAcars(self, data, out):
-        #logger.debug("@@@ ACARS: {0}".format(data))
+        logger.debug("@@@ ACARS: {0}".format(data))
         # Look up human-readable frame type
         label = data["label"]
         if label not in ACARS_LABELS:
             out["type"] = "ACARS frame with label [" + label + "]"
         else:
-            label = ACARS_LABELS[label]
-            out["type"] = label[2]
-            if label[0] == 1:
+            msgType = ACARS_LABELS[label]
+            out["type"] = msgType[2]
+            if msgType[0] == 1:
                 out["direction"] = "D"
-            elif label[0] == 2:
+            elif msgType[0] == 2:
                 out["direction"] = "U"
-            elif label[0] == 4:
+            elif msgType[0] == 4:
                 out["direction"] = "G"
 
         # Collect data
@@ -520,14 +520,17 @@ class AircraftParser(TextParser):
                 if len(value)>0:
                     out[ACARS_FIELDS[key]] = value
 
+        # Parse position reports
+        if "message" in out and out["message"].startswith("POS"):
+            self.parsePosReport(out["message"], out)
+
         # Parse frequency change requests
         if label == ":;":
             try:
                 fMHz = int(out["message"]) / 1000
-                out["type"] = "Aircraft to Change Frequency to " + fMHz  + "MHz"
-                out.pop("message", None)
+                out["message"] = f"Change frequency to {fMHz}MHz"
             except ValueError:
-                pass
+                logger.error("Failed to parse frequency: '{0}'".format(out["message"]))
 
         # Look for ARINC622 data decoded by LibACARS
         if "libacars" in data and "arinc622" in data["libacars"]:
@@ -626,12 +629,105 @@ class AircraftParser(TextParser):
                         wind["course"] = round(pos["wind_dir_true_deg"])
                     out["temperature"] = pos["temp_c"]
                     out["wind"] = wind
+                elif "predicted_route" in tag:
+                    pos = tag["predicted_route"]
+                    route = []
+                    for k in ["next_wpt", "next_next_wpt"]:
+                        if k in pos:
+                            v = pos[k]
+                            wpt = { "lat": v["lat"], "lon": v["lon"] }
+                            if "alt" in v:
+                                wpt["altitude"] = v["alt"]
+                            if "eta_sec" in v:
+                                wpt["timestamp"] = out["timestamp"] + v["eta_sec"] * 1000
+                            route.append(wpt)
+                    if len(route) > 0:
+                        out["route"] = route
                 else:
                     out["message"] += (",\n" if out["message"] else "") + str(tag)
                 # TODO: Parse other types
 
         # Done
         return out
+
+    # Parse single LatLon value
+    def parseLatLon(self, text, out):
+        m = re.match(r"^([NS])(\d+)([WE])(\d+),(.*)$", text)
+        if not m:
+            return None
+        else:
+            # Degrees and minutes to fractional degrees
+            lat = int(m.group(2))
+            lon = int(m.group(4))
+            lat = (lat // 1000) + (lat % 1000) / 10 / 60
+            lon = (lon // 1000) + (lon % 1000) / 10 / 60
+            out["lat"] = lat * (1 if m.group(1) == "N" else -1)
+            out["lon"] = lon * (1 if m.group(3) == "E" else -1)
+            return m.group(5)
+
+    # Parse single waypoint + time + flight level
+    def parseWaypoint(self, text, out):
+        # Try parsing LatLon first
+        tail = self.parseLatLon(text, out)
+        # If failed, try parsing fix name
+        if not tail:
+            m = re.match(r"^([A-Z]+(-[0-9]+)?),(.*)$", text)
+            if not m:
+                return None
+            else:
+                out["name"] = m.group(1)
+                tail = m.group(3)
+        # Parse time and altitude
+        m = re.match(r"^(\d{6}),((\d+),)?(.*)$", tail)
+        if not m:
+            return tail
+        else:
+            # UTC HHMMSS to milliseconds
+            hms  = m.group(1)
+            now  = datetime.now(timezone.utc)
+            time = now.replace(hour=int(hms[0:2]), minute=int(hms[2:4]), second=int(hms[4:6]))
+            if time < now:
+                time += timedelta(days=1)
+            out["time"] = round(time.timestamp() * 1000)
+            # Flight level to feet
+            if m.group(2):
+                out["altitude"] = int(m.group(3)) * 100
+            # Done
+            return m.group(4)
+
+    # Parse ACARS position report
+    def parsePosReport(self, posReport, out):
+        # Must start with POS
+        if not posReport.startswith("POS"):
+            return False
+        logger.info(f"@@@ Parsing '{posReport}'...")
+        # Parse current position
+        posReport = self.parseLatLon(posReport[3:].replace(" ", ""), out)
+        if not posReport:
+            return False
+        # Parse message body (route)
+        route = []
+        while True:
+            wpt = {}
+            tail = self.parseWaypoint(posReport, wpt)
+            if not tail:
+                break
+            else:
+                logger.info(f"@@@ WAYPOINT = {wpt}...")
+                route.append(wpt)
+                posReport = tail
+        # Assign route
+        if len(route) > 0:
+            out["route"] = route
+        # Parse message tail (environment)
+        m = re.match(r"^([MP])(\d+),(\d{3})(\d{2}),((\d+),)?(.*)$", posReport)
+        if m:
+            out["temperature"] = int(m.group(2)) * (1 if m.group(1) == "P" else -1)
+            out["wind"]  = { "course": int(m.group(3)), "speed": int(m.group(4)) }
+            if m.group(5):
+                out["course"] = int(m.group(6))
+        # Done
+        return True
 
 
 #
