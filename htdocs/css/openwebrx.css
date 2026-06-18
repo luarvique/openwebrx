@@ -1154,6 +1154,12 @@ img.openwebrx-mirror-img
     content: "Conference: ";
 }
 
+.openwebrx-tetra-display {
+    flex: 0.7 0 0;
+    line-height: 1.2em;
+    font-size: 12px;
+}
+
 .openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;

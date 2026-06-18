@@ -97,6 +97,7 @@ class FeatureDetector(object):
         "hfdl": ["dumphfdl"],
         "vdl2": ["dumpvdl2"],
         "acars": ["acarsdec"],
+        "tetra": ["tetrarx"],
         "page": ["multimon"],
         "selcall": ["multimon"],
         "eas": ["multimon"],
@@ -930,3 +931,12 @@ class FeatureDetector(object):
         from the OpenWebRX repositories.
         """
         return os.path.isdir("/usr/share/aprs-symbols")
+
+    def has_tetrarx(self):
+        """
+        OpenWebRX uses `tetrarx` by [OE5DXL](http://oe5dxl.hamspirit.at:8025/aprs/c) to demodulate and decode TETRA
+        D4PSK signals. Install by placing the `tetrarx` binary in your PATH
+        (e.g. /usr/local/bin).
+        """
+        return self.command_is_runnable("tetrarx -h")
+

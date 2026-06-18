@@ -2,7 +2,8 @@ from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain,
 from pycsdr.modules import Convert, Downmix, Writer
 from pycsdr.types import Format
 from csdr.module.drm import DrmModule
-from owrx.drm import DrmStatusMonitor
+from owrx.monitor import SocketMonitor
+from owrx.feature import FeatureDetector
 
 import pickle
 import logging
@@ -13,22 +14,25 @@ class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, Met
     def __init__(self):
         self.metaWriter = None
         self.frequency = 0
-        self.drmModule = DrmModule()
+
+        # Only Dream 2.2 has --status-socket option
+        if FeatureDetector().is_available("dream-2-2"):
+            # Monitor DRM decoder status
+            socketPath = SocketMonitor.getNewPathName("dream_status")
+            self.monitor = SocketMonitor(socketPath)
+            self.monitor.add_callback(self._onDrmStatus)
+            self.monitor.start()
+        else:
+            self.monitor = None
+            socketPath = None
+
+        self.drmModule = DrmModule(socketPath)
         workers = [
             Convert(Format.COMPLEX_FLOAT, Format.COMPLEX_SHORT),
             self.drmModule,
             Downmix(Format.SHORT),
         ]
         super().__init__(workers)
-
-        # Monitor DRM decoder status
-        socketPath = self.drmModule.getSocketPath()
-        if socketPath is None:
-            self.monitor = None
-        else:
-            self.monitor = DrmStatusMonitor(self.drmModule.getSocketPath())
-            self.monitor.add_callback(self._onDrmStatus)
-            self.monitor.start()
 
     def supportsSquelch(self) -> bool:
         return False

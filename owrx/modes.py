@@ -151,6 +151,7 @@ class Modes(object):
         AnalogMode("ysf", "YSF", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_digiham"], squelch=False),
         AnalogMode("m17", "M17", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_m17"], squelch=False),
         AnalogMode("freedv", "FreeDV", bandpass=Bandpass(300, 3000), requirements=["digital_voice_freedv"], squelch=False),
+        AnalogMode("tetra", "TETRA", bandpass=Bandpass(-12500, 12500), requirements=["tetra"], squelch=False),
         AnalogMode("radel", "RADEL", bandpass=Bandpass(-3000, -300), requirements=["digital_voice_rade"], squelch=False),
         AnalogMode("radeu", "RADEU", bandpass=Bandpass(300, 3000), requirements=["digital_voice_rade"], squelch=False),
         AnalogMode("drm", "DRM", bandpass=Bandpass(-5000, 5000), requirements=["drm"], squelch=False),
