@@ -498,7 +498,7 @@ class AircraftParser(TextParser):
 
     # Common function to parse ACARS subframes in ACARS/HFDL/VDL2/etc
     def parseAcars(self, data, out):
-        logger.debug("@@@ ACARS: {0}".format(data))
+        #logger.debug("@@@ ACARS: {0}".format(data))
         # Look up human-readable frame type
         label = data["label"]
         if label not in ACARS_LABELS:
@@ -700,7 +700,7 @@ class AircraftParser(TextParser):
         # Must start with POS
         if not posReport.startswith("POS"):
             return False
-        logger.info(f"@@@ Parsing '{posReport}'...")
+        #logger.info(f"@@@ Parsing '{posReport}'...")
         # Parse current position
         posReport = self.parseLatLon(posReport[3:].replace(" ", ""), out)
         if not posReport:
@@ -713,7 +713,7 @@ class AircraftParser(TextParser):
             if not tail:
                 break
             else:
-                logger.info(f"@@@ WAYPOINT = {wpt}...")
+                #logger.info(f"@@@ WAYPOINT = {wpt}...")
                 route.append(wpt)
                 posReport = tail
         # Assign route
