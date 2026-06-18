@@ -1,11 +1,11 @@
 **1.2.117**
+- Added unencrypted Tetra support [Yiannis Sam].
 - Added ARINC622 payload parsing inside ACARS.
 - Added CPDLC payload parsing inside ACARS.
 - Added ADS-C payload parsing inside ACARS.
-- Added ACARS payload parsing inside VDL2.
-- Added ACARS payload parsing inside HFDL.
-- Added option to drop ACARS acknowledgements.
-- Added option to drop VDL2 acknowledgements.
+- Added parsing ACARS legacy position reports.
+- Added ACARS parsing inside VDL2 and HFDL.
+- Added options to drop ACARS and VDL2 acks.
 
 **1.2.116**
 - Added LoRa Meshtastic parser [Stanislav Lechev].
