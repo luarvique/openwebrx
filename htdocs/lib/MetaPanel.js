@@ -936,77 +936,56 @@ TetraMetaPanel.prototype.isSupported = function(data) {
     return data.mode === 'TETRA';
 };
 
+TetraMetaPanel.prototype.row = function(name, value) {
+    return(
+        '<tr><td align="right">' + name +
+        ':&nbsp;</td><td align="left">' + value +
+        '</td></tr>'
+    );
+};
+
 TetraMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
 
-    this.el.find('.openwebrx-meta-slot').addClass('active');
+    var slot = this.el.find('.openwebrx-meta-slot');
 
-    // Network name from MCC/MNC lookup, or raw MCC/MNC if unavailable
-    this.setNetwork(data.network || (data.mcc? 'MCC ' + data.mcc + ' / MNC ' + data.mnc : ''));
+    slot.addClass('active');
 
-    // Colour Code: MCC,MNC,BCC
-    this.setCC(data.mcc? data.mcc + ', ' + data.mnc + ', ' + data.bcc : '');
+    var html = '<table class="openwebrx-tetra-display" columns="2">';
 
-    // TX / RX frequencies
-    var freq = '';
-    if (data.tx_mhz) {
-        freq = data.tx_mhz.toFixed(4) + ' MHz';
-        if (data.rx_mhz) {
-            freq += ' / ' + data.rx_mhz.toFixed(4);
-        }
-    }
-    this.setFreq(freq);
-
-    // Signal level and frequency offset
-    this.setSignal(data.rfdb? data.rfdb.toFixed(1) + ' dB' : '');
-
-    // Offset
-    this.setOffset(data.offset? data.offset + ' Hz' : '');
-
-    // Service flags
-    var flags = [];
-    if (data.voice_service) flags.push('Voice');
-    if (data.air_encrypted) flags.push('Encrypted');
-    this.setFlags(flags.join(' '));
+    if (data.ft)
+        html += this.row('TS', data.ft);
+    if (data.network)
+        html += this.row('Net', data.network);
+    if (data.mcc)
+        html += this.row('CCode', data.mcc + ',' + data.mnc + ',' + data.bcc);
+    html += this.row('','');
+    html += this.row('','');
+    if (data.tx_mhz)
+        html += this.row('TX', data.tx_mhz.toFixed(3) + 'Mhz');
+    if (data.rx_mhz)
+        html += this.row('RX', data.rx_mhz.toFixed(3) + 'Mhz');
+    html += this.row('','');
+    html += this.row('','');
+    if (data.rfdb)
+        html += this.row('Signal', data.rfdb.toFixed(1) + 'dB');
+    if (data.offset)
+        html += this.row('Offset', data.offset + 'Hz');
 
     // Subscriber identities
     var ssi = [];
-    if (data.ssi && data.ssi.length) ssi = ssi.concat(data.ssi);
+    if (data.ssi && data.ssi.length)   ssi = ssi.concat(data.ssi);
     if (data.ussi && data.ussi.length) ssi = ssi.concat(data.ussi);
-    this.setSSI(ssi.length ? ssi.join(', ') : '');
-};
+    if (ssi.length)
+        html += this.row('SSI', ssi.join(', '));
 
-TetraMetaPanel.prototype.setNetwork = function(v) {
-    this.el.find('.openwebrx-tetra-network').text(v || '');
-};
-TetraMetaPanel.prototype.setCC = function(v) {
-    this.el.find('.openwebrx-tetra-cc').text(v || '');
-};
-TetraMetaPanel.prototype.setFreq = function(v) {
-    this.el.find('.openwebrx-tetra-freq').text(v || '');
-};
-TetraMetaPanel.prototype.setSignal = function(v) {
-    this.el.find('.openwebrx-tetra-signal').text(v || '');
-};
-TetraMetaPanel.prototype.setOffset = function(v) {
-    this.el.find('.openwebrx-tetra-offset').text(v || '');
-};
-TetraMetaPanel.prototype.setFlags = function(v) {
-    this.el.find('.openwebrx-tetra-flags').text(v || '');
-};
-TetraMetaPanel.prototype.setSSI = function(v) {
-    this.el.find('.openwebrx-tetra-ssi').text(v || '');
+    html += '</table>';
+    slot.html(html);
 };
 
 TetraMetaPanel.prototype.clear = function() {
     MetaPanel.prototype.clear.call(this);
-    this.setNetwork();
-    this.setCC();
-    this.setFreq();
-    this.setSignal();
-    this.setOffset();
-    this.setFlags();
-    this.setSSI();
+    this.el.find('.openwebrx-meta-slot').empty();
 };
 
 MetaPanel.types = {

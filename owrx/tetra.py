@@ -85,9 +85,5 @@ class TetraParser(object):
         if "MAC" in data:
             out["mac"] = int(data["MAC"])
 
-        # @@@ Why are we doing this?
-        if "AUDIO" in data and data["AUDIO"] == 1:
-            out["air_encrypted"] = False
-
         # Done
         return out

@@ -1154,28 +1154,10 @@ img.openwebrx-mirror-img
     content: "Conference: ";
 }
 
-.openwebrx-tetra-network:not(:empty):before {
-    content: "Net: ";
-}
-
-.openwebrx-tetra-cc:not(:empty):before {
-    content: "CC: ";
-}
-
-.openwebrx-tetra-freq:not(:empty):before {
-    content: "TX: ";
-}
-
-.openwebrx-tetra-signal:not(:empty):before {
-    content: "Sig: ";
-}
-
-.openwebrx-tetra-offset:not(:empty):before {
-    content: "Off: ";
-}
-
-.openwebrx-tetra-ssi:not(:empty):before {
-    content: "SSI: ";
+.openwebrx-tetra-display {
+    flex: 0.7 0 0;
+    line-height: 1.2em;
+    font-size: 12px;
 }
 
 .openwebrx-maps-pin svg {
