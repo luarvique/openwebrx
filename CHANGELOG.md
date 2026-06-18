@@ -5,6 +5,7 @@
 - Added ADS-C payload parsing inside ACARS.
 - Added parsing ACARS legacy position reports.
 - Added ACARS parsing inside VDL2 and HFDL.
+- Added airplane temperature and wind display.
 - Added options to drop ACARS and VDL2 acks.
 
 **1.2.116**
