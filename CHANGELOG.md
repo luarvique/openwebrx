@@ -1,5 +1,6 @@
 **1.2.117**
 - Added unencrypted Tetra support [Yiannis Sam].
+- Added support for ELAD FDM-S2 [DisagioDigitale].
 - Added ARINC622 payload parsing inside ACARS.
 - Added CPDLC payload parsing inside ACARS.
 - Added ADS-C payload parsing inside ACARS.
