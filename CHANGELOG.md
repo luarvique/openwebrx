@@ -8,6 +8,7 @@
 - Added ACARS parsing inside VDL2 and HFDL.
 - Added airplane temperature and wind display.
 - Added options to drop ACARS and VDL2 acks.
+- Made Meshtastic map objects use regular TTL.
 
 **1.2.116**
 - Added LoRa Meshtastic parser [Stanislav Lechev].

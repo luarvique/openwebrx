@@ -5,6 +5,7 @@ from owrx.map import Map, LatLngLocation
 from owrx.bands import Bandplan, Band
 from owrx.storage import Storage
 from datetime import datetime, timezone, timedelta
+from owrx.config import Config
 
 import threading
 import base64
@@ -179,8 +180,10 @@ class MeshtasticLocation(LatLngLocation):
             "symbol", "altitude", "nickName", "longName", "device", "role",
             "weather", "battery", "uptime", "channelUse", "airtimeUse"
         ]}
-        # @@@ Make TTL configurable!
-        self.data["ttl"] = data["timestamp"] + 4 * 60 * 60 * 1000
+        # Using same TTL as other semi-static map objects
+        pm  = Config.get()
+        ttl = pm["map_position_retention_time"]
+        self.data["ttl"] = data["timestamp"] + ttl * 1000
 
     def __dict__(self):
         res = super().__dict__()
