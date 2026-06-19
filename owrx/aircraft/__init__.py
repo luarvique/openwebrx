@@ -414,7 +414,7 @@ class AircraftParser(TextParser):
 
     # Parse enviromental conditions
     def parseEnvironment(self, text, out):
-        m = re.match(r"^([MP])(\d+),(\d{3})(\d{2}),(.*)$", text)
+        m = re.match(r"^([MP])(\d+),(\d{3})(\d{1,3}),(.*)$", text)
         if not m:
             return None
         else:
