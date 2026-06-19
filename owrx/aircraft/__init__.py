@@ -388,7 +388,7 @@ class AircraftParser(TextParser):
         tail = self.parseLatLon(text, out)
         # If failed, try parsing fix name
         if not tail:
-            m = re.match(r"^([A-Z]+(-[0-9]+)?),(.*)$", text)
+            m = re.match(r"^([A-Z]+[0-9A-Z\-]*)?),(.*)$", text)
             if not m:
                 return None
             else:
@@ -412,35 +412,53 @@ class AircraftParser(TextParser):
             # Done
             return m.group(4)
 
+    # Parse enviromental conditions
+    def parseEnvironment(self, text, out):
+        m = re.match(r"^([MP])(\d+),(\d{3})(\d{2}),(.*)$", text)
+        if not m:
+            return None
+        else:
+            out["temperature"] = int(m.group(2)) * (1 if m.group(1) == "P" else -1)
+            out["wind"]  = { "course": int(m.group(3)), "speed": int(m.group(4)) }
+            return m.group(5)
+
     # Parse ACARS position report
     def parsePosReport(self, posReport, out):
         # Must start with POS
         if not posReport.startswith("POS"):
             return False
         #logger.info(f"@@@ Parsing '{posReport}'...")
+
         # Parse current position
         posReport = self.parseLatLon(posReport[3:].replace(" ", ""), out)
         if not posReport:
             return False
-        # Parse message body (route)
+
+        # Parse message body (route + environment)
         route = []
         while True:
+            # Try parsing environment (temperature + wind) first
+            tail = self.parseEnvironment(posReport, wpt)
+            if tail:
+                break
+            # Try parsing next waypoint
             wpt = {}
             tail = self.parseWaypoint(posReport, wpt)
             if not tail:
                 break
-            else:
-                #logger.info(f"@@@ WAYPOINT = {wpt}...")
-                route.append(wpt)
-                posReport = tail
-        # Assign route
+            # Waypoint parsed
+            route.append(wpt)
+            posReport = tail
+            #logger.info(f"@@@ WAYPOINT = {wpt}...")
+
+        # If we have got a route...
         if len(route) > 0:
+            # Save route
             out["route"] = route
-        # Parse message tail (environment)
-        m = re.match(r"^([MP])(\d+),(\d{3})(\d{2}),(.*)$", posReport)
-        if m:
-            out["temperature"] = int(m.group(2)) * (1 if m.group(1) == "P" else -1)
-            out["wind"]  = { "course": int(m.group(3)), "speed": int(m.group(4)) }
+            # Assume closest waypoint altitude to be current
+            if "altitude" in route[0]:
+                out["altitude"] = route[0]["altitude"]
+
         # Done
         return True
 
