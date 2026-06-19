@@ -388,12 +388,12 @@ class AircraftParser(TextParser):
         tail = self.parseLatLon(text, out)
         # If failed, try parsing fix name
         if not tail:
-            m = re.match(r"^([A-Z]+[0-9A-Z\-]*)?),(.*)$", text)
+            m = re.match(r"^([A-Z]+[0-9A-Z\-]*),(.*)$", text)
             if not m:
                 return None
             else:
                 out["name"] = m.group(1)
-                tail = m.group(3)
+                tail = m.group(2)
         # Parse time and altitude
         m = re.match(r"^(\d{6}),((\d+),)?(.*)$", tail)
         if not m:
