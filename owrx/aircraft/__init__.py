@@ -215,7 +215,7 @@ class AircraftParser(TextParser):
 
     # Common function to parse ACARS subframes in ACARS/HFDL/VDL2/etc
     def parseAcars(self, data, out):
-        #logger.debug("@@@ ACARS: {0}".format(data))
+        #logger.debug("ACARS: {0}".format(data))
         # Look up human-readable frame type
         label = data["label"]
         if label not in ACARS_LABELS:
@@ -427,7 +427,7 @@ class AircraftParser(TextParser):
         # Must start with POS
         if not posReport.startswith("POS"):
             return False
-        #logger.info(f"@@@ Parsing '{posReport}'...")
+        logger.debug(f"Parsing position report: '{posReport}'...")
 
         # Parse current position
         posReport = self.parseLatLon(posReport[3:].replace(" ", ""), out)
@@ -438,7 +438,7 @@ class AircraftParser(TextParser):
         route = []
         while True:
             # Try parsing environment (temperature + wind) first
-            tail = self.parseEnvironment(posReport, wpt)
+            tail = self.parseEnvironment(posReport, out)
             if tail:
                 break
             # Try parsing next waypoint
@@ -449,10 +449,10 @@ class AircraftParser(TextParser):
             # Waypoint parsed
             route.append(wpt)
             posReport = tail
-            #logger.info(f"@@@ WAYPOINT = {wpt}...")
 
         # If we have got a route...
         if len(route) > 0:
+            logger.debug(f"Parsed route: {route}")
             # Save route
             out["route"] = route
             # Assume closest waypoint altitude to be current
@@ -807,7 +807,7 @@ class UatParser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
-        #logger.debug("@@@ UAT: {0}".format(data))
+        #logger.debug("UAT: {0}".format(data))
 
         # Collect basic data first
         out = {
