@@ -71,27 +71,25 @@ class WebAgent(object):
     def stopThread(self):
         if self.thread is not None:
             logger.info("Stopping {0} database thread.".format(type(self).__name__))
-            self.event.set()
-            self.thread.join()
             self.thread = None
+            self.event.set()
 
     # This is the actual thread function
     def _refreshThread(self):
         # Random time to refresh data
         refreshMinute = random.randint(5, 49)
         # Main Loop
-        while not self.event.is_set():
+        while self.thread is not None and not self.event.is_set():
             # Wait until the check-and-update time
             waitMinutes = refreshMinute - datetime.utcnow().minute
             waitMinutes = waitMinutes + 60 if waitMinutes <= 0 else waitMinutes
             self.event.wait(waitMinutes * 60)
-            # Check if we need to exit
-            if self.event.is_set():
-                break
             # Check and refresh cached database as needed
-            self.refresh()
+            if self.thread is not None and not self.event.is_set():
+                self.refresh()
         # Done with the thread
         self.thread = None
+        logger.info("Stopped {0} database thread.".format(type(self).__name__))
 
     # Refresh database from the web.
     def refresh(self):
