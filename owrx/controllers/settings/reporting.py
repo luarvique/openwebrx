@@ -98,7 +98,7 @@ class ReportingController(SettingsFormController):
                 ),
             ),
             Section(
-                "Sondehub Reporting",
+                "Sondehub settings",
                 CheckboxInput(
                     "sondehub_enabled",
                     "Enable Sondehub telemetry and listener reporting",
