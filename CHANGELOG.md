@@ -9,6 +9,7 @@
 - Added airplane temperature and wind display.
 - Added options to drop ACARS and VDL2 acks.
 - Made Meshtastic map objects use regular TTL.
+- Fixed flickering horizontal waterfall lines.
 - Fixed web agent threads hanging on exit.
 
 **1.2.116**

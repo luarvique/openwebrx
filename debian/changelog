@@ -10,6 +10,7 @@ openwebrx (1.2.117) bullseye jammy; urgency=low
   * Added airplane temperature and wind display. 
   * Added options to drop ACARS and VDL2 acks.
   * Made Meshtastic map objects use regular TTL.
+  * Fixed flickering horizontal waterfall lines.
   * Fixed web agent threads hanging on exit.
 
  -- Marat Fayzullin <luarvique@gmail.com>  Mon, 22 Jun 2026 16:12:00 +0000
