@@ -1,6 +1,6 @@
 from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
 from owrx.form.section import Section
-from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option, TextInput, AgcInput
+from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option, TextInput, AgcInput, LoraBandwidthInput
 from owrx.form.input.dab import DabOutputRateValues
 from owrx.form.input.wfm import WfmTauValues
 from owrx.form.input.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput
@@ -152,6 +152,25 @@ class DecodingSettingsController(SettingsFormController):
                 CheckboxInput(
                     "acars_ignore_acks",
                     "Filter out ACARS acknowledgement messages",
+                ),
+            ),
+            Section(
+                "LoRa messages",
+                LoraBandwidthInput(
+                    "lorawan_bw",
+                    "LoRa WAN bandwidth",
+                ),
+                LoraBandwidthInput(
+                    "meshtastic_bw",
+                    "Meshtastic bandwidth",
+                ),
+                LoraBandwidthInput(
+                    "meshcore_bw",
+                    "MeshCore bandwidth",
+                ),
+                LoraBandwidthInput(
+                    "meshcom_bw",
+                    "MeshCom bandwidth",
                 ),
             ),
             Section(

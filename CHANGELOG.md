@@ -8,6 +8,7 @@
 - Added ACARS parsing inside VDL2 and HFDL.
 - Added airplane temperature and wind display.
 - Added options to drop ACARS and VDL2 acks.
+- Added options for LoRa decoder bandwidths.
 - Made Meshtastic map objects use regular TTL.
 - Fixed flickering horizontal waterfall lines.
 - Fixed web agent threads hanging on exit.
