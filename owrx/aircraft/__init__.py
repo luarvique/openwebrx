@@ -215,7 +215,7 @@ class AircraftParser(TextParser):
 
     # Common function to parse ACARS subframes in ACARS/HFDL/VDL2/etc
     def parseAcars(self, data, out):
-        #logger.debug("ACARS: {0}".format(data))
+        #logger.debug(f"ACARS: {data}")
         # Look up human-readable frame type
         label = data["label"]
         if label not in ACARS_LABELS:
@@ -473,6 +473,7 @@ class HfdlParser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
+        #logger.debug(f"HFDL: {data}")
         # @@@ Only parse messages that have LDPU frames for now !!!
         if "hfdl" not in data or "lpdu" not in data["hfdl"]:
             return None
@@ -562,6 +563,7 @@ class Vdl2Parser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
+        #logger.debug(f"VDL2: {data}")
         # @@@ Only parse messages that have AVLC frames for now !!!
         if "vdl2" not in data or "avlc" not in data["vdl2"]:
             return None
@@ -868,6 +870,7 @@ class AcarsParser(AircraftParser):
     def parseAircraft(self, msg: bytes):
         # Expect JSON data in text form
         data = json.loads(msg)
+        #logger.debug(f"ACARS: {data}")
         # Ignore acknowledgements, if requested
         label = data["label"]
         if label == "_j" or label == "_d":
@@ -878,6 +881,7 @@ class AcarsParser(AircraftParser):
         out = {
             "mode"      : "ACARS",
             "timestamp" : round(data["timestamp"] * 1000),
+            "rssi"      : data["level"],
             "data"      : data
         }
         # Parse ACARS frame
