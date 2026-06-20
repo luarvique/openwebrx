@@ -478,8 +478,8 @@ defaultConfig = PropertyLayer(
     wifi_enable_4=False,
     wifi_name_4="",
     wifi_pass_4="",
-    lorawan_bw=7,
-    meshtastic_bw=8,
-    meshcore_bw=6,
-    meshcom_bw=8
+    lorawan_bw="7",
+    meshtastic_bw="8",
+    meshcore_bw="6",
+    meshcom_bw="8"
 ).readonly()
