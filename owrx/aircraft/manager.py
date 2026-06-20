@@ -80,7 +80,7 @@ class AircraftLocation(LatLngLocation):
         res = super(AircraftLocation, self).__dict__()
         res["symbol"] = self.getSymbol()
         # Convert aircraft-specific data into APRS-like data
-        for x in ["icao", "aircraft", "flight", "country", "ccode", "speed", "altitude", "course", "destination", "origin", "vspeed", "squawk", "rssi", "msglog", "ttl", "temperature", "wind"]:
+        for x in ["icao", "aircraft", "flight", "country", "ccode", "speed", "altitude", "course", "destination", "origin", "vspeed", "squawk", "rssi", "msglog", "ttl", "temperature", "wind", "route"]:
             if x in self.data:
                 res[x] = self.data[x]
         # Return APRS-like dictionary object

@@ -718,6 +718,7 @@ AircraftMarker.prototype.update = function(update) {
     this.msglog   = update.location.msglog;
     this.temperature = update.location.temperature;
     this.wind     = update.location.wind;
+    this.route    = update.location.route;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -884,6 +885,18 @@ AircraftMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         if (wind) {
             detailsString += Utils.makeListItem('Wind', wind);
         }
+    }
+
+    if (this.route && this.route.length > 0) {
+        var route = '';
+        for (var i = 0 ; i < this.route.length ; i++) {
+            if (this.route[i].name) {
+                route +=
+                  (route.length? '&nbsp;&#9656;&nbsp;':'')
+                + (this.route[i].name || Utils.latLon(this.route[i]) || '???');
+            }
+        }
+        detailsString += Utils.makeListItem('Route', route);
     }
 
     if (this.rssi) {

@@ -190,6 +190,15 @@ Utils.HHMMSS = function(t, local = false) {
     }
 };
 
+// Print location
+Utils.latLon = function(latlon) {
+    if (!latlon.lat || !latlon.lon) return '';
+
+    return
+      Math.abs(latlon.lat).toFixed(3) + (latlon.lat >= 0.0? '&deg;N, ':'&deg;S, ')
+    + Math.abs(latlon.lon).toFixed(3) + (latlon.lon >= 0.0? '&deg;E':'&deg;W');
+};
+
 // Snap given frequency to the nearest step.
 Utils.snapFrequency = function(freq, step) {
     if (step <= 0) {
