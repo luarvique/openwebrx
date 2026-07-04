@@ -5,6 +5,7 @@ from owrx.reporting.aisreporter import AisReporter
 from owrx.reporting.pskreporter import PskReporter
 from owrx.reporting.sondehub import SondehubReporter
 from owrx.reporting.wsprnet import WsprnetReporter
+from owrx.reporting.igate import AprsReporter
 from owrx.feature import FeatureDetector
 import logging
 
@@ -22,6 +23,7 @@ class ReportingEngine(object):
         "wsprnet": WsprnetReporter,
         "sondehub": SondehubReporter,
         "aisreporter": AisReporter,
+        "aprsreporter": AprsReporter,
         "mqtt": ("owrx.reporting.mqtt", "MqttReporter")
     }
 
