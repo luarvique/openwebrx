@@ -23,6 +23,20 @@ class AprsReporter(FilteredReporter):
         # Run reporter thread
         self.thread = threading.Thread(target=self.run, name="AprsIsIgate", daemon=True)
         self.thread.start()
+        # Subscribe to APRS iGate changes
+        self.configSub = Config.get().filter(
+            "aprs_igate_enabled",
+            "aprs_igate_server",
+            "aprs_callsign",
+            "aprs_igate_password",
+            "aprs_igate_beacon",
+            "receiver_gps",
+            "aprs_igate_symbol",
+            "aprs_igate_comment",
+            "aprs_igate_height",
+            "aprs_igate_gain",
+            "aprs_igate_dir",
+        ).wire(self.onConfigChanged)
 
     def stop(self):
         if self.thread is not None:
@@ -42,6 +56,9 @@ class AprsReporter(FilteredReporter):
 
     def getSupportedModes(self):
         return ["PACKET"]
+
+    def onConfigChanged(self, *args):
+        self.disconnect()
 
     def isConfigured(self):
         pm = Config.get()
