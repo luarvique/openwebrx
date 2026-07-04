@@ -206,7 +206,7 @@ class FeatureDetector(object):
                 return rc != 32512
             else:
                 return rc == expected_result
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def has_csdr(self):
@@ -292,7 +292,7 @@ class FeatureDetector(object):
             version = LooseVersion(matches.group(1))
             process.wait(1)
             return version >= required_version
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def _check_owrx_connector(self, command):
@@ -333,7 +333,7 @@ class FeatureDetector(object):
             process.wait(1)
 
             return driver in drivers
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def has_soapy_rtl_sdr(self):
@@ -524,7 +524,7 @@ class FeatureDetector(object):
             version = LooseVersion(matches.group(1))
             process.wait(1)
             return version >= required_version
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def has_wsjtx_2_3(self):
