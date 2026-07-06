@@ -13,16 +13,17 @@ logger = logging.getLogger(__name__)
 PoisonPill = object()
 
 
-class AprsReporter(FilteredReporter):
+class AprsIgate(FilteredReporter):
     DEFAULT_PORT = 14580
     BEACON_INITIAL_DELAY = 30
-    BEACON_INTERVAL = 30 #1800
+    BEACON_INTERVAL = 1800
     FEET_PER_METER = 3.28084
 
     def __init__(self):
         self.connLock = threading.Lock()
         self.queue = queue.Queue(500)
         self.socket = None
+        self.verified = False
         self.beaconThread = None
         self.beaconStop = threading.Event()
         # Run reporter thread
@@ -82,16 +83,13 @@ class AprsReporter(FilteredReporter):
         return callsign
 
     def buildTnc2Line(self, data, callsign):
-        src = data.get("source", "")
-        dst = data.get("destination", "")
+        src  = data.get("source", "")
+        dst  = data.get("destination", "")
+        dst  = dst if dst else "APRS"
         path = data.get("path", [])
-        info = data.get("data", b"")
-        if isinstance(info, bytes):
-            info = info.decode("utf-8", "replace")
-        if dst:
-            path.insert(0, dst)
         path = ",".join(path)
-        return f"{src}>{path},qAO,{callsign}:{info}"
+        info = data.get("data", "")
+        return f"{src}>{dst},{path},qAO,{callsign}:{info}"
 
     def buildPosition(self, lat, lon, symbol):
         direction = "N" if lat >= 0 else "S"
@@ -150,9 +148,10 @@ class AprsReporter(FilteredReporter):
     def enableBeacon(self, enable):
         # Stop current beacon thread
         if self.beaconThread is not None:
+            thread = self.beaconThread
             self.beaconThread = None
             self.beaconStop.set()
-            self.beaconThread.join()
+            thread.join()
         # Start a new beacon thread
         if enable:
             self.beaconThread = threading.Thread(target=self.beaconLoop, name="AprsIsBeacon", daemon=True)
@@ -163,11 +162,9 @@ class AprsReporter(FilteredReporter):
         self.beaconStop.wait(self.BEACON_INITIAL_DELAY)
         # Periodically send beacons
         while self.beaconThread is not None:
-            logger.warning("@@@ BEACON LOOP")
             callsign = self.getCallsignWhenEnabled()
             if callsign:
                 try:
-                    logger.warning("@@@ QUEUEING BEACON")
                     self.queue.put(self.buildBeaconLine(callsign))
                 except Exception:
                     logger.exception("APRS-IS beacon failed")
@@ -190,7 +187,7 @@ class AprsReporter(FilteredReporter):
 
     def send(self, line):
         with self.connLock:
-            if not self.connect():
+            if not self.connect() or not self.verified:
                 return
             try:
                 self.socket.sendall((line.rstrip() + "\r\n").encode("ascii"))
@@ -205,11 +202,15 @@ class AprsReporter(FilteredReporter):
                 self.socket.close()
             except OSError:
                 pass
-            self.socket = None
+        self.verified = False
+        self.socket = None
 
     def connect(self):
         if self.socket is not None:
             return True
+
+        # Not verified yet
+        self.verified = False
 
         pm = Config.get()
         try:
@@ -234,14 +235,21 @@ class AprsReporter(FilteredReporter):
             sock = socket.create_connection((host, port), timeout = 10)
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             sock.sendall(login.encode("ascii"))
-            sock.settimeout(2)
+            sock.settimeout(5)
             try:
-                sock.recv(4096)
+                resp = sock.recv(4096).decode("ascii", "replace")
+                logger.info(f"Received APRS-IS server response 1/2: {resp}")
+                resp = sock.recv(4096).decode("ascii", "replace")
+                logger.info(f"Received APRS-IS server response 2/2: {resp}")
+                self.verified = f"# logresp {callsign} verified," in resp
             except socket.timeout:
                 pass
             sock.settimeout(None)
             self.socket = sock
-            logger.info("Connected to APRS-IS server %s:%d as %s", host, port, callsign)
+            logger.info("%s at APRS-IS server %s:%d as %s",
+                "Verified" if self.verified else "UNVERIFIED",
+                host, port, callsign
+            )
             return True
         except OSError:
             logger.warning("Could not connect to APRS-IS server %s:%d", host, port)

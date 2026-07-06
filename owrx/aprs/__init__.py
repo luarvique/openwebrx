@@ -294,7 +294,8 @@ class AprsParser(PickleModule):
         aprsData = {
             "source": data["source"],
             "destination": data["destination"],
-            "path": data["path"]
+            "path": data["path"],
+            "data": information.decode(encoding, "replace")
         }
 
         if "raw" in data:
@@ -304,7 +305,7 @@ class AprsParser(PickleModule):
             aprsData.update(MicEParser().parse(data))
             return aprsData
 
-        information = information.decode(encoding, "replace")
+        information = aprsData["data"]
 
         # APRS data type identifier
         dti = information[0]
