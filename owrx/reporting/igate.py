@@ -1,12 +1,12 @@
 from owrx.reporting.reporter import FilteredReporter
 from owrx.version import openwebrx_version
 from owrx.config import Config
-from owrx.aprs import encoding
 
 import logging
 import queue
 import socket
 import threading
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -15,30 +15,38 @@ PoisonPill = object()
 
 class AprsReporter(FilteredReporter):
     DEFAULT_PORT = 14580
+    BEACON_INITIAL_DELAY = 30
+    BEACON_INTERVAL = 30 #1800
+    FEET_PER_METER = 3.28084
 
     def __init__(self):
         self.connLock = threading.Lock()
         self.queue = queue.Queue(500)
         self.socket = None
+        self.beaconThread = None
+        self.beaconStop = threading.Event()
         # Run reporter thread
         self.thread = threading.Thread(target=self.run, name="AprsIsIgate", daemon=True)
         self.thread.start()
         # Subscribe to APRS iGate changes
+        self.locationSub = Config.get().filter("receiver_gps").wire(self.onLocationChanged)
         self.configSub = Config.get().filter(
             "aprs_igate_enabled",
             "aprs_igate_server",
             "aprs_callsign",
             "aprs_igate_password",
-            "aprs_igate_beacon",
-            "receiver_gps",
-            "aprs_igate_symbol",
-            "aprs_igate_comment",
-            "aprs_igate_height",
-            "aprs_igate_gain",
-            "aprs_igate_dir",
+            "aprs_igate_beacon"
         ).wire(self.onConfigChanged)
+        # Initiate first config change, enabling beacon if needed
+        self.onConfigChanged()
+
+    def getSupportedModes(self):
+        return ["APRS"]
 
     def stop(self):
+        # Stop beacons
+        self.enableBeacon(False)
+        # Stop main thread
         if self.thread is not None:
             while not self.queue.empty():
                 self.queue.get(timeout=1)
@@ -46,52 +54,127 @@ class AprsReporter(FilteredReporter):
             self.queue.put(PoisonPill)
 
     def spot(self, spot):
-        if spot["source"] != "AIS" or self.isConfigured():
-            return
-        callsign = Config.get()["aprs_callsign"].strip()
-        try:
-            self.queue.put(self.addIgatePath(self.buildTnc2Line(spot), callsign))
-        except Exception:
-            logger.exception("Failed to build APRS-IS packet")
+        callsign = self.getCallsignWhenEnabled()
+        if callsign and spot["source"] != "AIS":
+            try:
+                self.queue.put(self.buildTnc2Line(spot, callsign))
+            except Exception:
+                logger.exception("Failed to build APRS-IS packet")
 
-    def getSupportedModes(self):
-        return ["PACKET"]
+    def onLocationChanged(self, *args):
+        if self.beaconThread is not None:
+            self.beaconStop.set()
 
     def onConfigChanged(self, *args):
+        # Start or stop beacons as necessary
+        pm = Config.get()
+        self.enableBeacon(pm["aprs_igate_enabled"] and pm["aprs_igate_beacon"])
+        # Close current connection to the server
         self.disconnect()
 
-    def isConfigured(self):
+    def getCallsignWhenEnabled(self):
         pm = Config.get()
-        if not pm["aprs_igate_enabled"]:
-            return False
-        callsign = pm["aprs_callsign"].strip()
+        if not pm["aprs_igate_enabled"] or not pm["aprs_igate_password"]:
+            return None
+        callsign = pm["aprs_callsign"]
         if not callsign or callsign == "N0CALL":
-            return False
-        password = pm["aprs_igate_password"]
-        if password is None or str(password).strip() == "":
-            return False
-        return True
+            return None
+        return callsign
 
-    def buildTnc2Line(self, data):
+    def buildTnc2Line(self, data, callsign):
         src = data.get("source", "")
         dst = data.get("destination", "")
         path = data.get("path", [])
         info = data.get("data", b"")
         if isinstance(info, bytes):
-            info = info.decode(encoding, "replace")
+            info = info.decode("utf-8", "replace")
         if dst:
             path.insert(0, dst)
         path = ",".join(path)
-        return f"{source}>{path}:{info}"
+        return f"{src}>{path},qAO,{callsign}:{info}"
 
-    def addIgatePath(self, line, igateCallsign):
-        if not igateCallsign:
-            return line
-        upper = line.upper()
-        colon = line.find(":")
-        if ",QAO," in upper or ",QAR," in upper or colon < 0:
-            return line
-        return line[:colon] + ",qAO," + igateCallsign + line[colon:]
+    def buildPosition(self, lat, lon, symbol):
+        direction = "N" if lat >= 0 else "S"
+        lat = abs(lat)
+        lat_s = "{:02d}{:05.2f}{}".format(int(lat), (lat - int(lat)) * 60, direction)
+
+        direction = "E" if lon >= 0 else "W"
+        lon = abs(lon)
+        lon_s = "{:03d}{:05.2f}{}".format(int(lon), (lon - int(lon)) * 60, direction)
+        lon_deg = lon_s[0:3]
+        lon_min = lon_s[3:8]
+        lon_hem = lon_s[8]
+
+        if len(symbol) >= 2:
+            table, symch = symbol[0], symbol[1]
+        elif len(symbol) == 1:
+            table, symch = symbol[0], symbol[0]
+        else:
+            table, symch = "/", "&"
+
+        # 20 data bytes (indices 0-19): "!", lat[0:8], table[8], lon[9:17], symbol[18].
+        # Primary table: "/" at index 8 also separates lat from lon.
+        # Overlay (R&, M&, …): overlay replaces "/" at index 8; lon follows immediately.
+        if table == "/":
+            body = f"!{lat_s}/{lon_deg}{lon_min}{lon_hem}{symch}"
+        else:
+            body = f"!{lat_s}{table}{lon_deg}{lon_min}{lon_hem}{symch}"
+
+        if len(body) != 20:
+            raise ValueError("Invalid APRS position length %d: %r" % (len(body), body))
+        return body
+
+    def buildBeaconLine(self, callsign):
+        pm = Config.get()
+        gps = pm["receiver_gps"]
+        info = self.buildPosition(gps["lat"], gps["lon"], pm["aprs_igate_symbol"])
+
+        if "aprs_igate_comment" in pm and pm["aprs_igate_comment"]:
+            info += " " + pm["aprs_igate_comment"]
+
+        if "aprs_igate_height" in pm and pm["aprs_igate_height"]:
+            try:
+                heightFt = round(float(pm["aprs_igate_height"]) * self.FEET_PER_METER)
+                info += " HEIGHT=" + str(heightFt)
+            except (TypeError, ValueError):
+                logger.error("Cannot parse aprs_igate_height: %s", pm["aprs_igate_height"])
+
+        if "aprs_igate_gain" in pm and pm["aprs_igate_gain"]:
+            info += " GAIN=" + str(pm["aprs_igate_gain"])
+
+        if "aprs_igate_dir" in pm and pm["aprs_igate_dir"]:
+            info += " DIR=" + str(pm["aprs_igate_dir"])
+
+        return f"{callsign}>APRS:{info}"
+
+    def enableBeacon(self, enable):
+        # Stop current beacon thread
+        if self.beaconThread is not None:
+            self.beaconThread = None
+            self.beaconStop.set()
+            self.beaconThread.join()
+        # Start a new beacon thread
+        if enable:
+            self.beaconThread = threading.Thread(target=self.beaconLoop, name="AprsIsBeacon", daemon=True)
+            self.beaconThread.start()
+
+    def beaconLoop(self):
+        # Delay sending beacons
+        self.beaconStop.wait(self.BEACON_INITIAL_DELAY)
+        # Periodically send beacons
+        while self.beaconThread is not None:
+            logger.warning("@@@ BEACON LOOP")
+            callsign = self.getCallsignWhenEnabled()
+            if callsign:
+                try:
+                    logger.warning("@@@ QUEUEING BEACON")
+                    self.queue.put(self.buildBeaconLine(callsign))
+                except Exception:
+                    logger.exception("APRS-IS beacon failed")
+            self.beaconStop.wait(self.BEACON_INTERVAL)
+        # Done sending beacons
+        self.beaconThread = None
+        self.beaconStop.clear()
 
     def run(self):
         while True:
@@ -130,7 +213,7 @@ class AprsReporter(FilteredReporter):
 
         pm = Config.get()
         try:
-            host = pm["aprs_igate_server"].strip()
+            host = pm["aprs_igate_server"]
             if not host:
                 raise ValueError("APRS-IS server is not configured")
             elif ":" in host:
@@ -142,8 +225,8 @@ class AprsReporter(FilteredReporter):
             logger.exception("Invalid APRS-IS server configuration")
             return False
 
-        callsign = pm["aprs_callsign"].strip(),
-        password = str(pm["aprs_igate_password"]).strip(),
+        callsign = pm["aprs_callsign"]
+        password = pm["aprs_igate_password"]
         software = "OpenWebRX " + openwebrx_version
         login    = f"user {callsign} pass {password} vers {software}\r\n"
 

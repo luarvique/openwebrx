@@ -23,7 +23,7 @@ class ReportingEngine(object):
         "wsprnet": WsprnetReporter,
         "sondehub": SondehubReporter,
         "aisreporter": AisReporter,
-        "aprsreporter": AprsReporter,
+        "aprs_igate": AprsReporter,
         "mqtt": ("owrx.reporting.mqtt", "MqttReporter")
     }
 
