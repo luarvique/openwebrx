@@ -205,7 +205,7 @@ class AprsReporter(FilteredReporter):
                 self.socket.close()
             except OSError:
                 pass
-            self._socket = None
+            self.socket = None
 
     def connect(self):
         if self.socket is not None:
