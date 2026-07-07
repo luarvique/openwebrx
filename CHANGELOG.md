@@ -1,3 +1,11 @@
+**1.2.118**
+- Added native APRS IGate reporter module.
+- Added option for legacy Direwold IGate.
+- Added bookmark search (right button on icon).
+- Added [Y] shortcut to search bookmarks.
+- Handled case when feature binary not executable.
+- Multiple APRS decoders can report to APRS-IS.
+
 **1.2.117**
 - Added unencrypted Tetra support [Yiannis Sam].
 - Added support for ELAD FDM-S2 [DisagioDigitale].

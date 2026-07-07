@@ -1,3 +1,14 @@
+openwebrx (1.2.118) bullseye jammy; urgency=low
+
+  * Added native APRS IGate reporter module.
+  * Added option for legacy Direwold IGate.
+  * Added bookmark search (right button on icon).
+  * Added [Y] shortcut to search bookmarks.
+  * Handled case when feature binary not executable.
+  * Multiple APRS decoders can report to APRS-IS.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Wed, 8 Jul 2026 16:12:00 +0000
+
 openwebrx (1.2.117) bullseye jammy; urgency=low
 
   * Added unencrypted Tetra support [Yiannis Sam].
