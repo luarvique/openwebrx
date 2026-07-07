@@ -23,9 +23,10 @@ class AprsIgate(FilteredReporter):
         self.connLock = threading.Lock()
         self.queue = queue.Queue(500)
         self.socket = None
-        self.verified = False
+        self.enabled = None
+        self.rejected = False
         self.beaconThread = None
-        self.beaconStop = threading.Event()
+        self.beaconWait = threading.Event()
         # Run reporter thread
         self.thread = threading.Thread(target=self.run, name="AprsIsIgate", daemon=True)
         self.thread.start()
@@ -33,6 +34,7 @@ class AprsIgate(FilteredReporter):
         self.locationSub = Config.get().filter("receiver_gps").wire(self.onLocationChanged)
         self.configSub = Config.get().filter(
             "aprs_igate_enabled",
+            "aprs_igate_legacy",
             "aprs_igate_server",
             "aprs_callsign",
             "aprs_igate_password",
@@ -41,9 +43,11 @@ class AprsIgate(FilteredReporter):
         # Initiate first config change, enabling beacon if needed
         self.onConfigChanged()
 
+    # Only supporting APRS packets (not AIS)
     def getSupportedModes(self):
         return ["APRS"]
 
+    # Stop all threads
     def stop(self):
         # Stop beacons
         self.enableBeacon(False)
@@ -54,34 +58,44 @@ class AprsIgate(FilteredReporter):
                 self.queue.task_done()
             self.queue.put(PoisonPill)
 
+    # Queue up received packet
     def spot(self, spot):
-        callsign = self.getCallsignWhenEnabled()
-        if callsign and spot["source"] != "AIS":
+        if self.isEnabled():
+            pm = Config.get()
             try:
-                self.queue.put(self.buildTnc2Line(spot, callsign))
+                self.queue.put(self.buildTnc2Line(spot, pm["aprs_callsign"]))
             except Exception:
                 logger.exception("Failed to build APRS-IS packet")
 
+    # When location changes, issue a new beacon
     def onLocationChanged(self, *args):
         if self.beaconThread is not None:
-            self.beaconStop.set()
+            self.beaconWait.set()
 
+    # When settings change, validate them and reconnect
     def onConfigChanged(self, *args):
-        # Start or stop beacons as necessary
+        # Verify all the important settings
         pm = Config.get()
-        self.enableBeacon(pm["aprs_igate_enabled"] and pm["aprs_igate_beacon"])
+        if not pm["aprs_igate_enabled"] or pm["aprs_igate_legacy"] or not pm["aprs_igate_password"]:
+            self.enabled = False
+        elif not pm["aprs_callsign"] or pm["aprs_callsign"] == "N0CALL":
+            self.enabled = False
+        else:
+            self.enabled = True
+        # Start or stop beacons as necessary
+        self.enableBeacon(self.isBeaconEnabled())
         # Close current connection to the server
         self.disconnect()
 
-    def getCallsignWhenEnabled(self):
-        pm = Config.get()
-        if not pm["aprs_igate_enabled"] or not pm["aprs_igate_password"]:
-            return None
-        callsign = pm["aprs_callsign"]
-        if not callsign or callsign == "N0CALL":
-            return None
-        return callsign
+    # Enabled when settings are valid and APRS-IS has not rejected us
+    def isEnabled(self):
+        return self.enabled and not self.rejected
 
+    def isBeaconEnabled(self):
+        pm = Config.get()
+        return self.isEnabled() and pm["aprs_igate_beacon"]
+
+    # Build TNC2-compatible message
     def buildTnc2Line(self, data, callsign):
         src  = data.get("source", "")
         dst  = data.get("destination", "")
@@ -91,6 +105,7 @@ class AprsIgate(FilteredReporter):
         info = data.get("data", "")
         return f"{src}>{dst},{path},qAO,{callsign}:{info}"
 
+    # Build our IGate position, including symbol
     def buildPosition(self, lat, lon, symbol):
         direction = "N" if lat >= 0 else "S"
         lat = abs(lat)
@@ -122,6 +137,7 @@ class AprsIgate(FilteredReporter):
             raise ValueError("Invalid APRS position length %d: %r" % (len(body), body))
         return body
 
+    # Build beacon message
     def buildBeaconLine(self, callsign):
         pm = Config.get()
         gps = pm["receiver_gps"]
@@ -145,34 +161,38 @@ class AprsIgate(FilteredReporter):
 
         return f"{callsign}>APRS:{info}"
 
+    # Start or stop beacon thread
     def enableBeacon(self, enable):
-        # Stop current beacon thread
-        if self.beaconThread is not None:
+        if not enable and self.beaconThread is not None:
+            # Stop current beacon thread
             thread = self.beaconThread
             self.beaconThread = None
-            self.beaconStop.set()
+            self.beaconWait.set()
             thread.join()
-        # Start a new beacon thread
-        if enable:
+        elif enable and self.beaconThread is None:
+            # Start a new beacon thread
             self.beaconThread = threading.Thread(target=self.beaconLoop, name="AprsIsBeacon", daemon=True)
             self.beaconThread.start()
 
+    # Beacon thread periodically queueing beacon packets
     def beaconLoop(self):
+        pm = Config.get()
         # Delay sending beacons
-        self.beaconStop.wait(self.BEACON_INITIAL_DELAY)
+        self.beaconWait.wait(self.BEACON_INITIAL_DELAY)
+        self.beaconWait.clear()
         # Periodically send beacons
         while self.beaconThread is not None:
-            callsign = self.getCallsignWhenEnabled()
-            if callsign:
+            if self.isBeaconEnabled():
                 try:
-                    self.queue.put(self.buildBeaconLine(callsign))
+                    self.queue.put(self.buildBeaconLine(pm["aprs_callsign"]))
                 except Exception:
                     logger.exception("APRS-IS beacon failed")
-            self.beaconStop.wait(self.BEACON_INTERVAL)
+            self.beaconWait.wait(self.BEACON_INTERVAL)
+            self.beaconWait.clear()
         # Done sending beacons
         self.beaconThread = None
-        self.beaconStop.clear()
 
+    # Main thread sending queued packets to APRS-IS
     def run(self):
         while True:
             line = self.queue.get()
@@ -185,9 +205,10 @@ class AprsIgate(FilteredReporter):
         self.disconnect()
         self.thread = None
 
+    # Send message to the APRS-IS server, connecting as needed
     def send(self, line):
         with self.connLock:
-            if not self.connect() or not self.verified:
+            if not self.connect() or self.rejected:
                 return
             try:
                 self.socket.sendall((line.rstrip() + "\r\n").encode("ascii"))
@@ -196,21 +217,23 @@ class AprsIgate(FilteredReporter):
                 logger.warning("APRS-IS connection lost while sending")
                 self.disconnect()
 
+    # Disconnect from the APRS-IS server
     def disconnect(self):
         if self.socket is not None:
             try:
                 self.socket.close()
             except OSError:
                 pass
-        self.verified = False
+        self.rejected = False
         self.socket = None
 
+    # Connect and authenticate with the APRS-IS server
     def connect(self):
         if self.socket is not None:
             return True
 
-        # Not verified yet
-        self.verified = False
+        # Not rejected yet
+        self.rejected = False
 
         pm = Config.get()
         try:
@@ -241,13 +264,13 @@ class AprsIgate(FilteredReporter):
                 logger.info(f"Received APRS-IS server response 1/2: {resp}")
                 resp = sock.recv(4096).decode("ascii", "replace")
                 logger.info(f"Received APRS-IS server response 2/2: {resp}")
-                self.verified = f"# logresp {callsign} verified," in resp
+                self.rejected = f"# logresp {callsign} verified," not in resp
             except socket.timeout:
                 pass
             sock.settimeout(None)
             self.socket = sock
-            logger.info("%s at APRS-IS server %s:%d as %s",
-                "Verified" if self.verified else "UNVERIFIED",
+            logger.info("%s by APRS-IS server %s:%d as %s",
+                "Rejected" if self.rejected else "Accepted",
                 host, port, callsign
             )
             return True
