@@ -387,6 +387,9 @@
     <div id="openwebrx-dialog-bookmark" class="openwebrx-dialog" style="display:none;">
         <form>
             <div class="form-field">
+                <h2>Edit Bookmark</h2>
+            </div>
+            <div class="form-field">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required="required">
             </div>
@@ -412,7 +415,24 @@
             </div>
             <div class="buttons">
                 <div class="openwebrx-button" data-action="cancel">Cancel</div>
-                <div class="openwebrx-button" data-action="submit">Ok</div>
+                <div class="openwebrx-button" data-action="submit">Save</div>
+            </div>
+            <input type="submit" style="display:none;">
+        </form>
+    </div>
+    <div id="openwebrx-dialog-search-bookmarks" class="openwebrx-dialog" style="display:none;">
+        <form>
+            <div class="form-field">
+                <h2>Search Bookmarks</h2>
+            </div>
+            <div class="form-field">
+                <input type="text" id="search-text" name="search-text" required="required">
+            </div>
+            <div class="form-field" id="search-results">
+            </div>
+            <div class="buttons">
+                <div class="openwebrx-button" data-action="cancel">Close</div>
+                <div class="openwebrx-button" data-action="submit">Search</div>
             </div>
             <input type="submit" style="display:none;">
         </form>

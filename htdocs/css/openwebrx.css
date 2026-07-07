@@ -2166,3 +2166,35 @@ img.openwebrx-mirror-img
     max-height: 0;
 }
 
+#openwebrx-dialog-search-bookmarks .search-left {
+    text-align: right;
+    padding: 5px 5px 5px 15px;
+    white-space: nowrap;
+    width: 100%;
+}
+
+#openwebrx-dialog-search-bookmarks .search-right {
+    text-align: left;
+    padding: 5px 15px 5px 5px;
+    white-space: nowrap;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results {
+    table-layout: fixed;
+    overflow-y: scroll;
+    max-height: 350px;
+    display: block;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 1px;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results tr:nth-child(odd) {
+    background-color: #efffef;
+    color: #000000;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results tr:nth-child(even) {
+    background-color: #ffffff;
+    color: #000000;
+}

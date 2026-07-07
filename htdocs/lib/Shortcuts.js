@@ -139,16 +139,21 @@ Shortcuts.init = function(target) {
       </div>
 
       <div class="ks-item">
-        <div class="ks-item-txt">clear bandpass settings</div>
-        <div class="ks-item-kbd">${this.keycap('|')}</div>
+        <div class="ks-item-txt">select profile</div>
+        <div class="ks-item-kbd">${this.keycap('P')}</div>
       </div>
       <div class="ks-item">
         <div class="ks-item-txt">input frequency</div>
         <div class="ks-item-kbd">${this.keycap('T')}</div>
       </div>
       <div class="ks-item">
-        <div class="ks-item-txt">select profile</div>
-        <div class="ks-item-kbd">${this.keycap('P')}</div>
+        <div class="ks-item-txt">search bookmarks</div>
+        <div class="ks-item-kbd">${this.keycap('Y')}</div>
+      </div>
+
+      <div class="ks-item">
+        <div class="ks-item-txt">clear bandpass settings</div>
+        <div class="ks-item-kbd">${this.keycap('|')}</div>
       </div>
 
       <div class="ks-item">
@@ -407,6 +412,11 @@ Shortcuts.handleKey = function(event) {
             $('.webrx-actual-freq > div').click();
             $('.webrx-actual-freq > div > input[type="number"]').focus();
             $('.webrx-actual-freq > div > input[type="number"]').select();
+            break;
+
+        case 'y':
+            // Y: Search bookmarks
+            $('.openwebrx-bookmark-button').triggerHandler('contextmenu');
             break;
 
         case 'p':
