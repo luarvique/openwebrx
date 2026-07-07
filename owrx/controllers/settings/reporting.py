@@ -20,8 +20,7 @@ class ReportingController(SettingsFormController):
                 "APRS-IS settings",
                 CheckboxInput(
                     "aprs_igate_enabled",
-                    "Send received APRS data to APRS-IS",
-                    infotext="Due to limits of the APRS-IS network, reporting will only work for background decoders"
+                    "Enable sending APRS data to APRS-IS",
                 ),
                 TextInput(
                     "aprs_callsign",
@@ -30,6 +29,11 @@ class ReportingController(SettingsFormController):
                 ),
                 TextInput("aprs_igate_server", "APRS-IS server"),
                 PasswordInput("aprs_igate_password", "APRS-IS network password"),
+                CheckboxInput(
+                    "aprs_igate_legacy",
+                    "Use Direwolf for APRS-IS reporting",
+                    infotext="Use Direwolf reporter rather than native implementation, single background decoder only"
+                ),
                 CheckboxInput(
                     "aprs_igate_beacon",
                     "Send the receiver position to the APRS-IS network",

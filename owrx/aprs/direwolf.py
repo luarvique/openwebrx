@@ -28,6 +28,7 @@ class DirewolfConfig:
     config_keys = [
         "aprs_callsign",
         "aprs_igate_enabled",
+        "aprs_igate_legacy",
         "aprs_igate_server",
         "aprs_igate_password",
         "receiver_gps",
@@ -95,7 +96,7 @@ AGWPORT off
         )
 
         # Do not send AIS reports to IGATE
-        if is_service and not is_ais and pm["aprs_igate_enabled"]:
+        if is_service and not is_ais and pm["aprs_igate_enabled"] and pm["aprs_igate_legacy"]:
             pbeacon = ""
 
             if pm["aprs_igate_beacon"]:
@@ -211,7 +212,10 @@ class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
             self.process.terminate()
             self.process.wait()
             self.process = None
-        os.unlink(self.direwolfConfigPath)
+        try:
+            os.unlink(self.direwolfConfigPath)
+        except Exception:
+            pass
         self.direwolfConfig.unwire(self)
         self.direwolfConfig = None
         self.reader.stop()

@@ -393,6 +393,7 @@ defaultConfig = PropertyLayer(
     services_decoders=["ft8", "ft4", "wspr", "packet"],
     aprs_callsign="N0CALL",
     aprs_igate_enabled=False,
+    aprs_igate_legacy=False,
     aprs_igate_server="euro.aprs2.net",
     aprs_igate_password="",
     aprs_igate_beacon=False,
