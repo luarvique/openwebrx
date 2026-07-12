@@ -1,7 +1,9 @@
 from owrx.toolbox import TextParser
 from owrx.reporting import ReportingEngine
+from owrx.metrics import Metrics, CounterMetric
 from owrx.lookup import HamCallsign
 from owrx.config import Config
+from owrx.bands import Bandplan
 from datetime import datetime
 import re
 
@@ -23,9 +25,16 @@ class SkimmerParser(TextParser):
         self.mode = mode
         self.frequency = 0
         self.freqChanged = False
+        self.band = None
         self.signals = {}
         # Construct parent object
         super().__init__(service=service)
+
+    def setDialFrequency(self, frequency: int) -> None:
+        if frequency != self.frequency:
+            self.band = Bandplan.getSharedInstance().findBand(frequency)
+            self.freqChanged = True
+        super().setDialFrequency(frequency)
 
     def parse(self, msg: bytes):
         # Parse incoming messages by frequency
@@ -50,6 +59,19 @@ class SkimmerParser(TextParser):
                     return out
         # No result
         return None
+
+    def _updateMetrics(self):
+        # Get metric name
+        band = self.band.getName() if self.band is not None else "unknown"
+        name = f"skimmer.decodes.{band}.{self.mode}"
+        # Get metric, add new one if missing
+        metrics = Metrics.getSharedInstance()
+        metric = metrics.getMetric(name)
+        if metric is None:
+            metric = CounterMetric()
+            metrics.addMetric(name, metric)
+        # Increment metric
+        metric.inc()
 
     def _reportCallsign(self, freq: int, text: str, snr: int) -> None:
         # No callsign yet
@@ -118,10 +140,7 @@ class SkimmerParser(TextParser):
             if callee:
                 out["callee"] = callee
             ReportingEngine.getSharedInstance().spot(out)
-
-    def setDialFrequency(self, frequency: int) -> None:
-        self.freqChanged = frequency != self.frequency
-        super().setDialFrequency(frequency)
+            self._updateMetrics()
 
 
 class CwSkimmerParser(SkimmerParser):
