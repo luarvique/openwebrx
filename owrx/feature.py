@@ -57,6 +57,7 @@ class FeatureDetector(object):
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
         "rtl_tcp": ["rtl_tcp_connector"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
+        "elad": ["soapy_connector", "soapy_elad"],
         "mirics": ["soapy_connector", "soapy_mirics"],
         "malahit_rr": ["soapy_connector", "soapy_malahit_rr"],
         "hackrf": ["soapy_connector", "soapy_hackrf"],
@@ -97,6 +98,7 @@ class FeatureDetector(object):
         "hfdl": ["dumphfdl"],
         "vdl2": ["dumpvdl2"],
         "acars": ["acarsdec"],
+        "tetra": ["tetrarx"],
         "page": ["multimon"],
         "selcall": ["multimon"],
         "eas": ["multimon"],
@@ -111,6 +113,7 @@ class FeatureDetector(object):
         "sonde": ["sonde_rs"],
         "mp3": ["lame"],
         "lora": ["lorarx"],
+        "meshtastic": ["lorarx", "py_meshtastic"],
     }
 
     def feature_availability(self):
@@ -203,7 +206,7 @@ class FeatureDetector(object):
                 return rc != 32512
             else:
                 return rc == expected_result
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def has_csdr(self):
@@ -289,7 +292,7 @@ class FeatureDetector(object):
             version = LooseVersion(matches.group(1))
             process.wait(1)
             return version >= required_version
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def _check_owrx_connector(self, command):
@@ -330,7 +333,7 @@ class FeatureDetector(object):
             process.wait(1)
 
             return driver in drivers
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def has_soapy_rtl_sdr(self):
@@ -354,6 +357,13 @@ class FeatureDetector(object):
         from the manufacturer.
         """
         return self._has_soapy_driver("sdrplay")
+
+    def has_soapy_elad(self):
+        """
+        The [SoapySDR module for ELAD](https://github.com/DisagioDigitale/SoapyELAD)
+        devices is required for interfacing with the ELAD FDM-S2 hardware.
+        """
+        return self._has_soapy_driver("elad")
 
     def has_soapy_mirics(self):
         """
@@ -514,7 +524,7 @@ class FeatureDetector(object):
             version = LooseVersion(matches.group(1))
             process.wait(1)
             return version >= required_version
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             return False
 
     def has_wsjtx_2_3(self):
@@ -902,6 +912,18 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("lorarx -h")
 
+    def has_py_meshtastic(self):
+        """
+        OpenWebRX uses [Meshtastic](https://pypi.org/project/meshtastic/) Python library
+        to decode Meshtastic traffic. You can install the
+        `python3-meshtastic` package from the OpenWebRX+ repositories.
+        """
+        try:
+            from meshtastic import OUR_APP_VERSION
+            return True
+        except ImportError:
+            return False
+
     def has_lame(self):
         """
         OpenWebRX uses the [LAME](https://lame.sourceforge.io/) tool
@@ -917,3 +939,12 @@ class FeatureDetector(object):
         from the OpenWebRX repositories.
         """
         return os.path.isdir("/usr/share/aprs-symbols")
+
+    def has_tetrarx(self):
+        """
+        OpenWebRX uses TetraRX decoder from the [dxlAPRS](http://oe5dxl.hamspirit.at:8025/aprs/c)
+        project to decode TETRA signals. Compile and install it by placing
+        the `tetrarx` binary in your PATH (e.g. /usr/local/bin).
+        """
+        return self.command_is_runnable("tetrarx -h")
+

@@ -99,6 +99,7 @@
                 <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-ism-message" style="display: none; width: 619px;" data-panel-name="ism-message"></div>
                 <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-dsc-message" style="display: none; width: 619px;" data-panel-name="dsc-message"></div>
                 <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-skimmer-message" style="display: none; width: 619px;" data-panel-name="skimmer-message"></div>
+                <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-meshtastic-message" style="display: none; width: 619px;" data-panel-name="meshtastic-message"></div>
                 <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-m17" style="display: none;" data-panel-name="metadata-m17">
                     <div class="openwebrx-meta-slot">
                         <div class="openwebrx-meta-user-image">
@@ -174,6 +175,10 @@
                 <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-hdr" style="display: none;" data-panel-name="metadata-hdr"></div>
                 <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-dab" style="display: none;" data-panel-name="metadata-dab"></div>
                 <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-drm" style="display: none;" data-panel-name="metadata-drm"></div>
+		<div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-tetra" style="display: none;" data-panel-name="metadata-tetra">
+                    <div class="openwebrx-meta-slot">
+                    </div>
+                </div>
                 <div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" style="width: 92%; max-width: 619px;">
                     <div style="position: relative; height: 100%">
                         <div class="openwebrx-panel-inner nano" id="openwebrx-log-scroll">
@@ -382,6 +387,9 @@
     <div id="openwebrx-dialog-bookmark" class="openwebrx-dialog" style="display:none;">
         <form>
             <div class="form-field">
+                <h2>Edit Bookmark</h2>
+            </div>
+            <div class="form-field">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required="required">
             </div>
@@ -407,7 +415,24 @@
             </div>
             <div class="buttons">
                 <div class="openwebrx-button" data-action="cancel">Cancel</div>
-                <div class="openwebrx-button" data-action="submit">Ok</div>
+                <div class="openwebrx-button" data-action="submit">Save</div>
+            </div>
+            <input type="submit" style="display:none;">
+        </form>
+    </div>
+    <div id="openwebrx-dialog-search-bookmarks" class="openwebrx-dialog" style="display:none;">
+        <form>
+            <div class="form-field">
+                <h2>Search Bookmarks</h2>
+            </div>
+            <div class="form-field">
+                <input type="text" id="search-text" name="search-text" required="required">
+            </div>
+            <div class="form-field" id="search-results">
+            </div>
+            <div class="buttons">
+                <div class="openwebrx-button" data-action="cancel">Close</div>
+                <div class="openwebrx-button" data-action="submit">Search</div>
             </div>
             <input type="submit" style="display:none;">
         </form>

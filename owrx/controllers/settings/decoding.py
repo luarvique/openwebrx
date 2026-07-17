@@ -1,6 +1,6 @@
 from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
 from owrx.form.section import Section
-from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option, TextInput, AgcInput
+from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option, TextInput, AgcInput, LoraBandwidthInput
 from owrx.form.input.dab import DabOutputRateValues
 from owrx.form.input.wfm import WfmTauValues
 from owrx.form.input.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput
@@ -128,22 +128,49 @@ class DecodingSettingsController(SettingsFormController):
                     append="s",
                 ),
                 NumberInput(
-                    "vdl2_ttl",
-                    "VDL2 reports expiration time",
-                    validator=RangeValidator(30, 100000),
-                    append="s",
-                ),
-                NumberInput(
                     "hfdl_ttl",
                     "HFDL reports expiration time",
                     validator=RangeValidator(30, 100000),
                     append="s",
                 ),
                 NumberInput(
+                    "vdl2_ttl",
+                    "VDL2 reports expiration time",
+                    validator=RangeValidator(30, 100000),
+                    append="s",
+                ),
+                CheckboxInput(
+                    "vdl2_ignore_acks",
+                    "Filter out VDL2 acknowledgement messages",
+                ),
+                NumberInput(
                     "acars_ttl",
                     "ACARS reports expiration time",
                     validator=RangeValidator(30, 100000),
                     append="s",
+                ),
+                CheckboxInput(
+                    "acars_ignore_acks",
+                    "Filter out ACARS acknowledgement messages",
+                ),
+            ),
+            Section(
+                "LoRa messages",
+                LoraBandwidthInput(
+                    "lorawan_bw",
+                    "LoRa WAN bandwidth",
+                ),
+                LoraBandwidthInput(
+                    "meshtastic_bw",
+                    "Meshtastic bandwidth",
+                ),
+                LoraBandwidthInput(
+                    "meshcore_bw",
+                    "MeshCore bandwidth",
+                ),
+                LoraBandwidthInput(
+                    "meshcom_bw",
+                    "MeshCom bandwidth",
                 ),
             ),
             Section(

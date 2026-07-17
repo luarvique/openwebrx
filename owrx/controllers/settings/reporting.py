@@ -1,6 +1,6 @@
 from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
 from owrx.form.section import Section
-from owrx.form.input.converter import OptionalConverter, IntConverter
+from owrx.form.input.converter import OptionalConverter, IntConverter, TextConverter
 from owrx.form.input.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput, PasswordInput, Option
 from owrx.form.input.validator import AddressAndOptionalPortValidator
@@ -20,8 +20,7 @@ class ReportingController(SettingsFormController):
                 "APRS-IS settings",
                 CheckboxInput(
                     "aprs_igate_enabled",
-                    "Send received APRS data to APRS-IS",
-                    infotext="Due to limits of the APRS-IS network, reporting will only work for background decoders"
+                    "Enable sending APRS data to APRS-IS",
                 ),
                 TextInput(
                     "aprs_callsign",
@@ -30,6 +29,11 @@ class ReportingController(SettingsFormController):
                 ),
                 TextInput("aprs_igate_server", "APRS-IS server"),
                 PasswordInput("aprs_igate_password", "APRS-IS network password"),
+                CheckboxInput(
+                    "aprs_igate_legacy",
+                    "Use Direwolf for APRS-IS reporting",
+                    infotext="Use Direwolf reporter rather than native implementation, single background decoder only"
+                ),
                 CheckboxInput(
                     "aprs_igate_beacon",
                     "Send the receiver position to the APRS-IS network",
@@ -95,6 +99,28 @@ class ReportingController(SettingsFormController):
                     "wsprnet_callsign",
                     "wsprnet callsign",
                     infotext="This callsign will be used to send spots to wsprnet.org",
+                ),
+            ),
+            Section(
+                "Sondehub settings",
+                CheckboxInput(
+                    "sondehub_enabled",
+                    "Enable Sondehub telemetry and listener reporting",
+                    infotext="Uploads decoded radiosonde telemetry and keeps your listener station position "
+                    + "on Sondehub up to date.",
+                ),
+                TextInput(
+                    "sondehub_callsign",
+                    "Uploader callsign",
+                    infotext="Optional override for the Sondehub uploader callsign. When left empty, OpenWebRX "
+                    + "falls back to APRS, PSKReporter, WSPRNet callsigns, or receiver name.",
+                    converter=OptionalConverter(),
+                ),
+                TextInput(
+                    "sondehub_antenna",
+                    "Antenna information",
+                    infotext="Antenna description sent to Sondehub with listener position updates.",
+                    converter=TextConverter(),
                 ),
             ),
             Section(

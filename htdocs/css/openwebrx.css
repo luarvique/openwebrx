@@ -301,9 +301,10 @@ input[type=range]:disabled {
 	border-style: none;
 	image-rendering: crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
-    width: 100%;
-    height: 200px;
-    will-change: transform;
+	width: 100%;
+	height: 201px;
+	will-change: transform;
+	margin-top: -1px;
 }
 
 #openwebrx-log-scroll
@@ -1154,6 +1155,12 @@ img.openwebrx-mirror-img
     content: "Conference: ";
 }
 
+.openwebrx-tetra-display {
+    flex: 0.7 0 0;
+    line-height: 1.2em;
+    font-size: 12px;
+}
+
 .openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;
@@ -1375,6 +1382,38 @@ img.openwebrx-mirror-img
 #openwebrx-panel-adsb-message .rssi {
     width: 80px;
     text-align: right;
+}
+
+#openwebrx-panel-meshtastic-message {
+    height: 310px;
+}
+
+#openwebrx-panel-meshtastic-message a {
+    color: inherit;
+}
+
+#openwebrx-panel-meshtastic-message tbody {
+    height: 280px;
+}
+
+#openwebrx-panel-meshtastic-message .timestamp {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .src {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .dst {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .data {
+    width: 326px;
+    text-align: center;
 }
 
 #openwebrx-panel-skimmer-message {
@@ -1640,6 +1679,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft8"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wspr"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt65"]    #openwebrx-digimode-select-channel,
@@ -1715,7 +1755,8 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-canvas-container
 {
     height: 200px;
     margin: -10px;
@@ -2125,3 +2166,35 @@ img.openwebrx-mirror-img
     max-height: 0;
 }
 
+#openwebrx-dialog-search-bookmarks .search-left {
+    text-align: right;
+    padding: 5px 5px 5px 15px;
+    white-space: nowrap;
+    width: 100%;
+}
+
+#openwebrx-dialog-search-bookmarks .search-right {
+    text-align: left;
+    padding: 5px 15px 5px 5px;
+    white-space: nowrap;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results {
+    table-layout: fixed;
+    overflow-y: scroll;
+    max-height: 350px;
+    display: block;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 1px;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results tr:nth-child(odd) {
+    background-color: #efffef;
+    color: #000000;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results tr:nth-child(even) {
+    background-color: #ffffff;
+    color: #000000;
+}

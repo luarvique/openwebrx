@@ -422,6 +422,7 @@ UI.toggleFrame = function(on) {
         var border = on ? '2px solid white' : '2px solid transparent';
         $('#openwebrx-panel-receiver').css( 'border', border);
         $('#openwebrx-dialog-bookmark').css('border', border);
+        $('#openwebrx-dialog-search-bookmarks').css('border', border);
 //        $('#openwebrx-digimode-canvas-container').css('border', border);
 //        $('.openwebrx-message-panel').css('border', border);
     }

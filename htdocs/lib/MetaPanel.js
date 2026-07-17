@@ -924,6 +924,70 @@ DrmMetaPanel.prototype.setIndicator = function(name, value, text = null) {
     if (text != null) $el.text(text);
 };
 
+function TetraMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.clear();
+}
+
+TetraMetaPanel.prototype = new MetaPanel();
+
+TetraMetaPanel.prototype.isSupported = function(data) {
+    // TetraParser emits data.mode = 'TETRA'
+    return data.mode === 'TETRA';
+};
+
+TetraMetaPanel.prototype.row = function(name, value) {
+    return(
+        '<tr><td align="right">' + name +
+        '&nbsp;</td><td align="left">' + value +
+        '</td></tr>'
+    );
+};
+
+TetraMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    var slot = this.el.find('.openwebrx-meta-slot');
+
+    slot.addClass('active');
+
+    var html = '<table class="openwebrx-tetra-display" columns="2">';
+
+    if (data.ft)
+        html += this.row('TS:', data.ft);
+    if (data.network)
+        html += this.row('Net:', data.network);
+    if (data.mcc)
+        html += this.row('CCode:', data.mcc + ',' + data.mnc + ',' + data.bcc);
+    html += this.row('','');
+    html += this.row('','');
+    if (data.tx_mhz)
+        html += this.row('TX:', data.tx_mhz.toFixed(3) + 'Mhz');
+    if (data.rx_mhz)
+        html += this.row('RX:', data.rx_mhz.toFixed(3) + 'Mhz');
+    html += this.row('','');
+    html += this.row('','');
+    if (data.rfdb)
+        html += this.row('Signal:', data.rfdb.toFixed(1) + 'dB');
+    if (data.offset)
+        html += this.row('Offset:', data.offset + 'Hz');
+
+    // Subscriber identities
+    var ssi = [];
+    if (data.ssi && data.ssi.length)   ssi = ssi.concat(data.ssi);
+    if (data.ussi && data.ussi.length) ssi = ssi.concat(data.ussi);
+    if (ssi.length)
+        html += this.row('SSI:', ssi.join(', '));
+
+    html += '</table>';
+    slot.html(html);
+};
+
+TetraMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.el.find('.openwebrx-meta-slot').empty();
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
@@ -933,7 +997,8 @@ MetaPanel.types = {
     wfm: WfmMetaPanel,
     dab: DabMetaPanel,
     hdr: HdrMetaPanel,
-    drm: DrmMetaPanel
+    drm: DrmMetaPanel,
+    tetra: TetraMetaPanel
 };
 
 $.fn.metaPanel = function() {

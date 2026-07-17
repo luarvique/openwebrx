@@ -23,20 +23,21 @@ function MarkerManager() {
 
     // Symbols used for marker types
     this.symbols = {
-        'KiwiSDR'   : '&tridot;',
-        'WebSDR'    : '&tridot;',
-        'OpenWebRX' : '&tridot;',
-        'Stations'  : '&#9041;', //'&#9678;',
-        'Repeaters' : '&bowtie;',
-        'APRS'      : '&#9872;',
-        'AIS'       : '&apacir;',
-        'HFDL'      : '&#9992;',
-        'VDL2'      : '&#9992;',
-        'ADSB'      : '&#9992;',
-        'ACARS'     : '&#9992;',
-        'UAT'       : '&#9992;',
-        'HDR'       : '&#9836;',
-        'SONDE'     : '&#9906;'
+        'KiwiSDR'     : '&tridot;',
+        'WebSDR'      : '&tridot;',
+        'OpenWebRX'   : '&tridot;',
+        'Stations'    : '&#9041;', //'&#9678;',
+        'Repeaters'   : '&bowtie;',
+        'APRS'        : '&#9872;',
+        'AIS'         : '&apacir;',
+        'HFDL'        : '&#9992;',
+        'VDL2'        : '&#9992;',
+        'ADSB'        : '&#9992;',
+        'ACARS'       : '&#9992;',
+        'UAT'         : '&#9992;',
+        'HDR'         : '&#9836;',
+        'SONDE'       : '&#9906;',
+        'Meshtastic'  : '&#x2A07;'
     };
 
     // Marker type shown/hidden status
@@ -416,6 +417,13 @@ AprsMarker.prototype.update = function(update) {
     // SONDE
     this.battery  = update.location.battery;
     this.vspeed   = update.location.vspeed;
+    // Meshtastic stuff (also message, comment, device, altitude)
+    this.longName = update.location.longName;
+    this.nickName = update.location.nickName;
+    this.role     = update.location.role;
+    this.uptime   = update.location.uptime;
+    this.channelUse = update.location.channelUse;
+    this.airtimeUse = update.location.airtimeUse;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -535,7 +543,7 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         }
 
         if (this.weather.humidity) {
-            weatherString += Utils.makeListItem('Humidity', this.weather.humidity + '%');
+            weatherString += Utils.makeListItem('Humidity', this.weather.humidity.toFixed(1) + '%');
         }
 
         if (this.weather.barometricpressure) {
@@ -627,6 +635,26 @@ AprsMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         detailsString += Utils.makeListItem('Country', Lookup.mmsi2country(name));
     }
 
+    // Meshtastic data
+    if (this.longName) {
+        detailsString += Utils.makeListItem('Name', Utils.htmlEscape(this.longName));
+    }
+    if (this.nickName) {
+        detailsString += Utils.makeListItem('Nickname', Utils.htmlEscape(this.nickName));
+    }
+    if (this.role) {
+        detailsString += Utils.makeListItem('Role', Utils.htmlEscape(this.role));
+    }
+    if (this.uptime) {
+        detailsString += Utils.makeListItem('Uptime', this.uptime + ' s');
+    }
+    if (this.channelUse) {
+        detailsString += Utils.makeListItem('Channel Use', this.channelUse.toFixed(1) + ' %');
+    }
+    if (this.airtimeUse) {
+        detailsString += Utils.makeListItem('Airtime Use', this.airtimeUse.toFixed(1) + ' %');
+    }
+
     if (detailsString.length > 0) {
         detailsString = '<div>' + Utils.makeListTitle('Details') + detailsString + '</div>';
     }
@@ -688,6 +716,9 @@ AircraftMarker.prototype.update = function(update) {
     this.squawk   = update.location.squawk;
     this.rssi     = update.location.rssi;
     this.msglog   = update.location.msglog;
+    this.temperature = update.location.temperature;
+    this.wind     = update.location.wind;
+    this.route    = update.location.route;
 
     // Implementation-dependent function call
     this.setMarkerPosition(update.callsign, update.location.lat, update.location.lon);
@@ -837,6 +868,35 @@ AircraftMarker.prototype.getInfoHTML = function(name, receiverMarker = null) {
         if (this.vspeed > 0) alt = '&uarr;' + this.vspeed + ' ft/m ' + alt;
         else if (this.vspeed < 0) alt = '&darr;' + (-this.vspeed) + ' ft/m ' + alt;
         detailsString += Utils.makeListItem('Altitude', alt);
+    }
+
+    if (this.temperature) {
+        detailsString += Utils.makeListItem('Temperature', this.temperature.toFixed(1) + '&deg;C');
+    }
+
+    if (this.wind) {
+        var wind = '';
+        if (this.wind.course) {
+            wind += Utils.degToCompass(this.wind.course);
+        }
+        if (this.wind.speed) {
+            wind += (wind? ' ':'') + this.wind.speed.toFixed(1) + ' kt';
+        }
+        if (wind) {
+            detailsString += Utils.makeListItem('Wind', wind);
+        }
+    }
+
+    if (this.route && this.route.length > 0) {
+        var route = '';
+        for (var i = 0 ; i < this.route.length ; i++) {
+            if (this.route[i].name) {
+                route +=
+                  (route.length? '&nbsp;&#9656;&nbsp;':'')
+                + (this.route[i].name || Utils.latLon(this.route[i]) || '???');
+            }
+        }
+        detailsString += Utils.makeListItem('Route', route);
     }
 
     if (this.rssi) {

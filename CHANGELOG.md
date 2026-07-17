@@ -1,3 +1,35 @@
+**1.2.118**
+- Added native APRS IGate reporter module.
+- Added option for legacy Direwold IGate.
+- Added bookmark search (right button on icon).
+- Added [Y] shortcut to search bookmarks.
+- Handled case when feature binary not executable.
+- Multiple APRS decoders can report to APRS-IS.
+
+**1.2.117**
+- Added unencrypted Tetra support [Yiannis Sam].
+- Added support for ELAD FDM-S2 [DisagioDigitale].
+- Added ARINC622 payload parsing inside ACARS.
+- Added CPDLC payload parsing inside ACARS.
+- Added ADS-C payload parsing inside ACARS.
+- Added parsing ACARS legacy position reports.
+- Added ACARS parsing inside VDL2 and HFDL.
+- Added airplane temperature, wind, route display.
+- Added options to drop ACARS and VDL2 acks.
+- Added options for LoRa decoder bandwidths.
+- Made Meshtastic map objects use regular TTL.
+- Fixed flickering horizontal waterfall lines.
+- Fixed web agent threads hanging on exit.
+
+**1.2.116**
+- Added LoRa Meshtastic parser [Stanislav Lechev].
+- Added LoRa APRS parser [Stefan DC4HF].
+- Added Sondehub reporter for RS41 telemetry [Hai Tran].
+- Added paho-mqtt 2.0 compatibility [Marc Fontaine].
+- Added per-profile PPM correction option.
+- Fixed exception when stopping AdsbParser.
+- Fixed exception when stopping services.
+
 **1.2.115**
 - Added [T] shortcut to enter frequency [Rene Jaun].
 - Added [P] shortcut to select profile [Rene Jaun].

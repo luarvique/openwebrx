@@ -347,6 +347,23 @@ class AgcInput(DropdownInput):
         super().__init__(id, label, options, infotext=infotext)
 
 
+class LoraBandwidthInput(DropdownInput):
+    def __init__(self, id, label, infotext=None):
+        bandwidths = [
+            Option("0", "7.8kbps"),
+            Option("1", "10.4kbps"),
+            Option("2", "15.6kbps"),
+            Option("3", "20.8kbps"),
+            Option("4", "31.25kbps"),
+            Option("5", "41.7kbps"),
+            Option("6", "62.5kbps (very-long-slow)"),
+            Option("7", "125kbps (medium-slow, long-moderate, long-slow)"),
+            Option("8", "250kbps (short-slow, medium-fast, long-fast)"),
+            Option("9", "500kbps (short-fast)")
+        ]
+        super().__init__(id, label, bandwidths, infotext=infotext)
+
+
 class ExponentialInput(Input):
     def __init__(self, id, label, unit, infotext=None, validator: Validator = None):
         super().__init__(id, label, infotext=infotext, validator=validator)
