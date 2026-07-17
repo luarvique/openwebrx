@@ -55,11 +55,6 @@
         "modulation" : "usb"
     },
     {
-        "name" : "Time - CHU",
-        "frequency" : 3330000,
-        "modulation" : "usb"
-    },
-    {
         "name" : "Time - RWM",
         "frequency" : 4996000,
         "modulation" : "cw"
@@ -75,11 +70,6 @@
         "modulation" : "usb"
     },
     {
-        "name" : "Time - CHU",
-        "frequency" : 7850000,
-        "modulation" : "usb"
-    },
-    {
         "name" : "Time - RWM",
         "frequency" : 9996000,
         "modulation" : "cw"
@@ -92,11 +82,6 @@
     {
         "name" : "Time - PLC",
         "frequency" : 11440000,
-        "modulation" : "usb"
-    },
-    {
-        "name" : "Time - CHU",
-        "frequency" : 14670000,
         "modulation" : "usb"
     },
     {
