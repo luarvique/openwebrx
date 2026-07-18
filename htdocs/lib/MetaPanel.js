@@ -1019,8 +1019,8 @@ P25MetaPanel.prototype.update = function(data) {
             html += this.row('Src:', data.source);
         if (data.destination)
             html += this.row('Dst:', data.destination);
-        if (data.group)
-            html += this.row('Group:', data.group);
+        if (data.type)
+            html += this.row('Type:', data.type);
         if (data.sync)
             html += this.row('Sync:', data.sync);
         if (data.nac)
