@@ -1014,22 +1014,24 @@ P25MetaPanel.prototype.update = function(data) {
 
     var html = '<table class="openwebrx-p25-display" columns="2">';
 
-    if (data.nac)
-        html += this.row('NAC:', data.nac);
-    if (data.source)
-        html += this.row('Src:', data.source);
-    if (data.destination)
-        html += this.row('Dst:', data.destination);
-    if (data.group)
-        html += this.row('Type:', data.type);
-    if (data.sync)
-        html += this.row('Sync:', data.sync);
-    if (data.algid)
-        html += this.row('AlgID:', data.algid);
-    if (data.encryption)
-        html += this.row('Crypto:', data.encryption === 'encrypted'? 'Yes':'No');
-    if (data.kid)
-        html += this.row('KID:', data.kid);
+    if (data.sync === 'voice') {
+        if (data.source)
+            html += this.row('Src:', data.source);
+        if (data.destination)
+            html += this.row('Dst:', data.destination);
+        if (data.group)
+            html += this.row('Group:', data.group);
+        if (data.sync)
+            html += this.row('Sync:', data.sync);
+        if (data.nac)
+            html += this.row('NAC:', data.nac);
+        if (data.encryption)
+            html += this.row('Encrypted:', data.encryption === 'encrypted'? 'Yes':'No');
+        if (data.algorithm || data.algid)
+            html += this.row('Algorithm:', data.algorithm || ('0x' + parseInt(data.algid).toString(16)));
+        if (data.kid)
+            html += this.row('KeyID:', data.kid);
+    }
 
     html += '</table>';
     this.el.html(html);

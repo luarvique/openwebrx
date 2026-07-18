@@ -176,12 +176,43 @@ class YsfMetaEnricher(DigihamEnricher):
 
 
 class P25MetaEnricher(DigihamEnricher):
+    algorithms = {
+        0x00: "ACCORDION-3",
+        0x01: "BATON-AUTO-EVEN",
+        0x02: "FIREFLY",
+        0x03: "MAYFLY",
+        0x04: "SAVILLE",
+        0x05: "PADSTONE",
+        0x41: "BATON-AUTO-ODD",
+        0x80: "CLEARTEXT",
+        0x81: "DES-OFB",
+        0x82: "3DES-2K",
+        0x83: "3DES-3K",
+        0x84: "AES-256",
+        0x86: "AES-128",
+        0x88: "AES-CBC",
+        0x89: "AES-128-OFB",
+        0x9F: "DES-XL",
+        0xA0: "DVI-XL",
+        0xA1: "DVP-XL",
+        0xA2: "DVP-SPFL",
+        0xA3: "HAYSTACK",
+        0xAA: "ADP-40-RC4",
+        0xAB: "CFX-256",
+        0xAF: "AES-256-GCM",
+        0xB0: "DVP",
+    }
+
     def getCallsign(self, meta):
         if "source" in meta:
             return meta["source"]
 
     def enrich(self, meta, callback):
         meta = self.parseCoordinate(meta, "P25")
+        if "algid" in meta:
+            algid = int(meta["algid"])
+            if algid in self.algorithms:
+                meta["algorithm"] = self.algorithms[algid]
         return meta
 
 
