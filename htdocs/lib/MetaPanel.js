@@ -1037,7 +1037,7 @@ P25MetaPanel.prototype.update = function(data) {
         this.setMode(['group', 'direct'].includes(data.type) ? data.type : undefined);
 
         if ((data.encryption === 'encrypted') && data.algid) {
-            var encryption = data.algorithm || ('ALGID-0x' + parseInt(data.algid).toString(16).toUpperCase());
+            var encryption = data.algorithm || ('ALGID=0x' + parseInt(data.algid).toString(16).toUpperCase());
             this.setEncryption(encryption);
         } else {
             this.setEncryption();
