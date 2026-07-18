@@ -988,6 +988,58 @@ TetraMetaPanel.prototype.clear = function() {
     this.el.find('.openwebrx-meta-slot').empty();
 };
 
+function P25MetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.clear();
+}
+
+P25MetaPanel.prototype = new MetaPanel();
+
+P25MetaPanel.prototype.isSupported = function(data) {
+    return data.protocol === 'P25';
+};
+
+P25MetaPanel.prototype.row = function(name, value) {
+    return(
+        '<tr><td align="right">' + name +
+        '&nbsp;</td><td align="left">' + value +
+        '</td></tr>'
+    );
+};
+
+P25MetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    this.el.addClass('active');
+
+    var html = '<table class="openwebrx-p25-display" columns="2">';
+
+    if (data.nac)
+        html += this.row('NAC:', data.nac);
+    if (data.source)
+        html += this.row('Src:', data.source);
+    if (data.destination)
+        html += this.row('Dst:', data.destination);
+    if (data.group)
+        html += this.row('Type:', data.type);
+    if (data.sync)
+        html += this.row('Sync:', data.sync);
+    if (data.algid)
+        html += this.row('AlgID:', data.algid);
+    if (data.encryption)
+        html += this.row('Crypto:', data.encryption === 'encrypted'? 'Yes':'No');
+    if (data.kid)
+        html += this.row('KID:', data.kid);
+
+    html += '</table>';
+    this.el.html(html);
+};
+
+P25MetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.el.find('.openwebrx-meta-slot').empty();
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
@@ -998,6 +1050,7 @@ MetaPanel.types = {
     dab: DabMetaPanel,
     hdr: HdrMetaPanel,
     drm: DrmMetaPanel,
+    p25: P25MetaPanel,
     tetra: TetraMetaPanel
 };
 
