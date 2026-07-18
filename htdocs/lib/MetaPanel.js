@@ -1037,7 +1037,7 @@ P25MetaPanel.prototype.update = function(data) {
 
 P25MetaPanel.prototype.clear = function() {
     MetaPanel.prototype.clear.call(this);
-    this.el.find('.openwebrx-meta-slot').empty();
+    this.el.empty();
 };
 
 MetaPanel.types = {
