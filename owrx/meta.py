@@ -175,6 +175,16 @@ class YsfMetaEnricher(DigihamEnricher):
         return meta
 
 
+class P25MetaEnricher(DigihamEnricher):
+    def getCallsign(self, meta):
+        if "source" in meta:
+            return meta["source"]
+
+    def enrich(self, meta, callback):
+        meta = self.parseCoordinate(meta, "P25")
+        return meta
+
+
 class DStarEnricher(DigihamEnricher):
     def getCallsign(self, meta):
         if "ourcall" in meta:
@@ -214,6 +224,7 @@ class MetaParser(PickleModule):
         self.enrichers = {
             "DMR": DmrEnricher(self),
             "YSF": YsfMetaEnricher(self),
+            "P25": P25MetaEnricher(self),
             "DSTAR": DStarEnricher(self),
             "NXDN": RadioIDEnricher("nxdn", self),
         }

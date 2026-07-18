@@ -149,6 +149,7 @@ class Modes(object):
         ),
         AnalogMode("nxdn", "NXDN", bandpass=Bandpass(-3250, 3250), requirements=["digital_voice_digiham"], squelch=False),
         AnalogMode("ysf", "YSF", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_digiham"], squelch=False),
+        AnalogMode("p25", "P25", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_digiham"], squelch=False),
         AnalogMode("m17", "M17", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_m17"], squelch=False),
         AnalogMode("freedv", "FreeDV", bandpass=Bandpass(300, 3000), requirements=["digital_voice_freedv"], squelch=False),
         AnalogMode("tetra", "TETRA", bandpass=Bandpass(-12500, 12500), requirements=["tetra"], squelch=False),
