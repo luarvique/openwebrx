@@ -999,47 +999,60 @@ P25MetaPanel.prototype.isSupported = function(data) {
     return data.protocol === 'P25';
 };
 
-P25MetaPanel.prototype.row = function(name, value) {
-    return(
-        '<tr><td align="right">' + name +
-        '&nbsp;</td><td align="left">' + value +
-        '</td></tr>'
-    );
+P25MetaPanel.prototype.setSource = function(source) {
+    if (this.source === source) return;
+    this.source = source;
+    this.el.find('.openwebrx-p25-source').text(source || '');
 };
+
+P25MetaPanel.prototype.setDestination = function(destination) {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.el.find('.openwebrx-p25-destination').text(destination || '');
+};
+
+P25MetaPanel.prototype.setEncryption = function(encryption) {
+    if (this.encryption === encryption) return;
+    this.encryption = encryption;
+    this.el.find('.openwebrx-p25-encryption').text(encryption || '');
+};
+
+P25MetaPanel.prototype.setMode = function(mode) {
+    if (this.mode === mode) return;
+    this.mode = mode;
+    var classes = ['group', 'direct'].filter(function(c){
+        return c !== mode;
+    });
+    this.el.find('.openwebrx-meta-slot').removeClass(classes.join(' ')).addClass(mode);
+}
 
 P25MetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
 
-    this.el.addClass('active');
-
-    var html = '<table class="openwebrx-p25-display" columns="2">';
-
     if (data.sync === 'voice') {
-        if (data.source)
-            html += this.row('Src:', data.source);
-        if (data.destination)
-            html += this.row('Dst:', data.destination);
-        if (data.type)
-            html += this.row('Type:', data.type);
-        if (data.sync)
-            html += this.row('Sync:', data.sync);
-        if (data.nac)
-            html += this.row('NAC:', data.nac);
-        if (data.encryption)
-            html += this.row('Encrypted:', data.encryption === 'encrypted'? 'Yes':'No');
-        if (data.algorithm || data.algid)
-            html += this.row('Algorithm:', data.algorithm || ('0x' + parseInt(data.algid).toString(16)));
-        if (data.kid)
-            html += this.row('KeyID:', data.kid);
-    }
+        this.el.find('.openwebrx-meta-slot').addClass('active');
 
-    html += '</table>';
-    this.el.html(html);
+        this.setSource(data.source);
+        this.setDestination(data.destination);
+        this.setMode(['group', 'direct'].includes(data.type) ? data.type : undefined);
+
+        if ((data.encryption === 'encrypted') && data.algid) {
+            var encryption = data.algorithm || ('ALGID-0x' + parseInt(data.algid).toString(16).toUpperCase());
+            this.setEncryption(encryption);
+        } else {
+            this.setEncryption();
+        }
+    } else {
+        this.clear();
+    }
 };
 
 P25MetaPanel.prototype.clear = function() {
     MetaPanel.prototype.clear.call(this);
-    this.el.empty();
+    this.setMode();
+    this.setSource();
+    this.setDestination();
+    this.setEncryption();
 };
 
 MetaPanel.types = {
