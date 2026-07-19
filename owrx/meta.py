@@ -203,6 +203,45 @@ class P25MetaEnricher(DigihamEnricher):
         0xB0: "DVP",
     }
 
+    manufacturers = {
+        0x00: "Generic pre-2001",
+        0x01: "Generic post-2001",
+        0x09: "Aselsan",
+        0x10: "Relm / BK Radio",
+        0x18: "EADS Public Safety",
+        0x20: "Cycomm",
+        0x28: "Efratom Time and Frequency Products",
+        0x30: "Com-Net Ericsson",
+        0x34: "Etherstack",
+        0x38: "Datron",
+        0x40: "Icom",
+        0x48: "Garmin",
+        0x50: "GTE",
+        0x55: "IFR Systems",
+        0x5A: "INIT Innovations in Transportation",
+        0x60: "GEC-Marconi",
+        0x64: "Harris",
+        0x68: "Kenwood Communications",
+        0x70: "Glenayre Electronics",
+        0x74: "Japan Radio",
+        0x78: "Kokusai",
+        0x7C: "Maxon",
+        0x80: "Midland",
+        0x86: "Daniels Electronics",
+        0x90: "Motorola",
+        0xA0: "Thales",
+        0xA4: "M/A-COM",
+        0xB0: "Raytheon",
+        0xC0: "SEA",
+        0xC8: "Securicor",
+        0xD0: "ADI",
+        0xD8: "Tait Electronics",
+        0xE0: "Teletec",
+        0xF0: "Transcrypt International",
+        0xF8: "Vertex Standard",
+        0xFC: "Zetron",
+    }
+
     def getCallsign(self, meta):
         if "source" in meta:
             return meta["source"]
@@ -213,6 +252,10 @@ class P25MetaEnricher(DigihamEnricher):
             algid = int(meta["algid"])
             if algid in self.algorithms:
                 meta["algorithm"] = self.algorithms[algid]
+        if "mfid" in meta:
+            mfid = int(meta["mfid"])
+            if mfid in self.manufacturers:
+                meta["manufacturer"] = self.manufacturers[mfid]
         return meta
 
 
