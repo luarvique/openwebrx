@@ -1,3 +1,10 @@
+**1.2.119**
+- Added unencrypted P25 support (please test).
+- Added total spot metrics to CW/RTTY skimmers.
+- Switched to forked Digiham libraries with P25.
+- Removed online font dependency from Settings.
+- Removed discontinued CHU beacon.
+
 **1.2.118**
 - Added native APRS IGate reporter module.
 - Added option for legacy Direwold IGate.

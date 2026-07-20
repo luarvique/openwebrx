@@ -1,3 +1,13 @@
+openwebrx (1.2.119) bullseye jammy; urgency=low
+
+  * Added unencrypted P25 support (please test).
+  * Added total spot metrics to CW/RTTY skimmers.
+  * Switched to forked Digiham libraries with P25.
+  * Removed online font dependency from Settings.
+  * Removed discontinued CHU beacon.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Wed, 22 Jul 2026 16:12:00 +0000
+
 openwebrx (1.2.118) bullseye jammy; urgency=low
 
   * Added native APRS IGate reporter module.
