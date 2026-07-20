@@ -1167,6 +1167,14 @@ img.openwebrx-mirror-img
     font-size: 12px;
 }
 
+.openwebrx-meta-slot.group .openwebrx-p25-destination:not(:empty):before {
+    content: "Talkgroup: ";
+}
+
+.openwebrx-meta-slot.direct .openwebrx-p25-destination:not(:empty):before {
+    content: "Direct: ";
+}
+
 .openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;
