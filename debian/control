@@ -22,7 +22,7 @@ Depends: adduser,
 	 python3-csdr (>= 0.18.37),
          ${python3:Depends},
          ${misc:Depends}
-Recommends: python3-digiham (>= 0.6),
+Recommends: python3-digiham (>= 0.6.10),
             direwolf (>= 1.4),
             wsjtx,
             js8call,
