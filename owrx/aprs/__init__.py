@@ -214,8 +214,8 @@ class AprsParser(PickleModule):
     def updateMap(mapData, band = None, timestamp = None):
         mode = mapData["mode"] if "mode" in mapData else "APRS"
         hops = AprsParser.getHops(mapData)
-        if "type" in mapData and mapData["type"] == "thirdparty" and "data" in mapData:
-            mapData = mapData["data"]
+        if "type" in mapData and mapData["type"] == "thirdparty" and "forwarded" in mapData:
+            mapData = mapData["forwarded"]
         if "lat" in mapData and "lon" in mapData:
             loc = AprsLocation(mapData)
             source = mapData["source"]
@@ -404,7 +404,7 @@ class AprsParser(PickleModule):
                     "data": matches.group(6).encode(encoding),
                 }
             )
-            return {"type": "thirdparty", "data": data}
+            return {"type": "thirdparty", "forwarded": data}
 
         return {"type": "thirdparty"}
 
