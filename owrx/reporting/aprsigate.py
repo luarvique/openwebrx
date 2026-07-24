@@ -61,6 +61,13 @@ class AprsIgate(FilteredReporter):
     # Queue up received packet
     def spot(self, spot):
         if self.isEnabled():
+            # If it is a forwarded packet, remove the envelope
+            if "type" in spot and spot["type"] == "thirdparty" and "forwarded" in spot:
+                spot = spot["forwarded"]
+            # If packet came from Internet, do not send it back
+            if "path" in spot and "TCPIP" in spot["path"]:
+                return
+            # Queue packet for reporting
             pm = Config.get()
             try:
                 self.queue.put(self.buildTnc2Line(spot, pm["aprs_callsign"]))
