@@ -14,6 +14,8 @@ PoisonPill = object()
 
 
 class AprsIgate(FilteredReporter):
+    NO_REPORT_PATTERN = re.compile("(TCPIP|RFONLY|NOGATE)\*?")
+
     DEFAULT_PORT = 14580
     BEACON_INITIAL_DELAY = 30
     BEACON_INTERVAL = 1800
@@ -61,12 +63,14 @@ class AprsIgate(FilteredReporter):
     # Queue up received packet
     def spot(self, spot):
         if self.isEnabled():
+            # If packet came from Internet, do not send it back
+            if not self.isReportable(spot):
+                return
             # If it is a forwarded packet, remove the envelope
             if "type" in spot and spot["type"] == "thirdparty" and "forwarded" in spot:
                 spot = spot["forwarded"]
-            # If packet came from Internet, do not send it back
-            if "path" in spot and "TCPIP" in spot["path"]:
-                return
+                if not self.isReportable(spot):
+                    return
             # Queue packet for reporting
             pm = Config.get()
             try:
@@ -101,6 +105,14 @@ class AprsIgate(FilteredReporter):
     def isBeaconEnabled(self):
         pm = Config.get()
         return self.isEnabled() and pm["aprs_igate_beacon"]
+
+    # Do not send back packets which came from Internet
+    def isReportable(self, data):
+        if "path" in data:
+            for entry in data["path"]:
+                if self.NO_REPORT_PATTERN.fullmatch(entry):
+                    return False
+        return True
 
     # Build TNC2-compatible message
     def buildTnc2Line(self, data, callsign):
