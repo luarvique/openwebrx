@@ -114,6 +114,7 @@ class FeatureDetector(object):
         "mp3": ["lame"],
         "lora": ["lorarx"],
         "meshtastic": ["lorarx", "py_meshtastic"],
+        "transcription": ["whisper"],
     }
 
     def feature_availability(self):
@@ -947,4 +948,12 @@ class FeatureDetector(object):
         the `tetrarx` binary in your PATH (e.g. /usr/local/bin).
         """
         return self.command_is_runnable("tetrarx -h")
+
+    def has_whisper(self):
+        """
+        OpenWebRX uses [Whisper.cpp](https://github.com/ggml-org/whisper.cpp)
+        tool to transcribe and translate voice transmissions. Compile and install
+        it by placing `whisper-cli` binary in your path (e.g. /usr/local/bin).
+        """
+        return self.command_is_runnable("whisper-cli -h")
 
