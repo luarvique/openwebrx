@@ -119,7 +119,7 @@ class WhisperModule(WavFileModule):
         pm  = Config.get()
         return [
             "whisper-cli", "--model", pm["whisper_model"],
-            "--output-txt", "/dev/stdout", "-"
+            "--output-txt", "--no-prints", "-"
         ]
 
     def getOutputFormat(self) -> Format:
