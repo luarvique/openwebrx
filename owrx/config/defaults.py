@@ -483,5 +483,6 @@ defaultConfig = PropertyLayer(
     lorawan_bw="7",
     meshtastic_bw="8",
     meshcore_bw="6",
-    meshcom_bw="8"
+    meshcom_bw="8",
+    whisper_model="models/ggml-small.bin"
 ).readonly()

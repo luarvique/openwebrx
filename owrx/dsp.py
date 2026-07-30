@@ -773,6 +773,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             # WMBus likes 1.2Msps, which does not work for other ISM
             from csdr.chain.toolbox import IsmDemodulator
             return IsmDemodulator(1200000)
+        elif mod == "stt":
+            from csdr.chain.toolbox import Transcriber
+            return Transcriber()
         elif mod == "hfdl":
             from csdr.chain.aircraft import HfdlDemodulator
             return HfdlDemodulator()
