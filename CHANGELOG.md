@@ -1,3 +1,9 @@
+**1.2.120**
+- Fixed reporting third party APRS packets.
+- Fixed reporting non-reportable APRS packets.
+- Fixed typo in APRS "adressee" name.
+- Stripped whitespace from APRS addressee.
+
 **1.2.119**
 - Added unencrypted P25 support (please test).
 - Added total spot metrics to CW/RTTY skimmers.
