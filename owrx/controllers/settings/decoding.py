@@ -77,6 +77,11 @@ class DecodingSettingsController(SettingsFormController):
                     "ism_report_levels",
                     "Report ISM signal levels (RSSI/SNR)",
                 ),
+                TextInput(
+                    "whisper_model",
+                    "Whisper language model",
+                    infotext="Language model file used by Whisper for voice transcription",
+                ),
             ),
             Section(
                 "Digital voice",
