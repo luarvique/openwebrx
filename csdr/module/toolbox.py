@@ -28,6 +28,10 @@ class MultimonModule(ExecModule):
 
 
 class WavFileModule(PopenModule):
+    def __init__(self, sampleRate: int):
+        self.sampleRate = sampleRate
+        super().__init__()
+
     def getInputFormat(self) -> Format:
         return Format.SHORT
 
@@ -66,7 +70,7 @@ class CwSkimmerModule(ExecModule):
         super().__init__(Format.FLOAT, Format.CHAR, cmd)
 
 
-class RttySkimmerModule(ExecModule):
+class RttySkimmerModule(WavFileModule):
     def __init__(self, sampleRate: int = 96000, charCount: int = 4):
         cmd = ["csdr-rttyskimmer", "-f", "-r", str(sampleRate), "-n", str(charCount)]
         super().__init__(Format.FLOAT, Format.CHAR, cmd)
@@ -105,3 +109,18 @@ class LameModule(ExecModule):
             "-s", str(sampleRate / 1000), "-b", "128", "-", "-"
         ]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
+
+
+class WhisperModule(WavFileModule):
+    def __init__(self, sampleRate: int = 12000):
+        super().__init__(sampleRate)
+
+    def getCommand(self):
+        pm  = Config.get()
+        return [
+            "whisper-cli", "--model", pm["whisper_model"],
+            "--output-txt", "/dev/stdout", "-"
+        ]
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
