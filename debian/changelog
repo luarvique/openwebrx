@@ -1,3 +1,12 @@
+openwebrx (1.2.120) bullseye jammy; urgency=low
+
+  * Fixed reporting third party APRS packets.
+  * Fixed reporting non-reportable APRS packets.
+  * Fixed typo in APRS "adressee" name.
+  * Stripped whitespace from APRS addressee.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Wed, 29 Jul 2026 16:12:00 +0000
+
 openwebrx (1.2.119) bullseye jammy; urgency=low
 
   * Added unencrypted P25 support (please test).
