@@ -81,7 +81,7 @@ UI.loadAudioSettings = function() {
 // Floating message bubble
 //
 
-UI.showMessage = function(message) {
+UI.showBubble = function(message) {
     var $bubble = $('#openwebrx-message-bubble');
     if ($bubble) {
         $bubble.html(message);
@@ -200,9 +200,9 @@ UI.tuneBookmark = function(b) {
     UI.setFrequency(b.frequency, false);
 
     // Show bookmark name in a bubble
-    UI.showMessage(!b.description? b.name :
+    UI.showBubble(
         '<div style="text-align:center;">' + b.name +
-        '</div><div style="font-size:75%;text-align:center;">' + b.description +
+        (!b.description? '' : '<div style="font-size:75%;">' + b.description + '</div>') +
         '</div>'
     );
 
