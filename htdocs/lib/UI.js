@@ -196,7 +196,13 @@ UI.tuneBookmark = function(b) {
     // Tune to the bookmark frequency, do not snap
     UI.setModulation(b.modulation, b.underlying);
     UI.setFrequency(b.frequency, false);
-    UI.showMessage(b.name);
+
+    // Show bookmark name in a bubble
+    UI.showMessage(!b.description? b.name :
+        '<div style="text-align:center;">' + b.name +
+        '</div><div style="font-size:75%;text-align:center;">' + b.description +
+        '</div>'
+    );
 
     // Done
     return true;
