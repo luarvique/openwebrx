@@ -1,5 +1,5 @@
 **1.2.120**
-- Added bookmark name bubble when bookmark engaged.
+- Added bookmark info bubbles when clicked.
 - Fixed reporting third party APRS packets.
 - Disabled reporting non-reportable APRS packets.
 - Fixed typo in APRS "adressee" name.
