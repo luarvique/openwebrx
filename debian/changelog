@@ -1,7 +1,8 @@
 openwebrx (1.2.120) bullseye jammy; urgency=low
 
+  * Added bookmark name bubble when bookmark engaged.
   * Fixed reporting third party APRS packets.
-  * Fixed reporting non-reportable APRS packets.
+  * Disabled reporting non-reportable APRS packets.
   * Fixed typo in APRS "adressee" name.
   * Stripped whitespace from APRS addressee.
 
