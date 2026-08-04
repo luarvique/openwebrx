@@ -6,7 +6,7 @@ openwebrx (1.2.120) bullseye jammy; urgency=low
   * Fixed typo in APRS "adressee" name.
   * Stripped whitespace from APRS addressee.
 
- -- Marat Fayzullin <luarvique@gmail.com>  Wed, 29 Jul 2026 16:12:00 +0000
+ -- Marat Fayzullin <luarvique@gmail.com>  Wed, 5 Aug 2026 16:12:00 +0000
 
 openwebrx (1.2.119) bullseye jammy; urgency=low
 

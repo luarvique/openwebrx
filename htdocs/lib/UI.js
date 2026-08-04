@@ -85,12 +85,14 @@ UI.showMessage = function(message) {
     var $bubble = $('#openwebrx-message-bubble');
     if ($bubble) {
         $bubble.html(message);
+        $bubble.show();
         $bubble.addClass('shown');
         if (this.bubbleTimeout) {
             clearTimeout(this.bubbleTimeout);
             this.bubbleTimeout = null;
         }
         this.bubbleTimeout = setTimeout(() => {
+            $bubble.one('transitionend', () => { $bubble.hide(); });
             $bubble.removeClass('shown');
             this.bubbleTimeout = null;
         }, 3000);
