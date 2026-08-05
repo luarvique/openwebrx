@@ -1,5 +1,6 @@
 **1.2.120**
 - Added bookmark info bubbles when clicked.
+- Muted encrypted P25 audio.
 - Fixed reporting third party APRS packets.
 - Disabled reporting non-reportable APRS packets.
 - Fixed typo in APRS "adressee" name.
