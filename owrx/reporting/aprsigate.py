@@ -14,7 +14,7 @@ PoisonPill = object()
 
 
 class AprsIgate(FilteredReporter):
-    NO_REPORT_PATTERN = re.compile("(TCPIP|RFONLY|NOGATE)\*?")
+    NO_REPORT_PATTERN = re.compile(r"(TCPIP|RFONLY|NOGATE)\*?")
 
     DEFAULT_PORT = 14580
     BEACON_INITIAL_DELAY = 30
