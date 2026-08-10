@@ -590,7 +590,7 @@ class MicEParser(object):
                         ")": "FTM-100D",
                         "2": "FTM-200D",
                         "1": "FTM-300D",
-                        "7": "FTM-310D
+                        "7": "FTM-310D",
                         '"': "FTM-350",
                         "%": "FTM-400DR",
                         "4": "FTM-500D",
