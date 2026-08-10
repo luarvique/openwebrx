@@ -33,9 +33,12 @@ Lookup.cdata2country = function(cdata) {
 
 // Get country code and name from a HAM callsign.
 Lookup.call2cdata = function(callsign) {
-    for (var j=4 ; j>0 ; j--) {
-        var pfx = callsign.substring(0, j);
-        if (pfx in this.CALL2COUNTRY) return this.CALL2COUNTRY[pfx];
+    callsign = callsign.toUpperCase();
+    if (callsign.match(/^.*[A-Z]+[0-9].*[A-Z]$/)) {
+        for (var j=4 ; j>0 ; j--) {
+            var pfx = callsign.substring(0, j);
+            if (pfx in this.CALL2COUNTRY) return this.CALL2COUNTRY[pfx];
+        }
     }
     return null;
 };

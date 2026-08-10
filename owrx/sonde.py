@@ -1,0 +1,184 @@
+from owrx.toolbox import TextParser
+from owrx.reporting import ReportingEngine
+from owrx.map import Map, LatLngLocation
+from owrx.bands import Bandplan
+from datetime import datetime, timezone
+import json
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def getSymbolData(symbol, table):
+    return {"symbol": symbol, "table": table, "index": ord(symbol) - 33, "tableindex": ord(table) - 33}
+
+
+#
+# This class represents current radiosonde location compatible with
+# the APRS markers. It can be used for displaying radiosonde on the
+# map.
+#
+class SondeLocation(LatLngLocation):
+    def __init__(self, data):
+        super().__init__(data["lat"], data["lon"])
+        # Complete radiosonde data
+        self.data = data
+
+    def __dict__(self):
+        res = super(SondeLocation, self).__dict__()
+        for key in ["symbol", "comment", "course", "speed", "vspeed", "altitude", "weather", "device", "battery", "freq"]:
+            if key in self.data:
+                res[key] = self.data[key]
+        return res
+
+
+class SondeParser(TextParser):
+    def __init__(self, service: bool = False):
+        super().__init__(filePrefix="SONDE", service=service)
+        self.band = None
+
+    @staticmethod
+    def updateMap(data, band = None, timestamp = None):
+        if "lat" in data and "lon" in data and "source" in data:
+            loc = SondeLocation(data)
+            Map.getSharedInstance().updateLocation(data["source"], loc, data["mode"], band, timestamp=timestamp)
+
+    def setDialFrequency(self, frequency: int) -> None:
+        super().setDialFrequency(frequency)
+        self.band = Bandplan.getSharedInstance().findBand(frequency)
+
+    def parse(self, msg: bytes):
+        # Expect JSON data in text form
+        try:
+            data = json.loads(msg)
+        except Exception:
+            logger.debug("Discarding raw message: '%s'", msg.decode("utf-8"))
+            return None
+
+        # Ignore "datetime" field for now ("%04d-%02d-%02dT%02d:%02d:%06.3fZ")
+        out = {
+            "mode"      : "SONDE",
+            "timestamp" : round(datetime.now().timestamp() * 1000),
+            "symbol"    : getSymbolData("O", "/"),
+            "data"      : data
+        }
+
+        # Copy main attributes
+        for x in ["aprsid", "sats", "lat", "lon"]:
+            if x in data:
+                out[x] = data[x]
+
+        # Convert some attributes
+        if "id" in data:
+            out["source"] = data["id"]
+        if "alt" in data:
+            out["altitude"] = data["alt"]
+        if "heading" in data:
+            out["course"] = data["heading"]
+        if "batt" in data:
+            out["battery"] = data["batt"]
+        if "vel_v" in data:
+            out["vspeed"] = data["vel_v"]
+        if "vel_h" in data:
+            out["speed"] = data["vel_h"] * 3600 / 1000
+
+        # Add comment field
+        if "rs41_mainboard" in data:
+            out["comment"] = data["rs41_mainboard"]
+            if "rs41_mainboard_fw" in data:
+                out["comment"] += " FW v" + str(data["rs41_mainboard_fw"])
+        elif "aux" in data:
+            out["comment"] = data["aux"]
+
+        # Add device model
+        device = ""
+        if "type" in data:
+            device = str(data["type"])
+            if "subtype" in data:
+                subtype = str(data["subtype"])
+                if subtype.startswith(device):
+                    device = subtype
+                elif subtype != device:
+                    device += " " + subtype
+        if len(device) > 0:
+            out["device"] = device
+
+        # Add weather
+        weather = {}
+        if "temp" in data:
+            weather["temperature"] = data["temp"]
+        if "pressure" in data:
+            weather["barometricpressure"] = data["pressure"]
+        if "humidity" in data:
+            weather["humidity"] = data["humidity"]
+        if weather:
+            out["weather"] = weather
+
+        # Add communications frequency, if missing but known
+        if "freq" in data:
+            out["freq"] = data["freq"]
+        elif self.frequency != 0:
+            out["freq"] = self.frequency
+
+        device_type = str(data["type"]).upper() if "type" in data else ""
+        device_subtype = str(data["subtype"]).upper() if "subtype" in data else ""
+
+        logger.debug("Decoded data: %s", out)
+        sonde_label = device_type or device_subtype or "SONDE"
+        logger.debug(
+            "Radiosonde decoded entry type=%s id=%s frame=%s freq=%s lat=%s lon=%s alt=%s "
+            "temp=%s humidity=%s pressure=%s sats=%s batt=%s comment=%s",
+            sonde_label,
+            out.get("source"),
+            data.get("frame"),
+            out.get("freq"),
+            out.get("lat"),
+            out.get("lon"),
+            out.get("altitude"),
+            data.get("temp"),
+            data.get("humidity"),
+            data.get("pressure"),
+            out.get("sats"),
+            out.get("battery"),
+            out.get("comment"),
+        )
+        logger.debug("Radiosonde decoder JSON: %s", data)
+        pressure = data.get("pressure")
+        if pressure is not None and float(pressure) > 0:
+            logger.debug(
+                "Radiosonde decode includes pressure: type=%s subtype=%s serial=%s frame=%s pressure=%s hPa",
+                sonde_label,
+                data.get("subtype", ""),
+                out.get("source"),
+                data.get("frame"),
+                pressure,
+            )
+        elif device_type == "RS41" and device_subtype.startswith("RS41-SG") and "SGP" not in device_subtype:
+            logger.debug(
+                "Radiosonde decode has no pressure (subtype=%s): RS41-SG has no barometer; "
+                "use RS41-SGP for measured pressure",
+                data.get("subtype", device_subtype),
+            )
+        elif pressure is not None and float(pressure) <= 0:
+            logger.debug(
+                "Radiosonde decode pressure not valid yet (type=%s subtype=%s raw=%s): "
+                "invalid sentinel or awaiting PTU/calibration",
+                sonde_label,
+                data.get("subtype", ""),
+                pressure,
+            )
+
+        # Report message
+        ReportingEngine.getSharedInstance().spot(out)
+
+        # Remove original data from the message
+        if "data" in out:
+            del out["data"]
+
+        # Update location on the map
+        ts = datetime.fromtimestamp(out["timestamp"] / 1000, timezone.utc)
+        SondeParser.updateMap(out, self.band, ts)
+
+        # Do not return anything when in service mode
+        return None if self.service else out

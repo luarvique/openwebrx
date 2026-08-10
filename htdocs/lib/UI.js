@@ -6,6 +6,7 @@ function UI() {}
 
 // We start with these values
 UI.theme = 'default';
+UI.theme0 = 'default';
 UI.wfTheme = null;
 UI.frame = false;
 UI.opacity = 100;
@@ -16,6 +17,9 @@ UI.nrEnabled = false;
 UI.wheelSwap = false;
 UI.spectrum = false;
 UI.bandplan = false;
+UI.cwOffset = null;
+UI.opacityBump = false;
+UI.opBumped = null;
 
 // Foldable UI sections and their initial states
 UI.sections = {
@@ -27,8 +31,9 @@ UI.sections = {
 
 // Load UI settings from local storage.
 UI.loadSettings = function() {
-    this.setTheme(LS.has('ui_theme')? LS.loadStr('ui_theme') : 'default');
+    this.setTheme(LS.has('ui_theme')? LS.loadStr('ui_theme') : this.theme0);
     this.setOpacity(LS.has('ui_opacity')? LS.loadInt('ui_opacity') : 100);
+    this.toggleOpacity(LS.has('ui_opacityBump')? LS.loadBool('ui_opacityBump') : false);
     this.toggleFrame(LS.has('ui_frame')? LS.loadBool('ui_frame') : false);
     this.toggleWheelSwap(LS.has('ui_wheel')? LS.loadBool('ui_wheel') : false);
     this.toggleSpectrum(LS.has('ui_spectrum')? LS.loadBool('ui_spectrum') : false);
@@ -73,6 +78,28 @@ UI.loadAudioSettings = function() {
 }
 
 //
+// Floating message bubble
+//
+
+UI.showBubble = function(message) {
+    var $bubble = $('#openwebrx-message-bubble');
+    if ($bubble) {
+        $bubble.html(message);
+        $bubble.show();
+        $bubble.addClass('shown');
+        if (this.bubbleTimeout) {
+            clearTimeout(this.bubbleTimeout);
+            this.bubbleTimeout = null;
+        }
+        this.bubbleTimeout = setTimeout(() => {
+            $bubble.one('transitionend', () => { $bubble.hide(); });
+            $bubble.removeClass('shown');
+            this.bubbleTimeout = null;
+        }, 3000);
+    }
+};
+
+//
 // Modulation Controls
 //
 
@@ -85,14 +112,16 @@ UI.getDemodulator = function() {
 }
 
 UI.getModulation = function() {
-    var mode1 = this.getDemodulator().get_secondary_demod();
-    var mode2 = this.getDemodulator().get_modulation();
+    var demod = this.getDemodulator();
+    var mode1 = demod? demod.get_secondary_demod() : null;
+    var mode2 = demod? demod.get_modulation() : null;
     return !!mode1? mode1 : !mode2? '' : mode2;
 };
 
 UI.getUnderlying = function() {
-    var mode1 = this.getDemodulator().get_secondary_demod();
-    var mode2 = this.getDemodulator().get_modulation();
+    var demod = this.getDemodulator();
+    var mode1 = demod? demod.get_secondary_demod() : null;
+    var mode2 = demod? demod.get_modulation() : null;
     return !mode1? '' : !mode2? '' : mode2;
 };
 
@@ -104,36 +133,60 @@ UI.setModulation = function(mode, underlying) {
 // Frequency Controls
 //
 
-UI.getOffsetFrequency = function(x) {
-    if (typeof(x) === 'undefined') {
-        // No argument: return currently tuned offset
-        return this.getDemodulator().get_offset_frequency();
-    } else {
-        // Pointer position: return offset under pointer
-        // Use rounded absolute frequency to get offset
-        return this.getFrequency(x) - center_freq;
+UI.getCwOffset = function() {
+    // If no value cached yet...
+    if (this.cwOffset == null) {
+        // First, try getting CW bandpass from local storage
+        var bp = this.loadBandpass('cw');
+        // If no saved bandpass, try getting the default one
+        if (!bp) {
+            var mode = Modes.findByModulation('cw');
+            bp = mode? mode.bandpass : null;
+        }
+        // Center offset within bandpass, if present, else assume 800Hz
+        this.cwOffset = bp? Math.round((bp.low_cut + bp.high_cut) / 2) : 800;
     }
+
+    // Return cached value
+    return this.cwOffset;
+};
+
+UI.getCwBandpass = function() {
+    var cwOffset = this.getCwOffset();
+    return { low_cut: cwOffset - 100, high_cut: cwOffset + 100 };
+};
+
+UI.getOffsetFrequency = function(x) {
+    return this.getFrequency(x) - center_freq;
 };
 
 UI.getFrequency = function(x) {
     if (typeof(x) === 'undefined') {
+        // When in CW mode, offset by 800Hz
+        var delta = this.getModulation() === 'cw'? this.getCwOffset() : 0;
         // No argument: return currently tuned frequency
-        return center_freq + this.getOffsetFrequency();
+        var demod = this.getDemodulator();
+        return demod? demod.get_offset_frequency() + center_freq + delta : 0;
     } else {
         // Pointer position: return frequency under pointer
         x = x / canvas_container.clientWidth;
         x = center_freq + (bandwidth * x) - (bandwidth / 2);
-        return tuning_step>0?
-            Math.round(x / tuning_step) * tuning_step : Math.round(x);
+        return Utils.snapFrequency(x, tuning_step);
     }
 };
 
 UI.setOffsetFrequency = function(offset) {
-    return this.getDemodulator().set_offset_frequency(offset);
+    return this.setFrequency(center_freq + offset);
 };
 
-UI.setFrequency = function(freq) {
-    return this.setOffsetFrequency(freq - center_freq);
+UI.setFrequency = function(freq, snap = true) {
+    // When in CW mode, offset by 800Hz
+    var delta = this.getModulation() === 'cw'? this.getCwOffset() : 0;
+    // Snap frequency to the tuning step
+    if (snap) freq = Utils.snapFrequency(freq, tuning_step);
+    // Tune to the frequency offset
+    var demod = this.getDemodulator();
+    return demod? demod.set_offset_frequency(freq - delta - center_freq) : false;
 };
 
 UI.tuneBookmark = function(b) {
@@ -142,10 +195,16 @@ UI.tuneBookmark = function(b) {
 
     //console.log("TUNE: " + b.name + " at " + b.frequency + ": " + b.modulation);
 
-    // Tune to the bookmark frequency
-    var freq = b.modulation === 'cw'? b.frequency - 800 : b.frequency;
-    UI.setFrequency(freq, b.modulation);
+    // Tune to the bookmark frequency, do not snap
     UI.setModulation(b.modulation, b.underlying);
+    UI.setFrequency(b.frequency, false);
+
+    // Show bookmark name in a bubble
+    UI.showBubble(
+        '<div style="text-align:center;">' + b.name +
+        (!b.description? '' : '<div style="font-size:75%;">' + b.description + '</div>') +
+        '</div>'
+    );
 
     // Done
     return true;
@@ -196,6 +255,56 @@ UI.toggleMute = function(on) {
         $volumePanel.prop('disabled', true);
         LS.save('volumeMuted', this.volumeMuted);
     }
+};
+
+//
+// Bandpass Controls
+//
+
+// Clear saved bandpasses
+UI.resetAllBandpasses = function() {
+    // Get current frequency
+    var freq = this.getFrequency();
+
+    // Delete all saved bandpass data
+    Modes.getModes().forEach(function(mode, i) {
+        LS.delete('bp-' + mode.modulation);
+    });
+
+    // Reset current bandpass to default
+    var mode = Modes.findByModulation(this.getModulation());
+    var bp = mode? mode.bandpass : null;
+    if (bp) this.getDemodulator().setBandpass(bp);
+
+    // Clear cached CW offset
+    this.cwOffset = null;
+
+    // Update current frequency (may shift in CW mode)
+    this.setFrequency(freq, false);
+};
+
+// Set bandpass for given modulation.
+UI.saveBandpass = function(mode, low, high) {
+    // Get current frequency
+    var cwFreq = mode === 'cw'? this.getFrequency() : null;
+
+    // Save new bandpass boundaries
+    var bp = { low_cut: low, high_cut: high };
+    LS.save('bp-' + mode, JSON.stringify(bp));
+
+    // If changing CW bandpass...
+    if (cwFreq != null) {
+        // Clear cached CW offset
+        this.cwOffset = null;
+        // Current CW frequency has shifted
+        this.setFrequency(cwFreq, false);
+    }
+};
+
+// Get saved bandpass for given modulation.
+UI.loadBandpass = function(mode) {
+    // Load bandpass from storage as needed
+    return JSON.parse(LS.loadStr('bp-' + mode)) || null;
 };
 
 //
@@ -342,6 +451,7 @@ UI.toggleFrame = function(on) {
         var border = on ? '2px solid white' : '2px solid transparent';
         $('#openwebrx-panel-receiver').css( 'border', border);
         $('#openwebrx-dialog-bookmark').css('border', border);
+        $('#openwebrx-dialog-search-bookmarks').css('border', border);
 //        $('#openwebrx-digimode-canvas-container').css('border', border);
 //        $('.openwebrx-message-panel').css('border', border);
     }
@@ -372,11 +482,47 @@ UI.setOpacity = function(x) {
     if (this.opacity != x) {
         this.opacity = x;
         LS.save('ui_opacity', x);
-        $('.openwebrx-panel').css('opacity', x/100);
+        $('.openwebrx-panel').css('opacity', x / 100);
         $('#openwebrx-opacity-slider')
             .attr('title', 'Opacity (' + Math.round(x) + '%)')
             .val(x);
     }
+};
+
+// Set temporary user interface 100% opacity bump.
+UI.toggleOpacity = function(on) {
+    if (typeof(on) === 'undefined') on = !this.opacityBump;
+
+    if (this.opacityBump != on) {
+        this.opacityBump = on;
+        LS.save('ui_opacityBump', on);
+        var $bumpButton = $('.openwebrx-opacity-button');
+        if (on) {
+            $bumpButton.addClass('bumped');
+            this.bumpOpacity();
+        } else {
+            $bumpButton.removeClass('bumped');
+            $('.openwebrx-panel').css('opacity', this.opacity / 100);
+        }
+    }
+};
+
+// Bump user interface opacity to 100%, for a while.
+UI.bumpOpacity = function() {
+    if (this.opacityBump && this.opBumped === null && this.opacity < 100) {
+        // Bump opacity to 100%
+        $('.openwebrx-panel').css('opacity', 1);
+        // Return back to transparency after a while
+        this.opBumped = setTimeout(function(that) {
+            $('.openwebrx-panel').css('opacity', that.opacity / 100);
+            that.opBumped = null;
+        }, 3000, this);
+    }
+};
+
+// Set initial user interface theme.
+UI.setDefaultTheme = function(theme) {
+    this.theme0 = theme;
 };
 
 // Set user interface theme.
@@ -391,6 +537,9 @@ UI.setTheme = function(theme) {
     // Set selector
     var lb = $('#openwebrx-themes-listbox');
     lb.val(theme);
+
+    // Use the initial theme if not provided with one
+    if (!theme) theme = this.theme0;
 
     // Remove existing theme
     var opts = lb[0].options;
@@ -432,8 +581,7 @@ UI.setDefaultWfTheme = function(colors) {
 
     // If default theme currently used, update waterfall
     if (this.wfTheme === 'default') {
-        this.wfTheme = null;
-        this.setWfTheme('default');
+        Waterfall.setTheme(this.wfThemes[this.wfTheme]);
     }
 };
 

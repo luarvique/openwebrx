@@ -7,8 +7,9 @@ import urllib
 import threading
 import logging
 import json
-import os
 import math
+import os
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,8 @@ class Repeaters(WebAgent):
 
     def __init__(self, dataName: str):
         super().__init__(dataName)
+        # Update repeater list weekly
+        self.refreshPeriod = 7*60*60*24
         # Update repeater list when receiver location changes
         pm = Config.get()
         self.location = (pm["receiver_gps"]["lat"], pm["receiver_gps"]["lon"])
@@ -111,21 +114,47 @@ class Repeaters(WebAgent):
             self.location = location
             os.remove(file)
 
+    # Sort database by frequency
+    def _sortData(self, data):
+        data.sort(key=lambda entry: entry["freq"])
+        return data
+
+    # Load repeater databases from various sources
+    def _loadFromWeb(self):
+        # Try RepeaterBook first
+        logger.info("Downloading RepeaterBook Repeater List...")
+        result = self.loadFromRepeaterBook("https://www.repeaterbook.com/api/{script}?qtype=prox&dunit=km&lat={lat}&lng={lon}&dist={range}", MAX_DISTANCE)
+        # If RepeaterBook fails, download list from ARD
+        if not result:
+            logger.info("Downloading ARD Repeater List...")
+            result = self.loadFromARD("https://raw.githubusercontent.com/Amateur-Repeater-Directory/ARD-RepeaterList/refs/heads/main/MasterList/MasterRepeater.json", MAX_DISTANCE)
+        return result
+
     #
     # Load repeater database from the RepeaterBook.com website.
     #
-    def _loadFromWeb(self):
-        return self.loadFromWeb("https://www.repeaterbook.com/api/{script}?qtype=prox&dunit=km&lat={lat}&lng={lon}&dist={range}", MAX_DISTANCE)
-
-    def loadFromWeb(self, url: str, rangeKm: int):
+    def loadFromRepeaterBook(self, url: str, rangeKm: int):
         result = []
         try:
             pm   = Config.get()
+            itu  = pm["bandplan_region"]
+            ctry = pm["receiver_country"]
             lat  = pm["receiver_gps"]["lat"]
             lon  = pm["receiver_gps"]["lon"]
-            hdrs = { "User-Agent": "(OpenWebRX+ " + openwebrx_version + ", luarvique@gmail.com)" }
-            # Start with US/Canada database for north-wester quartersphere
-            if lat > 0 and lon < 0:
+            # If personal access token and admin email configured...
+            if pm["repeaterbook_api_key"] and pm["receiver_admin"]:
+                # Use peronalized authorization
+                hdrs = {
+                    "Authorization": "Bearer " + pm["repeaterbook_api_key"],
+                    "User-Agent": "OpenWebRX/" + openwebrx_version + " (https://fms.komkon.org/OWRX/; " + pm["receiver_admin"] + ")"
+                }
+            else:
+                # Use old application-specific method
+                hdrs = {
+                    "User-Agent": "(OpenWebRX+ " + openwebrx_version + ", luarvique@gmail.com)"
+                }
+            # Start with US/Canada database for north-western quartersphere
+            if itu == 2 or ctry == "US" or ctry == "CA" or (lat > 0 and lon < 0):
                 scps = ["export.php", "exportROW.php"]
             else:
                 scps = ["exportROW.php", "export.php"]
@@ -156,10 +185,72 @@ class Repeaters(WebAgent):
                 }]
 
         except Exception as e:
-            logger.error("loadFromWeb() exception: {0}".format(e))
+            logger.error("loadFromRepeaterBook() exception: {0}".format(e))
             return None
 
         # Done
+        self.report(url1, len(result))
+        return result
+
+    #
+    # Load latest Amateur Repeater Directory master list.
+    #
+    def loadFromARD(self, url: str, rangeKm: int):
+        pm   = Config.get()
+        itu  = pm["bandplan_region"]
+        ctry = pm["receiver_country"]
+        lat  = pm["receiver_gps"]["lat"]
+        lon  = pm["receiver_gps"]["lon"]
+        pos  = (lat, lon)
+
+        # ARD only contains American repeaters at the moment
+        if itu != 2 and ctry != "US" and ctry != "CA" and not (lat > 0 and lon < 0):
+            return None
+
+        # Download the list
+        try:
+            data = json.loads(self._openUrl(url).read().decode('utf-8'))
+        except Exception as e:
+            logger.error("loadFromARD() loading exception: {0}".format(e))
+            return None
+
+        # For every entry in the response...
+        result = []
+        for entry in data:
+            try:
+                if self.distKm(pos, (entry["latitude"], entry["longitude"])) <= rangeKm:
+                    # Compose comment
+                    comment = entry["state"]
+                    if "county" in entry:
+                        comment = entry["county"] + " County, " + comment
+                    if "nearestCity" in entry:
+                        comment = entry["nearestCity"] + ", " + comment
+                    # Compose status
+                    if not entry["isOperational"]:
+                        status = "Off-air"
+                    elif not entry["isOpen"]:
+                        status = "On-air"
+                    else:
+                        status = "Open"
+                    # Add new entry
+                    result += [{
+                        "name"     : entry["callsign"],
+                        "lat"      : entry["latitude"],
+                        "lon"      : entry["longitude"],
+                        "altitude" : int(entry["elevation"]),
+                        "freq"     : int(entry["outputFrequency"] * 1000000),
+                        "inFreq"   : int(entry["inputFrequency"] * 1000000),
+                        "mode"     : "nfm",
+                        "status"   : status,
+                        "updated"  : re.sub("T.*$", "", entry["updatedDate"]),
+                        "comment"  : comment
+                    }]
+
+            except Exception as e:
+                logger.error("loadFromARD() parsing exception: {0}".format(e))
+
+        # Done
+        self.report(url, len(result))
         return result
 
     #
@@ -169,7 +260,7 @@ class Repeaters(WebAgent):
     def getBookmarks(self, frequencyRange, rangeKm: int = MAX_DISTANCE):
         # Make sure freq2>freq1
         (f1, f2) = frequencyRange
-        if f1>f2:
+        if f1 > f2:
             f = f1
             f1 = f2
             f2 = f
@@ -184,13 +275,14 @@ class Repeaters(WebAgent):
 
         # Search for repeaters within frequency and distance ranges
         with self.lock:
-            for entry in self.data:
+            start = self._bisect_left(f1)
+            end   = self._bisect_right(f2)
+            for entry in self.data[start : end]:
                 try:
                     f = entry["freq"]
-                    if f1 <= f <= f2:
-                        d = self.distKm(rxPos, (entry["lat"], entry["lon"]))
-                        if d <= rangeKm and (f not in result or d < result[f][1]):
-                            result[f] = (entry, d)
+                    d = self.distKm(rxPos, (entry["lat"], entry["lon"]))
+                    if d <= rangeKm and (f not in result or d < result[f][1]):
+                        result[f] = (entry, d)
 
                 except Exception as e:
                     logger.error("getBookmarks() exception: {0}".format(e))

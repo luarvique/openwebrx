@@ -7,9 +7,9 @@ from owrx.map import Map, LatLngLocation
 import logging
 import threading
 import pickle
+import base64
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class StationLocation(LatLngLocation):
@@ -96,6 +96,18 @@ class HdRadioModule(ThreadModule):
         if self.meta and self.metaWriter:
             logger.debug("Metadata: {0}".format(self.meta))
             self.metaWriter.write(pickle.dumps(self.meta))
+
+    # Write image file
+    def _writeImage(self, id, fileName, data) -> None:
+        if self.metaWriter:
+            self.metaWriter.write(pickle.dumps({
+                "mode"      : "HDR",
+                "frequency" : self.frequency,
+                "program"   : self.program,
+                "image"     : id,
+                "file"      : fileName,
+                "data"      : base64.b64encode(data).decode()
+            }))
 
     # Clear all metadata
     def _clearMeta(self) -> None:
@@ -210,6 +222,7 @@ class HdRadioModule(ThreadModule):
             time_str = evt.expiry_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
             logger.info("LOT file: port=%04X lot=%s name=%s size=%s mime=%s expiry=%s",
                          evt.port, evt.lot, evt.name, len(evt.data), evt.mime, time_str)
+            self._writeImage(evt.lot, evt.name, evt.data)
         elif evt_type == EventType.SIS:
             # Collect new metadata
             meta = {

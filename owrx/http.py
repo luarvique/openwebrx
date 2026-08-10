@@ -10,6 +10,7 @@ from owrx.controllers.clients import ClientController
 from owrx.controllers.services import ServiceController
 from owrx.controllers.settings import SettingsController
 from owrx.controllers.settings.general import GeneralSettingsController
+from owrx.controllers.settings.wifi import WifiSettingsController
 from owrx.controllers.settings.sdr import (
     SdrDeviceListController,
     SdrDeviceController,
@@ -119,8 +120,9 @@ class Router(object):
             ),
             RegexRoute("^/settings/deletesdr/([^/]+)$", SdrDeviceController, options={"action": "deleteDevice"}),
             RegexRoute("^/settings/sdr/([^/]+)/newprofile$", NewProfileController),
+            RegexRoute("^/settings/sdr/([^/]+)/newprofile/([^/]+)$", NewProfileController),
             RegexRoute(
-                "^/settings/sdr/([^/]+)/newprofile$",
+                "^/settings/sdr/([^/]+)/newprofile(/[^/]+)?$",
                 NewProfileController,
                 method="POST",
                 options={"action": "processFormData"},
@@ -167,6 +169,10 @@ class Router(object):
             StaticRoute("/settings/decoding", DecodingSettingsController),
             StaticRoute(
                 "/settings/decoding", DecodingSettingsController, method="POST", options={"action": "processFormData"}
+            ),
+            StaticRoute("/settings/wifi", WifiSettingsController),
+            StaticRoute(
+                "/settings/wifi", WifiSettingsController, method="POST", options={"action": "processFormData"}
             ),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),

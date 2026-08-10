@@ -32,12 +32,12 @@ class Receivers(WebAgent):
     def _loadFromWeb(self):
         # Cached receivers database stale, update it
         receivers = {}
+        logger.info("Scraping OpenWebRX website...")
+        receivers.update(self.scrapeOWRX())
         logger.info("Scraping KiwiSDR website...")
         receivers.update(self.scrapeKiwiSDR())
         logger.info("Scraping WebSDR website...")
         receivers.update(self.scrapeWebSDR())
-        logger.info("Scraping OpenWebRX website...")
-        receivers.update(self.scrapeOWRX())
         return list(receivers.values()) if len(receivers) > 0 else None
 
     #
@@ -77,6 +77,11 @@ class Receivers(WebAgent):
                             "url"     : r["url"],
                             "device"  : dev
                         }
+                        # Add default logo URL for OpenWebRX receivers
+                        if r["type"] == "OpenWebRX":
+                            logo = "" if r["url"].endswith("/") else "/"
+                            logo = r["url"] + logo + "static/gfx/openwebrx-avatar.png"
+                            result[id]["logourl"] = logo
                         # Offset colocated receivers by ~500m
                         lon = lon + 0.0005
 
@@ -84,6 +89,7 @@ class Receivers(WebAgent):
             logger.error("scrapeOWRX() exception: {0}".format(e))
 
         # Done
+        self.report(url, len(result))
         return result
 
     def scrapeWebSDR(self, url: str = "http://websdr.ewi.utwente.nl/~~websdrlistk?v=1&fmt=2&chseq=0"):
@@ -106,22 +112,32 @@ class Receivers(WebAgent):
                         "lon"     : lon,
                         "comment" : entry["desc"],
                         "url"     : entry["url"],
+                        "logourl" : entry["logourl"],
+                        "qth"     : entry["qth"],
                         "users"   : int(entry["users"]),
-                        "device"  : "WebSDR"
+                        "device"  : "WebSDR",
+                        "bands"   : [{
+                            "id"      : x["c"],
+                            "freql"   : int(float(x["l"]) * 1000000),
+                            "freqh"   : int(float(x["h"]) * 1000000),
+                            "antenna" : x["a"]
+                        } for x in entry["bands"]]
                     }
 
         except Exception as e:
             logger.error("scrapeWebSDR() exception: {0}".format(e))
 
         # Done
+        self.report(url, len(result))
         return result
 
-    def scrapeKiwiSDR(self, url: str = "http://kiwisdr.com/public/"):
+    def scrapeKiwiSDR(self, url: str = "http://kiwisdr.com/.public/"):
         result = {}
         try:
             patternAttr = re.compile(r".*<!--\s+(\S+)=(.*)\s+-->.*")
             patternUrl  = re.compile(r".*<a\s+href=['\"](\S+?)['\"].*>.*</a>.*")
             patternGps  = re.compile(r"\(\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*\)")
+            patternFreq = re.compile(r"(\d+)\s*-\s*(\d+)")
             entry = {}
 
             for line in self._openUrl(url).readlines():
@@ -132,14 +148,16 @@ class Receivers(WebAgent):
                 if m is not None:
                     # Add URL attribute
                     entry["url"] = m.group(1)
-                    # Must have "gps" attribut with latitude / longitude
+                    # Must have "gps" attribute with latitude / longitude
                     if "gps" in entry and "url" in entry:
                         m = patternGps.match(entry["gps"])
                         if m is not None:
-                            # Save accumulated attributes, use hostname as key
+                            # Use hostname as key
                             id  = re.sub(r"^.*://(.*?)(/.*)?$", r"\1", entry["url"])
+                            # Get location
                             lat = float(m.group(1))
                             lon = float(m.group(2))
+                            # Save accumulated attributes
                             result[id] = {
                                 "type"    : "latlon",
                                 "mode"    : "KiwiSDR",
@@ -155,6 +173,11 @@ class Receivers(WebAgent):
                                 "antenna" : entry["antenna"],
                                 "device"  : re.sub("_v", " ", entry["sw_version"])
                             }
+                            # Get frequency range
+                            m = patternFreq.match(entry["bands"])
+                            if m is not None:
+                                result[id]["freql"] = int(m.group(1))
+                                result[id]["freqh"] = int(m.group(2))
                     # Clear current entry
                     entry = {}
                 else:
@@ -168,4 +191,5 @@ class Receivers(WebAgent):
             logger.error("scrapeKiwiSDR() exception: {0}".format(e))
 
         # Done
+        self.report(url, len(result))
         return result

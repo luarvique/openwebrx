@@ -1,0 +1,512 @@
+[
+    {
+        "name" : "CH0A",
+        "frequency" : 156000000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH0B",
+        "frequency" : 160600000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH1A",
+        "frequency" : 156050000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH1B",
+        "frequency" : 160650000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH2A",
+        "frequency" : 156100000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH2B",
+        "frequency" : 160700000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH3A",
+        "frequency" : 156150000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH3B",
+        "frequency" : 160750000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH4A",
+        "frequency" : 156200000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH4B",
+        "frequency" : 160800000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH5A",
+        "frequency" : 156250000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH5B",
+        "frequency" : 160850000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH6",
+        "frequency" : 156300000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH7A",
+        "frequency" : 156350000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH7B",
+        "frequency" : 160950000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH8",
+        "frequency" : 156400000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH9",
+        "frequency" : 156450000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH10",
+        "frequency" : 156500000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH11",
+        "frequency" : 156550000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH12",
+        "frequency" : 156600000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH13",
+        "frequency" : 156650000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH14",
+        "frequency" : 156700000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH15",
+        "frequency" : 156750000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH16",
+        "frequency" : 156800000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH17",
+        "frequency" : 156850000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH18A",
+        "frequency" : 156900000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH18B",
+        "frequency" : 161500000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH19A",
+        "frequency" : 156950000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH19B",
+        "frequency" : 161550000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH20A",
+        "frequency" : 157000000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH20B",
+        "frequency" : 161600000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH21A",
+        "frequency" : 157050000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH21B",
+        "frequency" : 161650000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH22A",
+        "frequency" : 157100000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH22B",
+        "frequency" : 161700000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH23A",
+        "frequency" : 157150000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH23B",
+        "frequency" : 161750000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH24A",
+        "frequency" : 157200000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH24B",
+        "frequency" : 161800000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH25A",
+        "frequency" : 157250000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH25B",
+        "frequency" : 161850000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH26A",
+        "frequency" : 157300000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH26B",
+        "frequency" : 161900000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH27A",
+        "frequency" : 157350000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH27B",
+        "frequency" : 161950000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH28A",
+        "frequency" : 157400000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH28B",
+        "frequency" : 162000000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH31A",
+        "frequency" : 157550000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH31B",
+        "frequency" : 162150000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "M1",
+        "frequency" : 157850000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH60A",
+        "frequency" : 156025000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH60B",
+        "frequency" : 160625000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH61A",
+        "frequency" : 156075000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH61B",
+        "frequency" : 160675000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH62A",
+        "frequency" : 156125000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH62B",
+        "frequency" : 160725000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH63A",
+        "frequency" : 156175000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH63B",
+        "frequency" : 160775000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH64A",
+        "frequency" : 156225000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH64B",
+        "frequency" : 160825000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH65A",
+        "frequency" : 156275000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH65B",
+        "frequency" : 160875000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH66A",
+        "frequency" : 156325000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH66B",
+        "frequency" : 160925000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH67",
+        "frequency" : 156375000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH68",
+        "frequency" : 156425000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH69",
+        "frequency" : 156475000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH70",
+        "frequency" : 156525000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH71",
+        "frequency" : 156575000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH72",
+        "frequency" : 156625000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH73",
+        "frequency" : 156675000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH74",
+        "frequency" : 156725000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH75",
+        "frequency" : 156775000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH76",
+        "frequency" : 156825000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH77",
+        "frequency" : 156875000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH78A",
+        "frequency" : 156925000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH78B",
+        "frequency" : 161525000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH79A",
+        "frequency" : 156975000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH79B",
+        "frequency" : 161575000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH80A",
+        "frequency" : 157025000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH80B",
+        "frequency" : 161625000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH81A",
+        "frequency" : 157075000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH81B",
+        "frequency" : 161675000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH82A",
+        "frequency" : 157125000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH82B",
+        "frequency" : 161725000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH83A",
+        "frequency" : 157175000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH83B",
+        "frequency" : 161775000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH84A",
+        "frequency" : 157225000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH84B",
+        "frequency" : 161825000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH85A",
+        "frequency" : 157275000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH85B",
+        "frequency" : 161875000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH86A",
+        "frequency" : 157325000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH86B",
+        "frequency" : 161925000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH87",
+        "frequency" : 157375000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CH88",
+        "frequency" : 157425000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "M2/P4",
+        "frequency" : 161425000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "L1",
+        "frequency" : 155500000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "L2",
+        "frequency" : 155525000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "L3",
+        "frequency" : 155650000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "F1",
+        "frequency" : 155625000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "F2",
+        "frequency" : 155775000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "F3",
+        "frequency" : 155825000,
+        "modulation" : "nfm"
+    }
+]

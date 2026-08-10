@@ -1,0 +1,82 @@
+[
+    {
+        "name" : "PMR1",
+        "frequency" : 446006250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR2",
+        "frequency" : 446018750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR3",
+        "frequency" : 446031250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR4",
+        "frequency" : 446043750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR5",
+        "frequency" : 446056250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR6",
+        "frequency" : 446068750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR7",
+        "frequency" : 446081250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR8",
+        "frequency" : 446093750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR9",
+        "frequency" : 446106250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR10",
+        "frequency" : 446118750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR11",
+        "frequency" : 446131250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR12",
+        "frequency" : 446143750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR13",
+        "frequency" : 446156250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR14",
+        "frequency" : 446168750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR15",
+        "frequency" : 446181250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PMR16",
+        "frequency" : 446193750,
+        "modulation" : "nfm"
+    }
+]

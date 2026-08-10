@@ -1,4 +1,5 @@
 from owrx.config import Config
+from owrx.config.core import CoreConfig
 from owrx.color import ColorCache
 from datetime import datetime, timedelta
 from ipaddress import ip_address
@@ -48,7 +49,9 @@ class ClientRegistry(object):
         pm = Config.get()
         if self.isBanned(client.conn.handler):
             raise BannedClientException()
-        elif len(self.clients) >= pm["max_clients"]:
+        elif self.clientCount() >= pm["max_clients"]:
+            raise TooManyClientsException()
+        elif self.ipCount(client) >= pm["max_clients_per_ip"]:
             raise TooManyClientsException()
         self.clients.append(client)
         self.broadcast()
@@ -56,6 +59,18 @@ class ClientRegistry(object):
 
     def clientCount(self):
         return len(self.clients)
+
+    def ipCount(self, client):
+        ip = self.getIp(client.conn.handler)
+        return len([x for x in self.clients if ip == self.getIp(x.conn.handler)])
+
+    def robotScore(self, client):
+        ip = self.getIp(client.conn.handler)
+        return sum([
+            max(0, 10 - (client.conn.startTime - x.conn.startTime).total_seconds())
+            for x in self.clients
+            if ip == self.getIp(x.conn.handler)
+        ])
 
     def removeClient(self, client):
         try:
@@ -74,14 +89,17 @@ class ClientRegistry(object):
 
     # Report client events
     def reportClient(self, client, data):
-        from owrx.reporting import ReportingEngine
-        data.update({
-            "mode"      : "CLIENT",
-            "timestamp" : round(datetime.now().timestamp() * 1000),
-            "ip"        : self.getIp(client.conn.handler),
-            "banned"    : self.isBanned(client.conn.handler)
-        })
-        ReportingEngine.getSharedInstance().spot(data)
+        pm = Config.get()
+        if pm["report_clients"]:
+            from owrx.reporting import ReportingEngine
+            data.update({
+                "mode"      : "CLIENT",
+                "timestamp" : round(datetime.now().timestamp() * 1000),
+                "ip"        : self.getIp(client.conn.handler),
+                "banned"    : self.isBanned(client.conn.handler),
+                "clients"   : self.clientCount()
+            })
+            ReportingEngine.getSharedInstance().spot(data)
 
     # Report chat message from a client
     def reportChatMessage(self, client, text: str):
@@ -133,6 +151,11 @@ class ClientRegistry(object):
         # Report message
         self.reportChatMessage(client, text)
 
+    # Relay external chat message to all connected clients.
+    def relayChatMessage(self, name: str, text: str):
+        for c in self.clients:
+            c.write_chat_message(name, text, "#ccc")
+
     # Broadcast administrative message to all connected clients.
     def broadcastAdminMessage(self, text: str):
         for c in self.clients:
@@ -140,10 +163,12 @@ class ClientRegistry(object):
 
     # Get client IP address from the handler.
     def getIp(self, handler):
+        trusted = CoreConfig().get_web_trusted_proxies()
         ip = handler.client_address[0]
-        # If address private and there is X-Forwarded-For header...
-        if ip_address(ip).is_private and hasattr(handler, "headers"):
-            if "x-forwarded-for" in handler.headers:
+        # Parse X-Forwarded-For header when incoming connection is
+        # from a local address or a trusted proxy
+        if ip_address(ip).is_private or (trusted is not None and ip in trusted):
+            if hasattr(handler, "headers") and "x-forwarded-for" in handler.headers:
                 ip = handler.headers['x-forwarded-for'].split(',')[0]
         # Done
         return ip
@@ -175,6 +200,10 @@ class ClientRegistry(object):
             })
         # Done
         return result
+
+    # Ban a client for given number of minutes.
+    def banClient(self, client, minutes: int):
+        self.banIp(self.getIp(client.conn.handler), minutes)
 
     # Ban a client, by IP, for given number of minutes.
     def banIp(self, ip: str, minutes: int):

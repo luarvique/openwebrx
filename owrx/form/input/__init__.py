@@ -2,8 +2,10 @@ from abc import ABC
 from owrx.modes import Modes
 from owrx.form.input.validator import Validator
 from owrx.form.input.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter, TextConverter
+from pycsdr.types import AgcProfile
 from enum import Enum
 
+import html
 
 class Input(ABC):
     def __init__(self, id, label, infotext=None, converter: Converter = None, validator: Validator = None, disabled=False, removable=False):
@@ -66,7 +68,7 @@ class Input(ABC):
         return props
 
     def render_input_properties(self, value, error):
-        return " ".join('{}="{}"'.format(prop, value) for prop, value in self.input_properties(value, error).items())
+        return " ".join('{}="{}"'.format(prop, html.escape(value)) for prop, value in self.input_properties(value, error).items())
 
     def render_errors(self, errors):
         return "".join("""<div class="invalid-feedback">{msg}</div>""".format(msg=e) for e in errors)
@@ -337,6 +339,29 @@ class ModesInput(DropdownInput):
     def __init__(self, id, label):
         options = [Option(m.modulation, m.name) for m in Modes.getAvailableClientModes()]
         super().__init__(id, label, options)
+
+
+class AgcInput(DropdownInput):
+    def __init__(self, id, label, infotext=None):
+        options = [Option(p.value, p.value) for p in AgcProfile]
+        super().__init__(id, label, options, infotext=infotext)
+
+
+class LoraBandwidthInput(DropdownInput):
+    def __init__(self, id, label, infotext=None):
+        bandwidths = [
+            Option("0", "7.8kbps"),
+            Option("1", "10.4kbps"),
+            Option("2", "15.6kbps"),
+            Option("3", "20.8kbps"),
+            Option("4", "31.25kbps"),
+            Option("5", "41.7kbps"),
+            Option("6", "62.5kbps (very-long-slow)"),
+            Option("7", "125kbps (medium-slow, long-moderate, long-slow)"),
+            Option("8", "250kbps (short-slow, medium-fast, long-fast)"),
+            Option("9", "500kbps (short-fast)")
+        ]
+        super().__init__(id, label, bandwidths, infotext=infotext)
 
 
 class ExponentialInput(Input):

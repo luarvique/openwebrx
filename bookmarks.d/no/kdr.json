@@ -1,0 +1,32 @@
+[
+    {
+        "name" : "KDR1",
+        "frequency" : 444600000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "KDR2",
+        "frequency" : 444650000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "KDR3",
+        "frequency" : 444800000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "KDR4",
+        "frequency" : 444825000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "KDR5",
+        "frequency" : 444850000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "KDR6",
+        "frequency" : 444975000,
+        "modulation" : "nfm"
+    }
+]

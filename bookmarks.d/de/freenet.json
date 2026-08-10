@@ -1,0 +1,32 @@
+[
+    {
+        "name" : "FN1",
+        "frequency" : 149025000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "FN2",
+        "frequency" : 149037500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "FN3",
+        "frequency" : 149050000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "FN4",
+        "frequency" : 149087500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "FN5",
+        "frequency" : 149100000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "FN6",
+        "frequency" : 149112500,
+        "modulation" : "nfm"
+    }
+]

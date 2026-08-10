@@ -36,7 +36,12 @@ function BookmarkBar() {
     $bookmarkButton.click(function(){
         me.showEditDialog();
     });
+    $bookmarkButton.on('contextmenu', function(e){
+        me.showSearchDialog();
+        e.preventDefault();
+    });
 
+    // Add bookmark dialog
     me.$dialog = $('#openwebrx-dialog-bookmark');
     me.$dialog.find('.openwebrx-button[data-action=cancel]').click(function(){
         me.$dialog.hide();
@@ -47,6 +52,19 @@ function BookmarkBar() {
     me.$dialog.find('form').on('submit', function(e){
         e.preventDefault();
         me.storeBookmark();
+    });
+
+    // Search bookmarks dialog
+    me.$search = $('#openwebrx-dialog-search-bookmarks');
+    me.$search.find('.openwebrx-button[data-action=cancel]').click(function(){
+        me.$search.hide();
+    });
+    me.$search.find('.openwebrx-button[data-action=submit]').click(function(){
+        me.searchBookmarks();
+    });
+    me.$search.find('form').on('submit', function(e){
+        e.preventDefault();
+        me.searchBookmarks();
     });
 }
 
@@ -80,8 +98,19 @@ BookmarkBar.prototype.replace_bookmarks = function(bookmarks, source, editable) 
 
 BookmarkBar.prototype.render = function(){
     var bookmarks = Object.values(this.bookmarks).reduce(function(l, v){ return l.concat(v); });
-    bookmarks = bookmarks.sort(function(a, b){ return a.frequency - b.frequency; });
-    var elements = bookmarks.map(function(b){
+    bookmarks = bookmarks.sort(function(a, b) {
+        if (a.frequency != b.frequency) {
+            return a.frequency - b.frequency;
+        } else if (a.source == 'dial_frequencies') {
+            // green bookmarks (bandplan) at the bottom
+            return -1;
+        } else {
+            // then yellow bookmarks (server), then blue ones (local)
+            return ((a.source == 'server') && (b.source == 'local')) ? -1 : 1;
+        }
+    });
+
+    var elements = bookmarks.map(function(b) {
         var $bookmark = $(
             '<div class="bookmark" data-source="' + b.source + '"' + (b.editable?' editable="editable"':'') + '>' +
                 '<div class="bookmark-actions">' +
@@ -97,9 +126,20 @@ BookmarkBar.prototype.render = function(){
         $bookmark.data(b);
         return $bookmark;
     });
+
     this.$container.find('.bookmark').remove();
     this.$container.append(elements);
-	this.position();
+    this.position();
+};
+
+BookmarkBar.prototype.showSearchDialog = function(text = null) {
+    this.$search.show();
+    this.$search.find('#search-results').html('');
+
+    var $input = this.$search.find('#search-text');
+    if (text != null) $input.val(text);
+    $input.focus();
+    $input.select();
 };
 
 BookmarkBar.prototype.showEditDialog = function(bookmark) {
@@ -114,7 +154,7 @@ BookmarkBar.prototype.showEditDialog = function(bookmark) {
         }
         bookmark = {
             name        : '',
-            frequency   : mode1 === 'cw'? freq + 800 : freq,
+            frequency   : freq,
             modulation  : mode1,
             underlying  : mode2,
             description : '',
@@ -184,4 +224,31 @@ BookmarkBar.prototype.getAllBookmarks = function() {
     var sb = this.bookmarks['server'];
     var lb = this.bookmarks['local'];
     return !sb.length? (!lb.length? [] : lb) : !lb.length? sb : sb.concat(lb);
+};
+
+BookmarkBar.prototype.searchBookmarks = function() {
+    var text = this.$search.find('#search-text').val().toLowerCase();
+
+    // Search bookmark names for text
+    var result = this.getAllBookmarks().filter((b, i, array) => {
+        return (b.name.toLowerCase().indexOf(text) >= 0);
+    });
+
+    // Sort results alphabetically, then by frequency
+    result.sort((a, b) => {
+        return (a.name.localeCompare(b.name) || (a.frequency - b.frequency))
+    });
+
+    // Prepare search results
+    text = result.map(b =>
+        '<tr><td class="search-left">' + b.name +
+        '</td><td class="search-right">' +
+        Utils.linkifyFreq(b.frequency, b.modulation) +
+        '</td></tr>'
+    ).join('\n');
+
+    // Output results
+    this.$search.find('#search-results').html(
+        '<table class="search-results">' + text + '</table>'
+    );
 };

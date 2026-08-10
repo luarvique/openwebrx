@@ -37,8 +37,16 @@ img {
     font-size: 80%;
 }
 
+.file-size {
+    font-size: 80%;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
 .file-tile {
     width: 32%;
+    position: relative;
 }
 
 .file-delete {

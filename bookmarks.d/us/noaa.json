@@ -1,0 +1,44 @@
+[
+    {
+        "name" : "NOAA-1",
+        "frequency" : 162400000,
+        "modulation" : "nfm",
+        "scannable" : false
+    },
+    {
+        "name" : "NOAA-2",
+        "frequency" : 162425000,
+        "modulation" : "nfm",
+        "scannable" : false
+    },
+    {
+        "name" : "NOAA-3",
+        "frequency" : 162450000,
+        "modulation" : "nfm",
+        "scannable" : false
+    },
+    {
+        "name" : "NOAA-4",
+        "frequency" : 162475000,
+        "modulation" : "nfm",
+        "scannable" : false
+    },
+    {
+        "name" : "NOAA-5",
+        "frequency" : 162500000,
+        "modulation" : "nfm",
+        "scannable" : false
+    },
+    {
+        "name" : "NOAA-6",
+        "frequency" : 162525000,
+        "modulation" : "nfm",
+        "scannable" : false
+    },
+    {
+        "name" : "NOAA-7",
+        "frequency" : 162550000,
+        "modulation" : "nfm",
+        "scannable" : false
+    }
+]

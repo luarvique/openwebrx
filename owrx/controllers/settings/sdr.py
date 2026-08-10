@@ -18,6 +18,7 @@ from uuid import uuid4
 
 import threading
 
+
 class SdrDeviceBreadcrumb(SettingsBreadcrumb):
     def __init__(self):
         super().__init__()
@@ -403,6 +404,7 @@ class SdrProfileController(SdrFormControllerWithModal):
         return """
             <button type="button" class="btn btn-success move-up">Move up</button>
             <button type="button" class="btn btn-success move-down">Move down</button>
+            <button type="button" class="btn btn-success clone">Clone</button>
         """
 
     def render_remove_button(self):
@@ -461,6 +463,12 @@ class NewProfileController(SdrProfileController):
     def __init__(self, handler, request, options):
         self.data_layer = PropertyLayer(name="")
         super().__init__(handler, request, options)
+        # Clone profile, if given
+        if self.request.matches.lastindex >= 2:
+            profile_id = unquote(self.request.matches.group(2))
+            if profile_id in self.device["profiles"]:
+                for k, v in self.device["profiles"][profile_id].items():
+                    self.data_layer[k] = v
 
     def get_breadcrumb(self) -> Breadcrumb:
         return (
@@ -490,3 +498,4 @@ class NewProfileController(SdrProfileController):
     def render_remove_button(self):
         # new profile doesn't have a remove button
         return ""
+

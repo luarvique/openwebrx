@@ -9,9 +9,10 @@ from owrx.service.schedule import ServiceScheduler
 from owrx.service.chain import ServiceDemodulatorChain
 from owrx.modes import Modes, DigitalMode
 from typing import Union, Optional
-from csdr.chain.demodulator import BaseDemodulatorChain, ServiceDemodulator, DialFrequencyReceiver
+from csdr.chain.demodulator import BaseDemodulatorChain, ServiceDemodulator, DialFrequencyReceiver, FixedAudioRateChain
 from pycsdr.modules import Buffer
 
+import sys
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ class ServiceHandler(SdrSourceEventClient):
     def __init__(self, source):
         self.lock = threading.RLock()
         self.services = []
+        self.resamplers = []
         self.source = source
         self.startupTimer = None
         self.activitySub = None
@@ -99,11 +101,20 @@ class ServiceHandler(SdrSourceEventClient):
 
     def stopServices(self):
         with self.lock:
+            resamplers = self.resamplers
             services = self.services
+            self.resamplers = []
             self.services = []
 
         for service in services:
             service.stop()
+        services.clear()
+
+        # resamplers are stopped after the services since they must not be
+        # shutdown as long as the services are still running
+        for resampler in resamplers:
+            resampler.stop()
+        resamplers.clear()
 
     def onFrequencyChange(self, changes):
         self.stopServices()
@@ -166,30 +177,29 @@ class ServiceHandler(SdrSourceEventClient):
                         for dial in group:
                             addService(dial, resampler)
 
-                        # resampler goes in after the services since it must not be shutdown as long as the services are
-                        # still running
-                        self.services.append(resampler)
+                        # resamplers go onto a sseparate list
+                        self.resamplers.append(resampler)
                     else:
                         dial = group[0]
                         addService(dial, self.source)
 
     def get_min_max(self, group):
-        def find_bandpass(dial):
+        minFreq = sys.maxsize
+        maxFreq = 0
+
+        for dial in group:
             mode = Modes.findByModulation(dial["mode"])
             if "underlying" in dial:
                 mode = mode.for_underlying(dial["underlying"])
-            return mode.get_bandpass()
+            bandwidth = mode.get_bandwidth()
+            minFreq = min(minFreq, dial["frequency"] - bandwidth / 2)
+            maxFreq = max(maxFreq, dial["frequency"] + bandwidth / 2)
 
-        frequencies = sorted(group, key=lambda f: f["frequency"])
-        lowest = frequencies[0]
-        min = lowest["frequency"] + find_bandpass(lowest).low_cut
-        highest = frequencies[-1]
-        max = highest["frequency"] + find_bandpass(highest).high_cut
-        return min, max
+        return minFreq, maxFreq
 
     def get_center_frequency(self, group):
-        min, max = self.get_min_max(group)
-        return (min + max) / 2
+        minFreq, maxFreq = self.get_min_max(group)
+        return (minFreq + maxFreq) / 2
 
     def get_bandwidth(self, group):
         minFreq, maxFreq = self.get_min_max(group)
@@ -262,14 +272,18 @@ class ServiceHandler(SdrSourceEventClient):
         if "underlying" in dial:
             modeObject = modeObject.for_underlying(dial["underlying"])
 
-        demod = self._getDemodulator(modeObject.get_modulation())
-        secondaryDemod = self._getSecondaryDemodulator(modeObject.modulation)
+        demod2 = self._getSecondaryDemodulator(modeObject.modulation)
+        if isinstance(demod2, FixedAudioRateChain):
+            demod = self._getDemodulator(modeObject.get_modulation(), demod2.getFixedAudioRate())
+        else:
+            demod = self._getDemodulator(modeObject.get_modulation())
+        if isinstance(demod2, DialFrequencyReceiver):
+            demod2.setDialFrequency(dial["frequency"])
+
         center_freq = source.getProps()["center_freq"]
         sampleRate = source.getProps()["samp_rate"]
-        if isinstance(secondaryDemod, DialFrequencyReceiver):
-            secondaryDemod.setDialFrequency(dial["frequency"])
 
-        chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, dial["frequency"] - center_freq)
+        chain = ServiceDemodulatorChain(demod, demod2, sampleRate, dial["frequency"] - center_freq)
         bandpass = modeObject.get_bandpass()
         if bandpass:
             chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
@@ -285,13 +299,13 @@ class ServiceHandler(SdrSourceEventClient):
         return chain
 
     # TODO move this elsewhere
-    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain]):
+    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain], sampleRate: int = 48000):
         if isinstance(demod, BaseDemodulatorChain):
             return demod
         # TODO: move this to Modes
         if demod == "nfm":
             from csdr.chain.analog import NFm
-            return NFm(48000)
+            return NFm(sampleRate)
         elif demod == "am":
             from csdr.chain.analog import Am
             return Am()
@@ -301,6 +315,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif demod in ["usb", "lsb", "cw"]:
             from csdr.chain.analog import Ssb
             return Ssb()
+        elif demod == "empty":
+            from csdr.chain.analog import Empty
+            return Empty()
 
     # TODO move this elsewhere
     def _getSecondaryDemodulator(self, mod) -> Optional[ServiceDemodulator]:
@@ -343,37 +360,84 @@ class ServiceHandler(SdrSourceEventClient):
             return EasDemodulator(service=True)
         elif mod == "ism":
             from csdr.chain.toolbox import IsmDemodulator
-            return IsmDemodulator(service=True)
+            return IsmDemodulator(250000, service=True)
+        elif mod == "wmbus":
+            from csdr.chain.toolbox import IsmDemodulator
+            return IsmDemodulator(1200000, service=True)
         elif mod == "hfdl":
-            from csdr.chain.toolbox import HfdlDemodulator
+            from csdr.chain.aircraft import HfdlDemodulator
             return HfdlDemodulator(service=True)
         elif mod == "vdl2":
-            from csdr.chain.toolbox import Vdl2Demodulator
+            from csdr.chain.aircraft import Vdl2Demodulator
             return Vdl2Demodulator(service=True)
         elif mod == "acars":
-            from csdr.chain.toolbox import AcarsDemodulator
+            from csdr.chain.aircraft import AcarsDemodulator
             return AcarsDemodulator(service=True)
         elif mod == "adsb":
-            from csdr.chain.toolbox import AdsbDemodulator
+            from csdr.chain.aircraft import AdsbDemodulator
             return AdsbDemodulator(service=True)
+        elif mod == "uat":
+            from csdr.chain.aircraft import UatDemodulator
+            return UatDemodulator(service=True)
         elif mod == "audio":
             from csdr.chain.toolbox import AudioRecorder
             return AudioRecorder(service=True)
-        elif mod == "noaa-apt-15":
-            from csdr.chain.toolbox import NoaaAptDemodulator
-            return NoaaAptDemodulator(satellite=15, service=True)
-        elif mod == "noaa-apt-18":
-            from csdr.chain.toolbox import NoaaAptDemodulator
-            return NoaaAptDemodulator(satellite=18, service=True)
-        elif mod == "noaa-apt-19":
-            from csdr.chain.toolbox import NoaaAptDemodulator
-            return NoaaAptDemodulator(satellite=19, service=True)
+        elif mod == "cwskimmer":
+            from csdr.chain.toolbox import CwSkimmerDemodulator
+            return CwSkimmerDemodulator(service=True)
+        elif mod == "rttyskimmer":
+            from csdr.chain.toolbox import RttySkimmerDemodulator
+            return RttySkimmerDemodulator(service=True)
+        elif mod == "sonde-rs41":
+            from csdr.chain.sonde import Rs41Demodulator
+            return Rs41Demodulator(service=True)
+        elif mod == "sonde-dfm9":
+            from csdr.chain.sonde import Dfm9Demodulator
+            return Dfm9Demodulator(service=True)
+        elif mod == "sonde-dfm17":
+            from csdr.chain.sonde import Dfm17Demodulator
+            return Dfm17Demodulator(service=True)
+        elif mod == "sonde-mts01":
+            from csdr.chain.sonde import Mts01Demodulator
+            return Mts01Demodulator(service=True)
+        elif mod == "sonde-m10":
+            from csdr.chain.sonde import M10Demodulator
+            return M10Demodulator(service=True)
+        elif mod == "sonde-m20":
+            from csdr.chain.sonde import M20Demodulator
+            return M20Demodulator(service=True)
         elif mod == "meteor-lrpt":
-            from csdr.chain.toolbox import MeteorLrptDemodulator
+            from csdr.chain.satellite import MeteorLrptDemodulator
             return MeteorLrptDemodulator(service=True)
         elif mod == "elektro-lrit":
-            from csdr.chain.toolbox import ElektroLritDemodulator
+            from csdr.chain.satellite import ElektroLritDemodulator
             return ElektroLritDemodulator(service=True)
+        elif mod == "lora-wan":
+            from csdr.chain.lora import LoraWanDemodulator
+            return LoraWanDemodulator(service=True)
+        elif mod == "lora-aprs":
+            from csdr.chain.lora import LoraAprsDemodulator
+            return LoraAprsDemodulator(service=True)
+        elif mod == "lora-fanet":
+            from csdr.chain.lora import LoraFanetDemodulator
+            return LoraFanetDemodulator(service=True)
+        elif mod == "meshtastic":
+            from csdr.chain.lora import MeshtasticDemodulator
+            return MeshtasticDemodulator(service=True)
+        elif mod == "meshcore":
+            from csdr.chain.lora import MeshcoreDemodulator
+            return MeshcoreDemodulator(service=True)
+        elif mod == "meshcom":
+            from csdr.chain.lora import MeshComDemodulator
+            return MeshComDemodulator(service=True)
+        # NOAA-15 satellite has been retired, not operational
+        #elif mod == "noaa-apt-15":
+        #    from csdr.chain.satellite import NoaaAptDemodulator
+        #    return NoaaAptDemodulator(satellite=15, service=True)
+        # NOAA-19 satellite has been retired, not operational
+        #elif mod == "noaa-apt-19":
+        #    from csdr.chain.satellite import NoaaAptDemodulator
+        #    return NoaaAptDemodulator(satellite=19, service=True)
 
         raise ValueError("unsupported service modulation: {}".format(mod))
 
@@ -406,11 +470,13 @@ class Services(object):
         for key, source in changes.items():
             if source is PropertyDeleted:
                 if key in Services.handlers:
-                    Services.handlers[key].shutdown()
+                    handler = Services.handlers[key]
                     del Services.handlers[key]
+                    handler.shutdown()
                 if key in Services.schedulers:
-                    Services.schedulers[key].shutdown()
+                    scheduler = Services.schedulers[key]
                     del Services.schedulers[key]
+                    scheduler.shutdown()
             else:
                 Services.schedulers[key] = ServiceScheduler(source)
                 if Config.get()["services_enabled"]:

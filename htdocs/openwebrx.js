@@ -40,6 +40,7 @@ var scanner = null;
 var bookmarks = null;
 var audioEngine = null;
 var wf_data = null;
+var battery_shown = false;
 
 function zoomInOneStep() {
     zoom_set(zoom_level + 1);
@@ -60,7 +61,10 @@ function zoomOutTotal() {
 function tuneBySteps(steps) {
     steps = Math.round(steps);
     if (steps != 0) {
-        UI.setOffsetFrequency(UI.getOffsetFrequency() + steps * tuning_step);
+        var f = UI.getFrequency() / tuning_step;
+        var i = Math.floor(f);
+        if (i != f && steps < 0) steps++;
+        UI.setFrequency((i + steps) * tuning_step);
     }
 }
 
@@ -108,9 +112,12 @@ function jumpBySteps(steps) {
     if (steps != 0) {
         var key = UI.getDemodulatorPanel().getMagicKey();
         var f = center_freq + steps * bandwidth / 4;
-        ws.send(JSON.stringify({
-            "type": "setfrequency", "params": { "frequency": f, "key": key }
-        }));
+        if (f >= 0) {
+            ws.send(JSON.stringify({
+                "type": "setfrequency", "params": { "frequency": f, "key": key }
+            }));
+            UI.toggleScanner(false);
+        }
     }
 }
 
@@ -244,19 +251,6 @@ function scale_canvas_mousedown(evt) {
     evt.preventDefault();
 }
 
-function scale_offset_freq_from_px(x, visible_range) {
-    if (typeof visible_range === "undefined") visible_range = get_visible_freq_range();
-
-    var f = (visible_range.start + visible_range.bw * (x / waterfallWidth())) - center_freq;
-
-    if (tuning_step <= 0) {
-        return f;
-    } else {
-        f = Math.round((center_freq + f) / tuning_step) * tuning_step;
-        return f - center_freq;
-    }
-}
-
 function scale_canvas_mousemove(evt) {
     var event_handled = false;
     var i;
@@ -272,16 +266,17 @@ function scale_canvas_mousemove(evt) {
     else if (scale_canvas_drag_params.drag) {
         //call the drag_move for all demodulators (and they will decide if they're dragged)
         for (i = 0; i < demodulators.length; i++) event_handled |= demodulators[i].envelope.drag_move(evt.pageX);
-        if (!event_handled) demodulators[0].set_offset_frequency(scale_offset_freq_from_px(evt.pageX));
+        if (!event_handled)
+            UI.setFrequency(UI.getFrequency(get_relative_x(evt)));
     }
 }
 
 function frequency_container_mousemove(evt) {
-    var frequency = center_freq + scale_offset_freq_from_px(evt.pageX);
-    UI.getDemodulatorPanel().setMouseFrequency(frequency);
+    var freq = UI.getFrequency(get_relative_x(evt));
+    UI.getDemodulatorPanel().setMouseFrequency(freq);
 }
 
-function scale_canvas_end_drag(x) {
+function scale_canvas_end_drag(evt) {
     scale_canvas.style.cursor = "default";
     scale_canvas_drag_params.drag = false;
     scale_canvas_drag_params.mouse_down = false;
@@ -289,14 +284,14 @@ function scale_canvas_end_drag(x) {
     var demodulators = getDemodulators();
     for (var i = 0; i < demodulators.length; i++) event_handled |= demodulators[i].envelope.drag_end();
     if (!event_handled) {
-        demodulators[0].set_offset_frequency(scale_offset_freq_from_px(x));
+        UI.setFrequency(UI.getFrequency(get_relative_x(evt)));
         UI.toggleScanner(false);
     }
 }
 
 function scale_canvas_mouseup(evt) {
     if (evt.button == 0)
-        scale_canvas_end_drag(evt.pageX);
+        scale_canvas_end_drag(evt);
     else
         scale_canvas_drag_params.mouse2_down = false;
 }
@@ -687,9 +682,10 @@ function canvas_mousedown(evt) {
 
 function canvas_mousemove(evt) {
     if (!waterfall_setup_done) return;
-    var relativeX = get_relative_x(evt);
     if (!canvas_mouse_down) {
-        UI.getDemodulatorPanel().setMouseFrequency(UI.getFrequency(relativeX));
+        UI.getDemodulatorPanel().setMouseFrequency(
+            UI.getFrequency(get_relative_x(evt))
+        );
     } else {
         if (!canvas_drag && Math.abs(evt.pageX - canvas_drag_start_x) > canvas_drag_min_delta) {
             canvas_drag = true;
@@ -726,17 +722,14 @@ function canvas_mouseup(evt) {
             canvas_mouse2_down = 0;
     } else {
         if (!waterfall_setup_done) return;
-        var relativeX = get_relative_x(evt);
 
         if (!canvas_drag) {
-            var f = UI.getOffsetFrequency(relativeX);
-            // For CW, move offset 800Hz below the actual carrier
-            if (UI.getModulation() === 'cw') f = f - 800;
-            UI.setOffsetFrequency(f);
+            UI.setFrequency(UI.getFrequency(get_relative_x(evt)));
             UI.toggleScanner(false);
         } else {
             canvas_end_drag();
         }
+
         canvas_mouse_down = false;
     }
 }
@@ -752,27 +745,29 @@ function zoom_center_where_calc(screenposX) {
 
 function get_relative_x(evt) {
     var relativeX = evt.offsetX || evt.layerX;
+
     if ($(evt.target).closest(canvas_container).length) return relativeX;
-    // compensate for the frequency scale, since that is not resized by the browser.
-    var relatives = $(evt.target).closest('#openwebrx-frequency-container').map(function(){
-        return evt.pageX - this.offsetLeft;
-    });
-    if (relatives.length) relativeX = relatives[0];
+
+    // Compensate for the frequency scale, as it is not resized by the browser.
+    var relatives = $(evt.target).closest('#openwebrx-frequency-container');
+    if (relatives.length) relativeX = evt.pageX - relatives[0].offsetLeft;
 
     return relativeX - zoom_offset_px;
 }
 
 function canvas_mousewheel(evt) {
     if (!waterfall_setup_done) return;
-    var relativeX = get_relative_x(evt);
-    var dir = (evt.deltaY / Math.abs(evt.deltaY)) > 0;
+
+    // Wheel direction
+    var dir = evt.deltaY / Math.abs(evt.deltaY) > 0;
 
     // Zoom when mouse button down, tune otherwise
     // (optionally, invert this behavior)
     var zoom_me = (canvas_mouse2_down > 0) || evt.shiftKey?
         !UI.getWheelSwap() : UI.getWheelSwap();
+
     if (zoom_me) {
-        zoom_step(dir, relativeX, zoom_center_where_calc(evt.pageX));
+        zoom_step(dir, get_relative_x(evt), zoom_center_where_calc(evt.pageX));
     } else {
         tuneBySteps(dir? -1:1);
     }
@@ -884,6 +879,9 @@ function on_ws_recv(evt) {
                         if ('waterfall_colors' in config)
                             UI.setDefaultWfTheme(config['waterfall_colors']);
 
+                        if ('ui_theme' in config)
+                            UI.setDefaultTheme(config['ui_theme']);
+
                         var initial_demodulator_params = {};
                         if ('start_mod' in config)
                             initial_demodulator_params['mod'] = config['start_mod'];
@@ -891,6 +889,16 @@ function on_ws_recv(evt) {
                             initial_demodulator_params['offset_frequency'] = config['start_offset_freq'];
                         if ('initial_squelch_level' in config)
                             initial_demodulator_params['squelch_level'] = Number.isInteger(config['initial_squelch_level']) ? config['initial_squelch_level'] : -150;
+
+                        if ('initial_nr_level' in config) {
+                            if (Number.isInteger(config['initial_nr_level'])) {
+                                UI.setNR(config['initial_nr_level']);
+                                UI.toggleNR(true);
+                            } else {
+                                UI.setNR(0);
+                                UI.toggleNR(false);
+                            }
+                        }
 
                         if ('samp_rate' in config)
                             bandwidth = config['samp_rate'];
@@ -978,6 +986,10 @@ function on_ws_recv(evt) {
                             Utils.setVesselUrl(config['vessel_url']);
                         }
 
+                        if ('sonde_url' in config) {
+                            Utils.setSondeUrl(config['sonde_url']);
+                        }
+
                         // Load user interface settings from local storage
                         UI.loadSettings();
                         Chat.loadSettings();
@@ -1005,6 +1017,14 @@ function on_ws_recv(evt) {
                         break;
                     case "temperature":
                         $('#openwebrx-bar-server-cpu').progressbar().setTemp(json['value']);
+                        break;
+                    case "battery":
+                        $('#openwebrx-bar-battery').progressbar().setBattery(json['value']);
+                        if (!battery_shown) {
+                            $('#openwebrx-bar-audio-speed').hide();
+                            $('#openwebrx-bar-battery').show();
+                            battery_shown = true;
+                        }
                         break;
                     case "clients":
                         $('#openwebrx-bar-clients').progressbar().setClients(json['value']);
@@ -1063,7 +1083,7 @@ function on_ws_recv(evt) {
                         break;
                     case 'secondary_demod':
                         var value = json['value'];
-                        var panels = ['wsjt', 'packet', 'pocsag', 'page', 'sstv', 'fax', 'ism', 'hfdl', 'adsb', 'dsc', 'cwskimmer'].map(function(id) {
+                        var panels = ['wsjt', 'packet', 'pocsag', 'page', 'sstv', 'fax', 'ism', 'hfdl', 'adsb', 'dsc', 'skimmer', 'meshtastic'].map(function(id) {
                             return $('#openwebrx-panel-' + id + '-message')[id + 'MessagePanel']();
                         });
                         panels.push($('#openwebrx-panel-js8-message').js8());
@@ -1203,7 +1223,7 @@ var mute = false;
 var audio_buffer_maximal_length_sec = 1; //actual number of samples are calculated from sample rate
 
 function onAudioStart(apiType){
-    divlog('Web Audio API succesfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
+    divlog('Web Audio API successfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
 
     hideOverlay();
 
@@ -1395,6 +1415,11 @@ function openwebrx_init() {
     // Name used by map links to tune receiver
     frames.name = 'openwebrx-rx';
 
+    // Show Android app link when running on Android
+    if (/android/i.test(navigator.userAgent)) {
+        $('#openwebrx-get-android-app').show();
+    }
+
     audioEngine = new AudioEngine(audio_buffer_maximal_length_sec, audioReporter);
     var $overlay = $('#openwebrx-autoplay-overlay');
     $overlay.on('click', function(){
@@ -1416,9 +1441,6 @@ function openwebrx_init() {
     window.addEventListener('resize', openwebrx_resize);
     bookmarks = new BookmarkBar();
     initSliders();
-
-    // Initialize waterfall colors
-    UI.setWfTheme('default');
 
     // Create bookmark scanner
     scanner = new Scanner(bookmarks, 1000);
@@ -1660,7 +1682,7 @@ function secondary_demod_init() {
         .mousedown(secondary_demod_canvas_container_mousedown)
         .mouseenter(secondary_demod_canvas_container_mousein)
         .mouseleave(secondary_demod_canvas_container_mouseleave);
-    ['wsjt', 'packet', 'pocsag', 'page', 'sstv', 'fax', 'ism', 'hfdl', 'adsb', 'dsc'].forEach(function(id){
+    ['wsjt', 'packet', 'pocsag', 'page', 'sstv', 'fax', 'ism', 'hfdl', 'adsb', 'dsc', 'skimmer', 'meshtastic'].forEach(function(id){
         $('#openwebrx-panel-' + id + '-message')[id + 'MessagePanel']();
     })
     $('#openwebrx-panel-js8-message').js8();
@@ -1710,7 +1732,7 @@ function secondary_demod_update_marker() {
 
 function secondary_demod_update_channel_freq_from_event(evt) {
     if (typeof evt !== "undefined") {
-        var relativeX = (evt.offsetX) ? evt.offsetX : evt.layerX;
+        var relativeX = evt.offsetX || evt.layerX;
         secondary_demod_channel_freq = secondary_demod_low_cut +
             (relativeX / $(secondary_demod_canvas_container).width()) * (secondary_demod_high_cut - secondary_demod_low_cut);
     }

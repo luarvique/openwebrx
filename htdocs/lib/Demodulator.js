@@ -1,31 +1,38 @@
 function Filter(demodulator) {
+    var mod2 = demodulator.get_secondary_demod();
+    var max_bw;
+
+    if (['pocsag', 'page', 'packet', 'ais', 'acars', 'sonde-rs41', 'sonde-mts01', 'sonde-dfm9', 'sonde-dfm17'].indexOf(mod2) >= 0) {
+        max_bw = 12500;
+    } else if (['vdl2', 'sonde-m10', 'sonde-m20'].indexOf(mod2) >= 0) {
+        max_bw = 25000;
+    } else switch (demodulator.get_modulation()) {
+        case 'dmr': case 'dstar': case 'nxdn': case 'ysf': case 'm17':
+            max_bw = 6250;
+            break;
+        case 'lsbd': case 'usbd':
+            max_bw = 24000;
+            break;
+        case 'wfm':
+            max_bw = 100000;
+            break;
+        case 'drm':
+            max_bw = 50000;
+            break;
+        case 'freedv':
+            max_bw = 4000;
+            break;
+        case 'ism':
+            max_bw = 600000;
+            break;
+        default:
+            max_bw = parseInt(audioEngine.getOutputRate() / 2);
+            break;
+    }
+
+    this.limits = { high: max_bw, low: -max_bw };
     this.demodulator = demodulator;
     this.min_passband = 100;
-}
-
-Filter.prototype.getLimits = function() {
-    var max_bw;
-    if (['pocsag', 'page', 'packet', 'ais', 'acars'].indexOf(this.demodulator.get_secondary_demod()) >= 0) {
-        max_bw = 12500;
-    } else if (['dmr', 'dstar', 'nxdn', 'ysf', 'm17'].indexOf(this.demodulator.get_modulation()) >= 0) {
-        max_bw = 6250;
-    } else if (['lsbd', 'usbd'].indexOf(this.demodulator.get_modulation()) >= 0) {
-        max_bw = 24000;
-    } else if (this.demodulator.get_modulation() === 'wfm') {
-        max_bw = 100000;
-    } else if (this.demodulator.get_modulation() === 'drm') {
-        max_bw = 50000;
-    } else if (this.demodulator.get_modulation() === "freedv") {
-        max_bw = 4000;
-    } else if (this.demodulator.get_secondary_demod() === "ism") {
-        max_bw = 600000;
-    } else {
-        max_bw = (audioEngine.getOutputRate() / 2) - 1;
-    }
-    return {
-        high: max_bw,
-        low: -max_bw
-    };
 };
 
 function Envelope(demodulator) {
@@ -234,7 +241,7 @@ Envelope.prototype.wheel = function(x, dir, modifier){
     return true;
 };
 
-//******* class Demodulator_default_analog *******
+// ******* class Demodulator_default_analog *******
 // This can be used as a base for basic audio demodulators.
 // It already supports most basic modulations used for ham radio and commercial services: AM/FM/LSB/USB
 
@@ -250,10 +257,22 @@ function Demodulator(offset_frequency, modulation) {
     this.started = false;
     this.state = {};
     this.secondary_demod = false;
+
     var mode = Modes.findByModulation(modulation);
-    this.low_cut = mode && mode.bandpass? mode.bandpass.low_cut : null;
-    this.high_cut = mode && mode.bandpass? mode.bandpass.high_cut : null;
     this.ifRate = mode && mode.ifRate;
+
+    // Get bandpass from local storage first
+    var bp = UI.loadBandpass(modulation);
+
+    // In CW mode, use bandpass that depends on tone
+    if (!bp && modulation === 'cw') bp = UI.getCwBandpass();
+
+    // Default to mode-specific bandpass
+    if (!bp && mode) bp = mode.bandpass;
+
+    this.low_cut  = bp? bp.low_cut  : null;
+    this.high_cut = bp? bp.high_cut : null;
+
     this.listeners = {
         "frequencychange": [],
         "squelchchange": []
@@ -379,22 +398,20 @@ Demodulator.prototype.setAudioServiceId = function(audio_service_id) {
 }
 
 Demodulator.prototype.setBandpass = function(bandpass) {
-    this.bandpass = bandpass;
     this.low_cut = bandpass.low_cut;
     this.high_cut = bandpass.high_cut;
     this.set();
 };
 
 Demodulator.prototype.disableBandpass = function() {
-    delete this.bandpass;
     this.low_cut = null;
     this.high_cut = null;
-    this.set()
+    this.set();
 };
 
 Demodulator.prototype.moveBandpass = function(low_new, high_new) {
     // Don't let low_cut go beyond its limits
-    if (low_new < this.filter.getLimits().low) return;
+    if (low_new < this.filter.limits.low) return;
 
     // Nor the filter passband be too small
     if (this.high_cut - low_new < this.filter.min_passband) return;
@@ -403,13 +420,17 @@ Demodulator.prototype.moveBandpass = function(low_new, high_new) {
     if (low_new >= this.high_cut) return;
 
     // Don't let high_cut go beyond its limits
-    if (high_new > this.filter.getLimits().high) return;
+    if (high_new > this.filter.limits.high) return;
 
     // Nor the filter passband be too small
     if (high_new - this.low_cut < this.filter.min_passband) return;
 
     // Sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
     if (high_new <= this.low_cut) return;
+
+    // Save modified bandpass, but only in analog modes
+    if (!this.secondary_demod)
+        UI.saveBandpass(this.modulation, low_new, high_new);
 
     // Set new bounds
     this.low_cut  = low_new;
@@ -433,6 +454,7 @@ Demodulator.prototype.set_secondary_demod = function(secondary_demod) {
         return;
     }
     this.secondary_demod = secondary_demod;
+    this.filter = new Filter(this);
     this.set();
 };
 

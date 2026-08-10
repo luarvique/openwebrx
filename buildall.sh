@@ -12,15 +12,22 @@ GIT_CSDR=https://github.com/luarvique/csdr.git
 GIT_PYCSDR=https://github.com/luarvique/pycsdr.git
 GIT_OWRXCONNECTOR=https://github.com/luarvique/owrx_connector.git
 GIT_CODECSERVER=https://github.com/jketterl/codecserver.git
-GIT_DIGIHAM=https://github.com/jketterl/digiham.git
-GIT_PYDIGIHAM=https://github.com/jketterl/pydigiham.git
+GIT_DIGIHAM=https://github.com/luarvique/digiham.git
+GIT_PYDIGIHAM=https://github.com/luarvique/pydigiham.git
 GIT_CSDR_ETI=https://github.com/luarvique/csdr-eti.git
 GIT_PYCSDR_ETI=https://github.com/luarvique/pycsdr-eti.git
 GIT_JS8PY=https://github.com/jketterl/js8py.git
-GIT_REDSEA=https://github.com/luarvique/redsea.git
-GIT_CWSKIMMER=https://github.com/luarvique/csdr-cwskimmer.git
+GIT_SKIMMER=https://github.com/luarvique/csdr-skimmer.git
 GIT_SOAPYSDRPLAY3=https://github.com/luarvique/SoapySDRPlay3.git
 GIT_OPENWEBRX=https://github.com/luarvique/openwebrx.git
+GIT_REDSEA=https://github.com/windytan/redsea.git
+GIT_DUMP978=https://github.com/luarvique/dump978.git
+GIT_NRSC5=https://github.com/luarvique/nrsc5.git
+GIT_MULTIMON=https://github.com/luarvique/multimon-ng.git
+GIT_LIBACARS=https://github.com/luarvique/libacars.git
+GIT_ACARSDEC=https://github.com/luarvique/acarsdec.git
+GIT_DUMPVDL2=https://github.com/luarvique/dumpvdl2.git
+GIT_DUMPHFDL=https://github.com/luarvique/dumphfdl.git
 
 BUILD_DIR=./owrx-build/`uname -m`
 OUTPUT_DIR=./owrx-output/`uname -m`
@@ -46,8 +53,22 @@ if [ "${1:-}" == "--ask" ]; then
 	[[ "$ret" == [Yy]* ]] && BUILD_JS8PY=y || BUILD_JS8PY=n
 	echo;read -n1 -p "Build Redsea? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_REDSEA=y || BUILD_REDSEA=n
-	echo;read -n1 -p "Build csdr-cwskimmer? [yN] " ret
-	[[ "$ret" == [Yy]* ]] && BUILD_CWSKIMMER=y || BUILD_CWSKIMMER=n
+	echo;read -n1 -p "Build libacars? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_LIBACARS=y || BUILD_LIBACARS=n
+	echo;read -n1 -p "Build acarsdec? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_ACARSDEC=y || BUILD_ACARSDEC=n
+	echo;read -n1 -p "Build dumpvdl2? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_DUMPVDL2=y || BUILD_DUMPVDL2=n
+	echo;read -n1 -p "Build dumphfdl? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_DUMPHFDL=y || BUILD_DUMPHFDL=n
+	echo;read -n1 -p "Build dump978? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_DUMP978=y || BUILD_DUMP978=n
+	echo;read -n1 -p "Build nrsc5? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_NRSC5=y || BUILD_NRSC5=n
+	echo;read -n1 -p "Build multimon-ng? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_MULTIMON=y || BUILD_MULTIMON=n
+	echo;read -n1 -p "Build csdr-skimmer? [yN] " ret
+	[[ "$ret" == [Yy]* ]] && BUILD_SKIMMER=y || BUILD_SKIMMER=n
 	echo;read -n1 -p "Build SoapySDRPlay3? [yN] " ret
 	[[ "$ret" == [Yy]* ]] && BUILD_SOAPYSDRPLAY3=y || BUILD_SOAPYSDRPLAY3=n
 	echo;read -n1 -p "Build OpenWebRX+? [Yn] " ret
@@ -68,7 +89,14 @@ else
 	BUILD_PYCSDR_ETI=y
 	BUILD_JS8PY=y
 	BUILD_REDSEA=y
-	BUILD_CWSKIMMER=y
+	BUILD_LIBACARS=y
+	BUILD_ACARSDEC=y
+	BUILD_DUMPVDL2=y
+	BUILD_DUMPHFDL=y
+	BUILD_DUMP978=y
+	BUILD_NRSC5=y
+	BUILD_MULTIMON=y
+	BUILD_SKIMMER=y
 	CLEAN_OUTPUT=y
 fi
 
@@ -88,8 +116,11 @@ fi
 if [ "${BUILD_DIGIHAM:-}" == "y" ]; then
 	BUILD_CODECSERVER=y
 fi
-if [ "${BUILD_PYCSDR:-}" == "y" ] || [ "${BUILD_OWRXCONNECTOR:-}" == "y" ] || [ "${BUILD_CSDR_ETI:-}" == "y" || [ "${BUILD_CWSKIMMER:-}" == "y" ] ]; then
+if [ "${BUILD_PYCSDR:-}" == "y" ] || [ "${BUILD_OWRXCONNECTOR:-}" == "y" ] || [ "${BUILD_CSDR_ETI:-}" == "y" || [ "${BUILD_SKIMMER:-}" == "y" ] ]; then
 	BUILD_CSDR=y
+fi
+if [ "${BUILD_ACARSDEC:-}" == "y" ] || [ "${BUILD_DUMPVDL2:-}" == "y" ] || [ "${BUILD_DUMPHFDL:-}" == "y" ]; then
+	BUILD_LIBACARS=y
 fi
 
 echo ======================================
@@ -104,9 +135,16 @@ echo "csdr-eti: $BUILD_CSDR_ETI"
 echo "pycsdr-eti: $BUILD_PYCSDR_ETI"
 echo "js8py: $BUILD_JS8PY"
 echo "redsea: $BUILD_REDSEA"
-echo "csdr-cwskimmer: $BUILD_CWSKIMMER"
+echo "libacars: $BUILD_LIBACARS"
+echo "acarsdec: $BUILD_ACARSDEC"
+echo "dumpvdl2: $BUILD_DUMPVDL2"
+echo "dumphfdl: $BUILD_DUMPHFDL"
+echo "nrsc5: $BUILD_NRSC5"
+echo "multimon-ng: $BUILD_MULTIMON"
+echo "dump978: $BUILD_DUMP978"
+echo "csdr-skimmer: $BUILD_SKIMMER"
 echo "SoapySDRPlay3: $BUILD_SOAPYSDRPLAY3"
-echo "OpenWebRx: $BUILD_OWRX"
+echo "OpenWebRX: $BUILD_OWRX"
 echo "Clean OUTPUT folder: $CLEAN_OUTPUT"
 echo ======================================
 
@@ -231,15 +269,91 @@ if [ "${BUILD_REDSEA:-}" == "y" ]; then
 	#sudo dpkg -i *redsea*.deb
 fi
 
-if [ "${BUILD_CWSKIMMER:-}" == "y" ]; then
-	echo "##### Building csdr-cwskimmer... #####"
-	git clone "$GIT_CWSKIMMER"
-	pushd csdr-cwskimmer
+if [ "${BUILD_LIBACARS:-}" == "y" ]; then
+	echo "##### Building libacars... #####"
+	git clone -b master "$GIT_LIBACARS"
+	pushd libacars
 	dpkg-buildpackage -us -uc
 	popd
-	# Not installing csdr-cwskimmer here since there are no further
+	# AcarsDec, DumpVDL2, DumpHFDL will need this library
+	sudo dpkg -i libacars*.deb
+fi
+
+if [ "${BUILD_ACARSDEC:-}" == "y" ]; then
+	echo "##### Building acarsdec... #####"
+	git clone -b master "$GIT_ACARSDEC"
+	pushd acarsdec
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing acarsdec here since there are no further
 	# build steps depending on it
-	#sudo dpkg -i csdr-cwskimmer*.deb
+	#sudo dpkg -i *acarsdec*.deb
+fi
+
+if [ "${BUILD_DUMPVDL2:-}" == "y" ]; then
+	echo "##### Building dumpvdl2... #####"
+	git clone -b master "$GIT_DUMPVDL2"
+	pushd dumpvdl2
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing dumpvdl2 here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *dumpvdl2*.deb
+fi
+
+if [ "${BUILD_DUMPHFDL:-}" == "y" ]; then
+	echo "##### Building dumphfdl... #####"
+	git clone -b master "$GIT_DUMPHFDL"
+	pushd dumphfdl
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing dumphfdl here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *dumphfdl*.deb
+fi
+
+if [ "${BUILD_DUMP978:-}" == "y" ]; then
+	echo "##### Building dump978... #####"
+	git clone -b master "$GIT_DUMP978"
+	pushd dump978
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing dump978 here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *dump978*.deb
+fi
+
+if [ "${BUILD_NRSC5:-}" == "y" ]; then
+	echo "##### Building nrsc5... #####"
+	git clone -b master "$GIT_NRSC5"
+	pushd nrsc5
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing nrsc5 here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *nrsc5*.deb
+fi
+
+if [ "${BUILD_MULTIMON:-}" == "y" ]; then
+	echo "##### Building multimon-ng... #####"
+	git clone -b master "$GIT_MULTIMON"
+	pushd multimon-ng
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing multimon-ng here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i *multimon-ng*.deb
+fi
+
+if [ "${BUILD_SKIMMER:-}" == "y" ]; then
+	echo "##### Building csdr-skimmer... #####"
+	git clone "$GIT_SKIMMER"
+	pushd csdr-skimmer
+	dpkg-buildpackage -us -uc
+	popd
+	# Not installing csdr-skimmer here since there are no further
+	# build steps depending on it
+	#sudo dpkg -i csdr-skimmer*.deb
 fi
 
 if [ "${BUILD_SOAPYSDRPLAY3:-}" == "y" ]; then

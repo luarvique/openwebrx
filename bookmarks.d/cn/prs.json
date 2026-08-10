@@ -1,0 +1,102 @@
+[
+    {
+        "name" : "PRS1",
+        "frequency" : 409750000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS2",
+        "frequency" : 409762500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS3",
+        "frequency" : 409775000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS4",
+        "frequency" : 409787500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS5",
+        "frequency" : 409800000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS6",
+        "frequency" : 409812500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS7",
+        "frequency" : 409825000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS8",
+        "frequency" : 409837500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS9",
+        "frequency" : 409850000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS10",
+        "frequency" : 409862500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS11",
+        "frequency" : 409875000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS12",
+        "frequency" : 409887500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS13",
+        "frequency" : 409900000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS14",
+        "frequency" : 409912500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS15",
+        "frequency" : 409925000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS16",
+        "frequency" : 409937500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS17",
+        "frequency" : 409950000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS18",
+        "frequency" : 409962500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS19",
+        "frequency" : 409975000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "PRS20",
+        "frequency" : 409987500,
+        "modulation" : "nfm"
+    }
+]

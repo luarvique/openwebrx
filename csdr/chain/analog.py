@@ -9,9 +9,9 @@ from owrx.feature import FeatureDetector
 
 
 class Am(BaseDemodulatorChain):
-    def __init__(self):
+    def __init__(self, agcProfile: AgcProfile = AgcProfile.SLOW):
         agc = Agc(Format.FLOAT)
-        agc.setProfile(AgcProfile.SLOW)
+        agc.setProfile(agcProfile)
         agc.setInitialGain(200)
         workers = [
             AmDemod(),
@@ -22,10 +22,10 @@ class Am(BaseDemodulatorChain):
 
 
 class NFm(BaseDemodulatorChain):
-    def __init__(self, sampleRate: int):
+    def __init__(self, sampleRate: int, agcProfile: AgcProfile = AgcProfile.SLOW):
         self.sampleRate = sampleRate
         agc = Agc(Format.FLOAT)
-        agc.setProfile(AgcProfile.SLOW)
+        agc.setProfile(agcProfile)
         agc.setMaxGain(3)
         workers = [
             FmDemod(),
@@ -101,16 +101,18 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
         self.rdsRbds = rdsRbds
         if self.metaChain is not None:
             self.metaChain.stop()
-            self.metaChain = Redsea(self.getFixedIfSampleRate(), self.rdsRbds)
+            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
             self.metaChain.setReader(self.metaTapBuffer.getReader())
             self.metaChain.setWriter(self.metaWriter)
 
 
 class Ssb(BaseDemodulatorChain):
-    def __init__(self):
+    def __init__(self, agcProfile: AgcProfile = AgcProfile.FAST):
+        agc = Agc(Format.FLOAT)
+        agc.setProfile(agcProfile)
         workers = [
             RealPart(),
-            Agc(Format.FLOAT),
+            agc,
         ]
         super().__init__(workers)
 
@@ -127,11 +129,11 @@ class Empty(BaseDemodulatorChain):
 
 
 class SAm(BaseDemodulatorChain):
-    def __init__(self):
+    def __init__(self, agcProfile: AgcProfile = AgcProfile.SLOW):
         self.updatePeriod = 10
         self.samplePeriod = 4
         agc = Agc(Format.FLOAT)
-        agc.setProfile(AgcProfile.SLOW)
+        agc.setProfile(agcProfile)
         agc.setInitialGain(200)
         workers = [
             Afc(self.updatePeriod, self.samplePeriod),

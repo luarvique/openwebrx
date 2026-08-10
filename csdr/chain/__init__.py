@@ -137,6 +137,7 @@ class Chain(Module):
     def stop(self):
         for w in self.workers:
             w.stop()
+        super().stop()
 
     def getInputFormat(self) -> Format:
         if self.workers:

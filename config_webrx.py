@@ -378,6 +378,8 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 #pskreporter_callsign = "N0CALL"
 # optional antenna information, uncomment to enable
 #pskreporter_antenna_information = "Dipole"
+# optional rig information, uncomment to enable
+#pskreporter_rig_information = "Homebrew"
 
 # === WSPRNet reporting settings
 # enable this if you want to upload WSPR spots to wsprnet.ort

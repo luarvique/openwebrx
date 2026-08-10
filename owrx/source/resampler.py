@@ -34,6 +34,7 @@ class Resampler(SdrSource):
     def stop(self):
         self.chain.stop()
         self.chain = None
+        self.buffer = None
         super().stop()
 
     def activateProfile(self, profile_id=None):

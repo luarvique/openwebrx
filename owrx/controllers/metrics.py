@@ -29,4 +29,4 @@ class MetricsController(Controller):
             prometheusFormat(k, v) for k, v in metrics.items()
         ]
 
-        self.send_response("\n".join(data), content_type="text/plain; version=0.0.4")
+        self.send_response("\n".join(data) + "\n", content_type="text/plain; version=0.0.4")

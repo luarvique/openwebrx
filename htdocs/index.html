@@ -1,11 +1,11 @@
 <!DOCTYPE HTML>
 <!--
 
-    This file is part of OpenWebRX,
+    This file is part of OpenWebRX+,
     an open-source SDR receiver software with a web UI.
     Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
     Copyright (c) 2019-2024 by Jakob Ketterl <dd5jfk@darc.de>
-    Copyright (c) 2022-2024 by Marat Fayzullin <luarvique@gmail.com>
+    Copyright (c) 2022-2026 by Marat Fayzullin <luarvique@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -44,7 +44,7 @@
     </head>
     <body onload="openwebrx_init();">
 
-<div id="webrx-page-container">
+<div id="webrx-page-container" onmousemove="UI.bumpOpacity();" onmousedown="UI.bumpOpacity();">
     ${header}
     <div class="openwebrx-waterfall-container">
         <div id="openwebrx-frequency-container">
@@ -98,7 +98,8 @@
                 <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-adsb-message" style="display: none; width: 619px;" data-panel-name="adsb-message"></div>
                 <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-ism-message" style="display: none; width: 619px;" data-panel-name="ism-message"></div>
                 <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-dsc-message" style="display: none; width: 619px;" data-panel-name="dsc-message"></div>
-                <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-cwskimmer-message" style="display: none; width: 619px;" data-panel-name="cwskimmer-message"></div>
+                <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-skimmer-message" style="display: none; width: 619px;" data-panel-name="skimmer-message"></div>
+                <div class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-meshtastic-message" style="display: none; width: 619px;" data-panel-name="meshtastic-message"></div>
                 <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-m17" style="display: none;" data-panel-name="metadata-m17">
                     <div class="openwebrx-meta-slot">
                         <div class="openwebrx-meta-user-image">
@@ -170,9 +171,25 @@
                         </div>
                     </div>
                 </div>
+		<div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-p25" style="display: none;" data-panel-name="metadata-p25">
+                    <div class="openwebrx-meta-slot">
+                        <div class="openwebrx-p25-encryption"></div>
+                        <div class="openwebrx-meta-user-image">
+                            <img class="directcall" src="static/gfx/openwebrx-directcall.svg">
+                            <img class="groupcall" src="static/gfx/openwebrx-groupcall.svg">
+                        </div>
+                        <div class="openwebrx-p25-source"></div>
+                        <div class="openwebrx-p25-destination"></div>
+                    </div>
+                </div>
+		<div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-tetra" style="display: none;" data-panel-name="metadata-tetra">
+                    <div class="openwebrx-meta-slot">
+                    </div>
+                </div>
                 <div class="openwebrx-panel openwebrx-meta-panel disabled" id="openwebrx-panel-metadata-wfm" style="display: none;" data-panel-name="metadata-wfm"></div>
                 <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-hdr" style="display: none;" data-panel-name="metadata-hdr"></div>
                 <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-dab" style="display: none;" data-panel-name="metadata-dab"></div>
+                <div class="openwebrx-panel openwebrx-meta-panel" id="openwebrx-panel-metadata-drm" style="display: none;" data-panel-name="metadata-drm"></div>
                 <div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" style="width: 92%; max-width: 619px;">
                     <div style="position: relative; height: 100%">
                         <div class="openwebrx-panel-inner nano" id="openwebrx-log-scroll">
@@ -180,8 +197,7 @@
                                 <div id="openwebrx-client-log-title">OpenWebRX+ message log</div>
                                 <div>
                                     Author: <a href="http://fms.komkon.org/" target="_blank">Marat Fayzullin</a> |
-                                    <a href="https://www.openwebrx.de" target="_blank">OpenWebRX</a>
-                                    <a href="https://fms.komkon.org/OWRX" target="_blank">documentation</a> and
+                                    <a href="https://fms.komkon.org/OWRX" target="_blank">OpenWebRX+ documentation</a> and
                                     <a href="https://groups.io/g/openwebrx" target="_blank">support</a>
                                 </div>
                                 <hr />
@@ -201,6 +217,7 @@
                     <div class="openwebrx-progressbar" id="openwebrx-bar-audio-buffer" data-type="audiobuffer"></div>
                     <div class="openwebrx-progressbar" id="openwebrx-bar-audio-output" data-type="audiooutput"></div>
                     <div class="openwebrx-progressbar" id="openwebrx-bar-audio-speed" data-type="audiospeed"></div>
+                    <div class="openwebrx-progressbar" id="openwebrx-bar-battery" data-type="battery" style="display:none;"></div>
                     <div class="openwebrx-progressbar" id="openwebrx-bar-network-speed" data-type="networkspeed"></div>
                     <div class="openwebrx-progressbar" id="openwebrx-bar-server-cpu" data-type="cpu"></div>
                     <div class="openwebrx-progressbar" id="openwebrx-bar-clients" data-type="clients"></div>
@@ -274,7 +291,7 @@
                             <div title="Noise reduction on/off" class="openwebrx-nr-toggle openwebrx-button openwebrx-slider-button" onclick="UI.toggleNR();">
                                 <svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#noise-reduce"></use></svg>
                             </div>
-                            <input title="Noise reduction level" disabled id="openwebrx-panel-nr" class="openwebrx-panel-slider" type="range" min="-10" max="10" value="0" step="1" onchange="UI.setNR(this.value)" oninput="UI.setNR(this.value)">
+                            <input title="Noise reduction level" disabled id="openwebrx-panel-nr" class="openwebrx-panel-slider" type="range" min="-20" max="20" value="0" step="1" onchange="UI.setNR(this.value)" oninput="UI.setNR(this.value)">
                             <div title="Set waterfall colors to default" id="openwebrx-waterfall-colors-default" class="openwebrx-button openwebrx-slider-button" onclick="Waterfall.setDefaultRange();">
                                 <svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#waterfall-default"></use></svg>
                             </div>
@@ -288,7 +305,8 @@
                                 <svg viewBox="56 -900 835 835" style="overflow: visible"><use xlink:href="static/gfx/svg-defs.svg#theme-chooser"></use></svg>
                             </div>
                             <select title="Theme" id="openwebrx-themes-listbox" class="openwebrx-panel-listbox" onchange="UI.setTheme(this.value);">
-                                <option value="default">Default</option>
+                                <option value="">Default</option>
+                                <option value="default">Gray</option>
                                 <option value="brown">Brown</option>
                                 <option value="red">Red</option>
                                 <option value="green">Green</option>
@@ -298,10 +316,11 @@
                                 <option value="black">Black</option>
                                 <option value="night">Night</option>
                             </select>
-                            <div title="Reset opacity" id="openwebrx-opacity-reset" class="openwebrx-button openwebrx-slider-button" onclick="UI.setOpacity(100);">
-                                <svg viewBox="56 -900 835 835"><use xlink:href="static/gfx/svg-defs.svg#opacity"></use></svg>
+                            <div title="Toggle opacity bump" class="openwebrx-button openwebrx-slider-button openwebrx-opacity-button" onclick="UI.toggleOpacity();">
+                                <svg class="unbumped" viewBox="56 -900 835 835"><use xlink:href="static/gfx/svg-defs.svg#opacity"></use></svg>
+                                <svg class="bumped" viewBox="56 -900 835 835"><use xlink:href="static/gfx/svg-defs.svg#opacity-bump"></use></svg>
                             </div>
-                            <input title="Opacity" id="openwebrx-opacity-slider" class="openwebrx-panel-slider" type="range" min="20" max="100" value="100" step="1" oninput="UI.setOpacity(this.value);">
+                            <input title="Opacity" id="openwebrx-opacity-slider" class="openwebrx-panel-slider" type="range" min="10" max="100" value="100" step="1" oninput="UI.setOpacity(this.value);">
                         </div>
                         <div class="openwebrx-panel-line">
                             <div title="Reset waterfall theme" class="openwebrx-button openwebrx-slider-button" onclick="UI.setWfTheme('default');">
@@ -367,12 +386,22 @@
 </div>
     <div id="openwebrx-autoplay-overlay" class="openwebrx-overlay" style="display:none;">
         <div class="overlay-content">
-            <svg viewBox="0 0 700 700"><use xlink:href="static/gfx/svg-defs.svg#play-button"></use></svg>
+            <span style="position:relative;">
+                <svg viewBox="0 0 700 700"><use xlink:href="static/gfx/svg-defs.svg#play-button"></use></svg>
+                <a id="openwebrx-get-android-app" href="https://play.google.com/store/apps/details?id=com.fms.owrx" target="_blank" style="display:none;position:absolute;bottom:120px;left:120px;">
+                    <img src="static/gfx/openwebrx-get-android-app.svg" width="100" height="100" />
+                </a>
+            </span>
             <div>Start OpenWebRX+</div>
         </div>
     </div>
+    <div id="openwebrx-message-bubble" class="openwebrx-bubble" style="display:none;">
+    </div>
     <div id="openwebrx-dialog-bookmark" class="openwebrx-dialog" style="display:none;">
         <form>
+            <div class="form-field">
+                <h2>Edit Bookmark</h2>
+            </div>
             <div class="form-field">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required="required">
@@ -399,7 +428,24 @@
             </div>
             <div class="buttons">
                 <div class="openwebrx-button" data-action="cancel">Cancel</div>
-                <div class="openwebrx-button" data-action="submit">Ok</div>
+                <div class="openwebrx-button" data-action="submit">Save</div>
+            </div>
+            <input type="submit" style="display:none;">
+        </form>
+    </div>
+    <div id="openwebrx-dialog-search-bookmarks" class="openwebrx-dialog" style="display:none;">
+        <form>
+            <div class="form-field">
+                <h2>Search Bookmarks</h2>
+            </div>
+            <div class="form-field">
+                <input type="text" id="search-text" name="search-text" required="required">
+            </div>
+            <div class="form-field" id="search-results">
+            </div>
+            <div class="buttons">
+                <div class="openwebrx-button" data-action="cancel">Close</div>
+                <div class="openwebrx-button" data-action="submit">Search</div>
             </div>
             <input type="submit" style="display:none;">
         </form>

@@ -98,6 +98,13 @@ MapManager.prototype.initializeMap = function(receiver_gps, api_key, weather_key
         $.getScript("https://maps.googleapis.com/maps/api/js?key=" + api_key).done(function() {
             // Create a map instance
             map = new google.maps.Map($('.openwebrx-map')[0], {
+                zoomControl:       true,
+                cameraControl:     false,
+                mapTypeControl:    true,
+                scaleControl:      true,
+                streetViewControl: true,
+                rotateControl:     true,
+                fullscreenControl: true,
                 center : receiverPos,
                 zoom   : 5,
             });
@@ -164,10 +171,11 @@ MapManager.prototype.processUpdates = function(updates) {
                 // If new item, create a new marker for it
                 if (!marker) {
                     switch(update.mode) {
-                        case 'HFDL': case 'VDL2': case 'ADSB': case 'ACARS':
+                        case 'HFDL': case 'VDL2': case 'ADSB':
+                        case 'ACARS': case 'UAT':
                             marker = new GAircraftMarker();
                             break;
-                        case 'APRS': case 'AIS': case 'HDR':
+                        case 'APRS': case 'AIS': case 'HDR': case 'SONDE': case 'Meshtastic':
                             marker = new GAprsMarker();
                             break;
                         case 'KiwiSDR': case 'WebSDR': case 'OpenWebRX':

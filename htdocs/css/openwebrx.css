@@ -301,9 +301,10 @@ input[type=range]:disabled {
 	border-style: none;
 	image-rendering: crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
-    width: 100%;
-    height: 200px;
-    will-change: transform;
+	width: 100%;
+	height: 201px;
+	will-change: transform;
+	margin-top: -1px;
 }
 
 #openwebrx-log-scroll
@@ -477,6 +478,7 @@ input[type=range]:disabled {
 	-moz-border-radius: 15px;
 	margin: 5.9px;
 	box-sizing: content-box;
+	transition: opacity 0.5s ease-out;
 }
 
 .openwebrx-panel a
@@ -1153,6 +1155,26 @@ img.openwebrx-mirror-img
     content: "Conference: ";
 }
 
+.openwebrx-tetra-display {
+    flex: 0.7 0 0;
+    line-height: 1.2em;
+    font-size: 12px;
+}
+
+.openwebrx-p25-display {
+    flex: 0.7 0 0;
+    line-height: 1.2em;
+    font-size: 12px;
+}
+
+.openwebrx-meta-slot.group .openwebrx-p25-destination:not(:empty):before {
+    content: "Talkgroup: ";
+}
+
+.openwebrx-meta-slot.direct .openwebrx-p25-destination:not(:empty):before {
+    content: "Direct: ";
+}
+
 .openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;
@@ -1376,27 +1398,75 @@ img.openwebrx-mirror-img
     text-align: right;
 }
 
-#openwebrx-panel-cwskimmer-message {
+#openwebrx-panel-meshtastic-message {
     height: 310px;
 }
 
-#openwebrx-panel-cwskimmer-message tbody {
+#openwebrx-panel-meshtastic-message a {
+    color: inherit;
+}
+
+#openwebrx-panel-meshtastic-message tbody {
     height: 280px;
 }
 
-#openwebrx-panel-cwskimmer-message .freq {
+#openwebrx-panel-meshtastic-message .timestamp {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .src {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .dst {
+    width: 80px;
+    text-align: center;
+}
+
+#openwebrx-panel-meshtastic-message .data {
+    width: 326px;
+    text-align: center;
+}
+
+#openwebrx-panel-skimmer-message {
+    height: 310px;
+}
+
+#openwebrx-panel-skimmer-message tbody {
+    height: 280px;
+}
+
+#openwebrx-panel-skimmer-message .freq {
     width: 70px;
 }
 
-#openwebrx-panel-cwskimmer-message td.freq {
+#openwebrx-panel-skimmer-message td.freq {
     text-align: right;
+    position: relative;
 }
 
-#openwebrx-panel-cwskimmer-message .text {
+#openwebrx-panel-skimmer-message span.freq {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#openwebrx-panel-skimmer-message span.db {
+    transition: width 1.0s ease-out;
+    background-color: #0000FF;
+    opacity: 20%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#openwebrx-panel-skimmer-message .text {
     width: 500px;
 }
 
-#openwebrx-panel-cwskimmer-message td.text {
+#openwebrx-panel-skimmer-message td.text {
     font-family: monospace;
     white-space: nowrap;
 }
@@ -1536,6 +1606,25 @@ img.openwebrx-mirror-img
     background-image: url(../../aprs-symbols/aprs-symbols-24-2.png)
 }
 
+.openwebrx-bubble {
+    opacity: 0.0;
+    background-color: #575757;
+    color: white;
+    padding: 30px;
+    font-size: 20pt;
+    border-radius: 15px;
+    -moz-border-radius: 15px;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.5s ease;
+}
+
+.openwebrx-bubble.shown {
+    opacity: 0.7;
+}
+
 .openwebrx-dialog {
     background-color: #575757;
     padding: 10px;
@@ -1604,6 +1693,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="vdl2"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="adsb"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="acars"]   #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="uat"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="js8"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="fst4"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="fst4w"]   #openwebrx-digimode-content-container,
@@ -1612,8 +1702,17 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sstv"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="fax"]     #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ism"]     #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="wmbus"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="dsc"]     #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="cwskimmer"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-mts01"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft8"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wspr"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt65"]    #openwebrx-digimode-select-channel,
@@ -1627,6 +1726,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="vdl2"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="adsb"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="acars"]   #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="uat"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="js8"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="fst4"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="fst4w"]   #openwebrx-digimode-select-channel,
@@ -1635,10 +1735,24 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sstv"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="fax"]     #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="ism"]     #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="wmbus"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="selcall"] #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="zvei"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="eas"]     #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="cwskimmer"] #openwebrx-digimode-select-channel
+#openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="lora-wan"]    #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="lora-fanet"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="lora-aprs"]   #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="meshcore"]    #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="meshcom"]     #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-mts01"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-select-channel
 {
     display: none;
 }
@@ -1656,6 +1770,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="vdl2"]    #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="adsb"]    #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="acars"]   #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="uat"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="js8"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="fst4"]    #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="fst4w"]   #openwebrx-digimode-canvas-container,
@@ -1664,8 +1779,17 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="sstv"]    #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="fax"]     #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="ism"]     #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="wmbus"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="dsc"]     #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="cwskimmer"] #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode="cwskimmer"]   #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="rttyskimmer"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-rs41"]  #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-mts01"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m10"]   #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-m20"]   #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm9"]  #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="sonde-dfm17"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="meshtastic"]  #openwebrx-digimode-canvas-container
 {
     height: 200px;
     margin: -10px;
@@ -1798,7 +1922,7 @@ img.openwebrx-mirror-img
 
 #openwebrx-panel-metadata-hdr {
 	width: 350px;
-	max-height: 300px;
+	max-height: 400px;
 	padding: 10px 10px 10px 10px;
 }
 
@@ -1806,6 +1930,12 @@ img.openwebrx-mirror-img
 	width: 100%;
 	text-align: center;
 	overflow: hidden auto;
+}
+
+.hdr-image {
+	display: block;
+	margin: auto;
+	max-height: 200px;
 }
 
 .hdr-container .hdr-station {
@@ -1874,6 +2004,93 @@ img.openwebrx-mirror-img
 	content: "Ensemble: ";
 }
 
+#openwebrx-panel-metadata-drm {
+	width: 350px;
+	max-height: 640px;
+	padding: 10px 10px 10px 10px;
+}
+
+.drm-container {
+	width: 100%;
+}
+
+.drm-line, .drm-separator {
+	width: 100%;
+	padding-bottom: 5px;
+	padding-top: 5px;
+	text-align: center;
+	color: #ccc;
+}
+
+.drm-separator {
+	border-top: 2px dotted;
+}
+
+.drm-program {
+	width: 95%;
+	padding: 5px 5px 5px 5px;
+	border-radius: 3px;
+        background: #111;
+	text-align: left;
+}
+
+.drm-label, .drm-left {
+	display: inline-block;
+	font-size: 11px;
+	letter-spacing: 0.3px;
+	color: #ccc;
+}
+
+.drm-left {
+	padding-right: 10px;
+	text-align: right;
+	width: 20%;
+}
+
+.drm-value, .drm-right {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.3px;
+	color: #fff;
+}
+
+.drm-right {
+	padding-left: 10px;
+	text-align: left;
+	width: 20%;
+}
+
+.drm-indicator {
+	padding: 2px 6px;
+	margin-left: 3px;
+	margin-right: 3px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 10px;
+	transition: background-color 0.2s ease, color 0.2s ease;
+	letter-spacing: 0.3px;
+}
+
+.drm-on {
+	background: #0f0;
+	color: #000;
+}
+
+.drm-off {
+	background: #666;
+	color: #ccc;
+}
+
+.drm-error {
+	background: #f00;
+	color: #fff;
+}
+
 @keyframes openwebrx-record-animation {
     0% { background: #ff0000; color: white; }
    50% { background: #800000; color: white; }
@@ -1908,6 +2125,18 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-squelch-auto.highlighted .squelch {
+    display: none;
+}
+
+.openwebrx-opacity-button .bumped {
+    display: none;
+}
+
+.openwebrx-opacity-button.bumped .bumped {
+    display: initial;
+}
+
+.openwebrx-opacity-button.bumped .unbumped {
     display: none;
 }
 
@@ -1970,3 +2199,35 @@ img.openwebrx-mirror-img
     max-height: 0;
 }
 
+#openwebrx-dialog-search-bookmarks .search-left {
+    text-align: right;
+    padding: 5px 5px 5px 15px;
+    white-space: nowrap;
+    width: 100%;
+}
+
+#openwebrx-dialog-search-bookmarks .search-right {
+    text-align: left;
+    padding: 5px 15px 5px 5px;
+    white-space: nowrap;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results {
+    table-layout: fixed;
+    overflow-y: scroll;
+    max-height: 350px;
+    display: block;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 1px;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results tr:nth-child(odd) {
+    background-color: #efffef;
+    color: #000000;
+}
+
+#openwebrx-dialog-search-bookmarks .search-results tr:nth-child(even) {
+    background-color: #ffffff;
+    color: #000000;
+}

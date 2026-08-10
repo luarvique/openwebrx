@@ -1,11 +1,18 @@
+import re
+
 class HamCallsign(object):
+    CALLSIGN_PATTERN = re.compile("^.*[A-Z]+[0-9].*[A-Z]$")
+
     @staticmethod
     def getCountry(callsign: str):
+        # Make sure callsign matches P-N-S pattern
         callsign = callsign.upper()
-        for x in range(4, 0, -1):
-            pfx = callsign[0:x]
-            if pfx in CALL2COUNTRY:
-                return CALL2COUNTRY[pfx]
+        if HamCallsign.CALLSIGN_PATTERN.match(callsign):
+            # Look up country by known prefixes
+            for x in range(4, 0, -1):
+                pfx = callsign[0:x]
+                if pfx in CALL2COUNTRY:
+                    return CALL2COUNTRY[pfx]
         return None
 
     @staticmethod

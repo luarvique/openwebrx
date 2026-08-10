@@ -211,12 +211,8 @@ class FaxParser(DataRecorder, ThreadModule):
                     #logger.debug("%s got line %d of %d/%d pixels" % (
                     #    self.myName(), self.line, w, len(self.data)/b
                     #))
-                    # Check for trailing lines that are going to be all white
-                    frameEnded = True
-                    for j in [0, l]:
-                        if self.data[j] != 0xFF:
-                            frameEnded = False
-                            break
+                    # Check for trailing lines marked with "END-PAGE!"
+                    frameEnded = self.data[0:9] == b"END-PAGE!"
                     # If running as a service...
                     if self.service:
                         # Write a scanline into open image file

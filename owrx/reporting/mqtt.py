@@ -1,7 +1,9 @@
-from paho.mqtt.client import Client
+from paho.mqtt.client import Client, SubscribeOptions, MQTTv5
 from owrx.reporting.reporter import Reporter
 from owrx.config import Config
 from owrx.property import PropertyDeleted
+from owrx.client import ClientRegistry
+from owrx.mqtt import MqttSubscriber
 import json
 import threading
 import time
@@ -10,6 +12,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+try:
+    from paho.mqtt.client import CallbackAPIVersion
+    paho_mqtt_v2_available = True
+    mqtt_api_version = CallbackAPIVersion.VERSION1
+except ImportError:
+    paho_mqtt_v2_available = False
+    mqtt_api_version = None
+
 
 class MqttReporter(Reporter):
     DEFAULT_TOPIC = "openwebrx"
@@ -17,16 +27,29 @@ class MqttReporter(Reporter):
     def __init__(self):
         pm = Config.get()
         self.topic = self.DEFAULT_TOPIC
+        self.connected = False
+        self.watchLock = threading.Lock()
+        self.watching = {}
         self.client = self._getClient()
+        self.subscriber = MqttSubscriber(self)
         self.subscriptions = [
             pm.wireProperty("mqtt_topic", self._setTopic),
-            pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect)
+            pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect),
+            pm.filter("mqtt_chat", "mqtt_wsjt", "mqtt_aircraft", "mqtt_aprs", "mqtt_ais", "mqtt_sonde").wire(self._resubscribe)
         ]
 
     def _getClient(self):
         pm = Config.get()
         clientId = pm["mqtt_client_id"] if "mqtt_client_id" in pm else ""
-        client = Client(clientId)
+        
+        if paho_mqtt_v2_available:
+            client = Client(mqtt_api_version, client_id=clientId, protocol=MQTTv5)
+        else:
+            client = Client(client_id=clientId, protocol=MQTTv5)
+        
+        client.on_disconnect = self._onDisconnect
+        client.on_connect = self._onConnect
+        client.on_message = self._onMessage
 
         if "mqtt_user" in pm and "mqtt_password" in pm:
             client.username_pw_set(pm["mqtt_user"], pm["mqtt_password"])
@@ -61,6 +84,63 @@ class MqttReporter(Reporter):
         old = self.client
         self.client = self._getClient()
         old.disconnect()
+
+    def _resubscribe(self, *args, **kwargs):
+        logger.debug("Resubscribing...")
+        # Remove all currently watched topics
+        self.removeAllWatches()
+        # Resubscribe
+        self.subscriber = MqttSubscriber(self)
+
+    def _onConnect(self, client, userdata, flags, rc, properties=None):
+        options = SubscribeOptions(noLocal=1)
+        with self.watchLock:
+            # Subscribe to all watched topics
+            for watch in list(self.watching.keys()):
+                client.subscribe("+/+/" + watch, options=options)
+                client.subscribe("+/" + watch, options=options)
+            # We are now connected to the MQTT broker
+            self.connected = True
+
+    def _onDisconnect(self, client, userdata, rc, properties=None):
+        # We are now disconnected from the MQTT broker
+        self.connected = False
+
+    def _onMessage(self, client, userdata, msg, properties=None):
+        # Split off the last part of the topic
+        parts = msg.topic.rsplit("/", 1)
+        # Ignore our own messages and messages not being watched
+        if len(parts) == 2 and parts[0] != self.topic and parts[1] in self.watching:
+            # Remove leading "openwebrx/" from the topic, if present
+            if parts[0].startswith("openwebrx/"):
+                parts[0] = parts[0][10:]
+            # Call relevant message handler
+            try:
+                self.watching[parts[1]](parts[0], json.loads(msg.payload.decode()))
+            except Exception as e:
+                logger.exception("Exception receving MQTT message: {}".format(e))
+
+    # Watch given MQTT topic
+    def addWatch(self, watch, handler):
+        with self.watchLock:
+            # When client already connected, subscribe to new topics immediately
+            if watch not in self.watching and self.connected:
+                options = SubscribeOptions(noLocal=1)
+                self.client.subscribe("+/+/" + watch, options=options)
+                self.client.subscribe("+/" + watch, options=options)
+            # Update topic-specific handler
+            self.watching[watch] = handler
+
+    # Stop watching all MQTT topics
+    def removeAllWatches(self):
+        with self.watchLock:
+            # Unsubscribe from everything
+            if self.connected:
+                for watch in list(self.watching.keys()):
+                    self.client.unsubscribe("+/+/" + watch)
+                    self.client.unsubscribe("+/" + watch)
+            # No more watches
+            self.watching = {}
 
     def stop(self):
         self.client.disconnect()

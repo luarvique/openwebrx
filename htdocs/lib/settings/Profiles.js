@@ -9,5 +9,10 @@ $.fn.profiles = function() {
             location.replace(document.URL.replace(/(\/sdr\/[^\/]+)\/profile\/([^\/]+)$/, '$1/moveprofileup/$2'));
             return false;
         });
+
+        $(this).on('click', '.clone', function(e) {
+            location.replace(document.URL.replace(/(\/sdr\/[^\/]+)\/profile\/([^\/]+)$/, '$1/newprofile/$2'));
+            return false;
+        });
     });
 }

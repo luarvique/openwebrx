@@ -164,8 +164,10 @@ class AprsParser(PickleModule):
         super().__init__()
         self.metrics = {}
         self.band = None
+        self.freq = 0
 
     def setDialFrequency(self, freq):
+        self.freq = freq
         self.band = Bandplan.getSharedInstance().findBand(freq)
 
     def getMetric(self, category):
@@ -184,7 +186,48 @@ class AprsParser(PickleModule):
     def isDirect(self, aprsData):
         return len(self.getHops(aprsData)) == 0
 
-    def getHops(self, aprsData):
+    def process(self, data):
+        try:
+            # TODO how can we tell if this is an APRS frame at all?
+            aprsData = self.parseAprsData(data)
+
+            # the frontend uses this to distinguish messages from the different parsers
+            aprsData["mode"] = "AIS" if data["source"] == "AIS" else "APRS"
+
+            # it is always a good idea to know the frequency
+            if self.freq > 0:
+                aprsData["freq"] = self.freq
+
+            logger.debug("decoded APRS data: %s", aprsData)
+            AprsParser.updateMap(aprsData, self.band)
+            self.getMetric("total").inc()
+            if self.isDirect(aprsData):
+                self.getMetric("direct").inc()
+
+            ReportingEngine.getSharedInstance().spot(aprsData)
+            return aprsData
+
+        except Exception:
+            logger.exception("exception while parsing aprs data")
+
+    @staticmethod
+    def updateMap(mapData, band = None, timestamp = None):
+        mode = mapData["mode"] if "mode" in mapData else "APRS"
+        hops = AprsParser.getHops(mapData)
+        if "type" in mapData and mapData["type"] == "thirdparty" and "forwarded" in mapData:
+            mapData = mapData["forwarded"]
+        if "lat" in mapData and "lon" in mapData:
+            loc = AprsLocation(mapData)
+            source = mapData["source"]
+            if "type" in mapData:
+                if mapData["type"] == "item":
+                    source = mapData["item"]
+                elif mapData["type"] == "object":
+                    source = mapData["object"]
+            Map.getSharedInstance().updateLocation(source, loc, mode, band, hops, timestamp)
+
+    @staticmethod
+    def getHops(aprsData):
         hops = []
         if "source" in aprsData:
             # AIS reports have no hops
@@ -199,41 +242,6 @@ class AprsParser(PickleModule):
                 if hop.endswith("*") and not noHopPattern.match(hop)]
         # return hops with all the asterisks stripped
         return hops
-
-    def process(self, data):
-        try:
-            # TODO how can we tell if this is an APRS frame at all?
-            aprsData = self.parseAprsData(data)
-
-            # the frontend uses this to distinguish messages from the different parsers
-            aprsData["mode"] = "AIS" if data["source"] == "AIS" else "APRS"
-
-            logger.debug("decoded APRS data: %s", aprsData)
-            self.updateMap(aprsData)
-            self.getMetric("total").inc()
-            if self.isDirect(aprsData):
-                self.getMetric("direct").inc()
-
-            ReportingEngine.getSharedInstance().spot(aprsData)
-            return aprsData
-
-        except Exception:
-            logger.exception("exception while parsing aprs data")
-
-    def updateMap(self, mapData):
-        mode = mapData["mode"] if "mode" in mapData else "APRS"
-        hops = self.getHops(mapData)
-        if "type" in mapData and mapData["type"] == "thirdparty" and "data" in mapData:
-            mapData = mapData["data"]
-        if "lat" in mapData and "lon" in mapData:
-            loc = AprsLocation(mapData)
-            source = mapData["source"]
-            if "type" in mapData:
-                if mapData["type"] == "item":
-                    source = mapData["item"]
-                elif mapData["type"] == "object":
-                    source = mapData["object"]
-            Map.getSharedInstance().updateLocation(source, loc, mode, self.band, hops)
 
     def hasCompressedCoordinates(self, raw):
         return raw[0] == "/" or raw[0] == "\\"
@@ -286,7 +294,8 @@ class AprsParser(PickleModule):
         aprsData = {
             "source": data["source"],
             "destination": data["destination"],
-            "path": data["path"]
+            "path": data["path"],
+            "data": information.decode(encoding, "replace")
         }
 
         if "raw" in data:
@@ -296,7 +305,7 @@ class AprsParser(PickleModule):
             aprsData.update(MicEParser().parse(data))
             return aprsData
 
-        information = information.decode(encoding, "replace")
+        information = aprsData["data"]
 
         # APRS data type identifier
         dti = information[0]
@@ -366,7 +375,7 @@ class AprsParser(PickleModule):
     def parseMessage(self, information):
         result = {"type": "message"}
         if len(information) > 9 and information[9] == ":":
-            result["adressee"] = information[0:9]
+            result["addressee"] = information[0:9].strip()
             message = information[10:]
             if len(message) > 3 and message[0:3] == "ack":
                 result["type"] = "messageacknowledgement"
@@ -395,7 +404,7 @@ class AprsParser(PickleModule):
                     "data": matches.group(6).encode(encoding),
                 }
             )
-            return {"type": "thirdparty", "data": data}
+            return {"type": "thirdparty", "forwarded": data}
 
         return {"type": "thirdparty"}
 

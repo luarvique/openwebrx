@@ -12,7 +12,7 @@ from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
 from csdr.chain.dummy import DummyDemodulator
 from pycsdr.modules import Buffer, Writer
-from pycsdr.types import Format
+from pycsdr.types import Format, AgcProfile
 from typing import Union, Optional
 from io import BytesIO
 from abc import ABC, abstractmethod
@@ -77,6 +77,19 @@ class ClientDemodulatorChain(Chain):
         if self.secondaryDemodulator is not None:
             self.secondaryDemodulator.stop()
             self.secondaryDemodulator = None
+        if self.secondarySelector is not None:
+            self.secondarySelector.stop()
+            self.secondarySelector = None
+        if self.clientAudioChain is not None:
+            self.clientAudioChain.stop()
+            self.clientAudioChain = None
+        if self.demodulator is not None:
+            self.demodulator.stop()
+            self.demodulator = None
+        if self.selector is not None:
+            self.selector.stop()
+            self.selector = None
+        self.selectorBuffer = None
 
     def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
         if w1 is self.selector:
@@ -472,6 +485,10 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
                 "wfm_rds_rbds",
                 "digital_voice_codecserver",
                 "rig_enabled",
+                "dab_output_rate",
+                "ssb_agc_profile",
+                "nfm_agc_profile",
+                "am_agc_profile"
             ),
         )
 
@@ -584,19 +601,19 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         # TODO: move this to Modes
         if demod == "nfm":
             from csdr.chain.analog import NFm
-            return NFm(self.props["output_rate"])
+            return NFm(self.props["output_rate"], AgcProfile(self.props["nfm_agc_profile"]))
         elif demod == "wfm":
             from csdr.chain.analog import WFm
             return WFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"], self.props["wfm_rds_rbds"])
         elif demod == "am":
             from csdr.chain.analog import Am
-            return Am()
+            return Am(AgcProfile(self.props["am_agc_profile"]))
         elif demod == "sam":
             from csdr.chain.analog import SAm
-            return SAm()
+            return SAm(AgcProfile(self.props["am_agc_profile"]))
         elif demod in ["usb", "lsb", "cw"]:
             from csdr.chain.analog import Ssb
-            return Ssb()
+            return Ssb(AgcProfile(self.props["ssb_agc_profile"]))
         elif demod == "dmr":
             from csdr.chain.digiham import Dmr
             return Dmr(self.props["digital_voice_codecserver"])
@@ -609,6 +626,12 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "nxdn":
             from csdr.chain.digiham import Nxdn
             return Nxdn(self.props["digital_voice_codecserver"])
+        elif demod == "p25":
+            from csdr.chain.digiham import P25
+            return P25(self.props["digital_voice_codecserver"])
+        elif demod == "tetra":
+            from csdr.chain.tetra import Tetra
+            return Tetra()
         elif demod == "hdr":
             from csdr.chain.hdradio import HdRadio
             return HdRadio()
@@ -621,9 +644,12 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "freedv":
             from csdr.chain.freedv import FreeDV
             return FreeDV()
+        elif demod in ["radel", "radeu"]:
+            from csdr.chain.freedv import RADE
+            return RADE()
         elif demod == "dab":
             from csdr.chain.dablin import Dablin
-            return Dablin()
+            return Dablin(self.props["dab_output_rate"])
         elif demod == "empty":
             from csdr.chain.analog import Empty
             return Empty()
@@ -724,6 +750,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "cwskimmer":
             from csdr.chain.toolbox import CwSkimmerDemodulator
             return CwSkimmerDemodulator()
+        elif mod == "rttyskimmer":
+            from csdr.chain.toolbox import RttySkimmerDemodulator
+            return RttySkimmerDemodulator()
         elif mod == "mfrtty170":
             from csdr.chain.digimodes import MFRttyDemodulator
             return MFRttyDemodulator(170.0, 45.45, reverse = False)
@@ -738,37 +767,81 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             return FaxDemodulator()
         elif mod == "ism":
             from csdr.chain.toolbox import IsmDemodulator
-            return IsmDemodulator()
+            return IsmDemodulator(250000)
+        elif mod == "wmbus":
+            # WMBus likes 1.2Msps, which does not work for other ISM
+            from csdr.chain.toolbox import IsmDemodulator
+            return IsmDemodulator(1200000)
         elif mod == "hfdl":
-            from csdr.chain.toolbox import HfdlDemodulator
+            from csdr.chain.aircraft import HfdlDemodulator
             return HfdlDemodulator()
         elif mod == "vdl2":
-            from csdr.chain.toolbox import Vdl2Demodulator
+            from csdr.chain.aircraft import Vdl2Demodulator
             return Vdl2Demodulator()
         elif mod == "acars":
-            from csdr.chain.toolbox import AcarsDemodulator
+            from csdr.chain.aircraft import AcarsDemodulator
             return AcarsDemodulator()
         elif mod == "adsb":
-            from csdr.chain.toolbox import AdsbDemodulator
+            from csdr.chain.aircraft import AdsbDemodulator
             return AdsbDemodulator()
+        elif mod == "uat":
+            from csdr.chain.aircraft import UatDemodulator
+            return UatDemodulator()
+        elif mod == "lora-wan":
+            from csdr.chain.lora import LoraWanDemodulator
+            return LoraWanDemodulator()
+        elif mod == "lora-aprs":
+            from csdr.chain.lora import LoraAprsDemodulator
+            return LoraAprsDemodulator()
+        elif mod == "lora-fanet":
+            from csdr.chain.lora import LoraFanetDemodulator
+            return LoraFanetDemodulator()
+        elif mod == "meshtastic":
+            from csdr.chain.lora import MeshtasticDemodulator
+            return MeshtasticDemodulator()
+        elif mod == "meshcore":
+            from csdr.chain.lora import MeshcoreDemodulator
+            return MeshcoreDemodulator()
+        elif mod == "meshcom":
+            from csdr.chain.lora import MeshComDemodulator
+            return MeshComDemodulator()
+        elif mod == "sonde-mts01":
+            from csdr.chain.sonde import Mts01Demodulator
+            return Mts01Demodulator()
+        elif mod == "sonde-rs41":
+            from csdr.chain.sonde import Rs41Demodulator
+            return Rs41Demodulator()
+        elif mod == "sonde-dfm9":
+            from csdr.chain.sonde import Dfm9Demodulator
+            return Dfm9Demodulator()
+        elif mod == "sonde-dfm17":
+            from csdr.chain.sonde import Dfm17Demodulator
+            return Dfm17Demodulator()
+        elif mod == "sonde-m10":
+            from csdr.chain.sonde import M10Demodulator
+            return M10Demodulator()
+        elif mod == "sonde-m20":
+            from csdr.chain.sonde import M20Demodulator
+            return M20Demodulator()
         elif mod == "audio":
             # this should only run as a service though
             from csdr.chain.toolbox import AudioRecorder
             return AudioRecorder()
         elif mod == "noaa-apt-15":
-            from csdr.chain.toolbox import NoaaAptDemodulator
+            # this should only run as a service though
+            from csdr.chain.satellite import NoaaAptDemodulator
             return NoaaAptDemodulator(satellite=15)
-        elif mod == "noaa-apt-18":
-            from csdr.chain.toolbox import NoaaAptDemodulator
-            return NoaaAptDemodulator(satellite=18)
         elif mod == "noaa-apt-19":
-            from csdr.chain.toolbox import NoaaAptDemodulator
+            # this should only run as a service though
+            from csdr.chain.satellite import NoaaAptDemodulator
             return NoaaAptDemodulator(satellite=19)
         elif mod == "meteor-lrpt":
-            from csdr.chain.toolbox import MeteorLrptDemodulator
+            # this should only run as a service though
+            from csdr.chain.satellite import MeteorLrptDemodulator
             return MeteorLrptDemodulator()
         elif mod == "elektro-lrit":
-            from csdr.chain.toolbox import ElektroLritDemodulator
+            # this should only run as a service though
+            from csdr.chain.satellite import ElektroLritDemodulator
             return ElektroLritDemodulator()
 
     def setSecondaryDemodulator(self, mod):
@@ -857,9 +930,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         return unpickler
 
     def stop(self):
-        if self.chain:
-            self.chain.stop()
-            self.chain = None
+        self.chain.stop()
         for reader in self.readers.values():
             reader.stop()
         self.readers = {}

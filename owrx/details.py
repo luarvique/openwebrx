@@ -13,6 +13,7 @@ class ReceiverDetails(PropertyFilter):
             Config.get(),
             ByPropertyName(
                 "receiver_name",
+                "receiver_help",
                 "receiver_location",
                 "receiver_asl",
                 "receiver_gps",

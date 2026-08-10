@@ -101,11 +101,11 @@ class Selector(Chain):
 
         workers = [self.shift, self.decimation]
 
-        self.readings_per_second = 4
+        self.measurementsPerSec = 16
+        self.readingsPerSec = 4
+        self.powerWriter = None
         if withSquelch:
-            # s-meter readings are available every 1024 samples
-            # the reporting interval is measured in those 1024-sample blocks
-            self.squelch = Squelch(5, int(outputRate / (self.readings_per_second * 1024)))
+            self.squelch = self._buildSquelch()
             workers += [self.squelch]
         else:
             self.squelch = None
@@ -115,6 +115,19 @@ class Selector(Chain):
     def _buildBandpass(self) -> Bandpass:
         bp_transition = 320.0 / self.outputRate
         return Bandpass(transition=bp_transition, use_fft=True)
+
+    def _buildSquelch(self):
+        blockLength = int(self.outputRate / self.measurementsPerSec)
+        squelch = Squelch(Format.COMPLEX_FLOAT,
+            length      = blockLength,
+            decimation  = 5,
+            hangLength  = 2 * blockLength,
+            flushLength = 5 * blockLength,
+            reportInterval = int(self.measurementsPerSec / self.readingsPerSec)
+        )
+        if self.powerWriter is not None:
+            squelch.setPowerWriter(self.powerWriter)
+        return squelch
 
     def setFrequencyOffset(self, offset: int) -> None:
         if offset == self.frequencyOffset:
@@ -161,6 +174,7 @@ class Selector(Chain):
         self.setBandpass(*self.bandpassCutoffs)
 
     def setPowerWriter(self, writer: Writer) -> None:
+        self.powerWriter = writer
         if self.squelch is not None:
             self.squelch.setPowerWriter(writer)
 
@@ -168,15 +182,19 @@ class Selector(Chain):
         if outputRate == self.outputRate:
             return
         self.outputRate = outputRate
-
         self.decimation.setOutputRate(outputRate)
-        if self.squelch is not None:
-            self.squelch.setReportInterval(int(outputRate / (self.readings_per_second * 1024)))
-        index = self.indexOf(lambda x: isinstance(x, Bandpass))
+        # update bandpass module
         self.bandpass = self._buildBandpass()
         self.setBandpass(*self.bandpassCutoffs)
+        index = self.indexOf(lambda x: isinstance(x, Bandpass))
         if index >= 0:
             self.replace(index, self.bandpass)
+        # update squelch module if present
+        if self.squelch is not None:
+            self.squelch = self._buildSquelch()
+            index = self.indexOf(lambda x: isinstance(x, Squelch))
+            if index >= 0:
+                self.replace(index, self.squelch)
 
     def setInputRate(self, inputRate: int) -> None:
         if inputRate == self.inputRate:

@@ -128,11 +128,11 @@ class EIBI(WebAgent):
         result = []
         # Search for entries within given frequency and time ranges
         with self.lock:
-            for entry in self.data:
-                f = entry["freq"]
-                if f >= freq1 and f <= freq2:
-                    if entry["time1"] <= time2 and entry["time2"] > time1:
-                        result.append(entry)
+            start = self._bisect_left(freq1)
+            end   = self._bisect_right(freq2)
+            for entry in self.data[start : end]:
+                if entry["time1"] <= time2 and entry["time2"] > time1:
+                    result.append(entry)
         # Done
         return result
 
@@ -222,7 +222,9 @@ class EIBI(WebAgent):
 
         # Search for current entries
         with self.lock:
-            for entry in self.data:
+            start = self._bisect_left(f1)
+            end   = self._bisect_right(f2)
+            for entry in self.data[start : end]:
                 try:
                     # No distance or duration yet
                     dist = MAX_DISTANCE
@@ -231,7 +233,7 @@ class EIBI(WebAgent):
                     # Check if entry active and within frequency range
                     f = entry["freq"]
                     entryActive = (
-                        f1 <= f <= f2 and entry["days"][day] != "."
+                        entry["days"][day] != "."
                     and (entry["date1"] == 0 or entry["date1"] <= date)
                     and (entry["date2"] == 0 or entry["date2"] >= date)
                     )
@@ -329,9 +331,18 @@ class EIBI(WebAgent):
         # Done
         return "".join(result)
 
+    # Sort database by frequency
+    def _sortData(self, data):
+        data.sort(key=lambda entry: entry["freq"])
+        return data
+
+    # Load database from the source
     def _loadFromWeb(self):
         return self.loadFromWeb("http://www.eibispace.de/dx/sked-{0}.csv")
 
+    #
+    # Load database from the EIBI website
+    #
     def loadFromWeb(self, url: str):
         # Figure out CSV file name based on the current date
         # SUMMER: Apr - Oct - sked-aNN.csv
@@ -425,6 +436,7 @@ class EIBI(WebAgent):
             return None
 
         # Done
+        self.report(url, len(result))
         return result
 
 

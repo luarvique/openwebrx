@@ -1,0 +1,412 @@
+[
+    {
+        "name" : "CB1",
+        "frequency" : 26965000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB2",
+        "frequency" : 26975000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB3",
+        "frequency" : 26985000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB4",
+        "frequency" : 27005000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB5",
+        "frequency" : 27015000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB6",
+        "frequency" : 27025000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB7",
+        "frequency" : 27035000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB8",
+        "frequency" : 27055000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB9",
+        "frequency" : 27065000,
+        "modulation" : "am"
+    },
+    {
+        "name" : "CB10",
+        "frequency" : 27075000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB11",
+        "frequency" : 27085000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB12",
+        "frequency" : 27105000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB13",
+        "frequency" : 27115000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB14",
+        "frequency" : 27125000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB15",
+        "frequency" : 27135000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB16",
+        "frequency" : 27155000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB17",
+        "frequency" : 27165000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB18",
+        "frequency" : 27175000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB19",
+        "frequency" : 27185000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB20",
+        "frequency" : 27205000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB21",
+        "frequency" : 27215000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB22",
+        "frequency" : 27225000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB23",
+        "frequency" : 27255000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB24",
+        "frequency" : 27235000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB25",
+        "frequency" : 27245000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB26",
+        "frequency" : 27265000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB27",
+        "frequency" : 27275000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB28",
+        "frequency" : 27285000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB29",
+        "frequency" : 27295000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB30",
+        "frequency" : 27305000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB31",
+        "frequency" : 27315000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB32",
+        "frequency" : 27325000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB33",
+        "frequency" : 27335000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB34",
+        "frequency" : 27345000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB35",
+        "frequency" : 27355000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB36",
+        "frequency" : 27365000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB37",
+        "frequency" : 27375000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB38",
+        "frequency" : 27385000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB39",
+        "frequency" : 27395000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "CB40",
+        "frequency" : 27405000,
+        "modulation" : "nfm"
+    },
+    {
+        "name": "CB41",
+        "frequency": 26565000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB42",
+        "frequency": 26575000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB43",
+        "frequency": 26585000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB44",
+        "frequency": 26595000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB45",
+        "frequency": 26605000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB46",
+        "frequency": 26615000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB47",
+        "frequency": 26625000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB48",
+        "frequency": 26635000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB49",
+        "frequency": 26645000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB50",
+        "frequency": 26655000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB51",
+        "frequency": 26665000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB52",
+        "frequency": 26675000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB53",
+        "frequency": 26685000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB54",
+        "frequency": 26695000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB55",
+        "frequency": 26705000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB56",
+        "frequency": 26715000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB57",
+        "frequency": 26725000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB58",
+        "frequency": 26735000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB59",
+        "frequency": 26745000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB60",
+        "frequency": 26755000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB61",
+        "frequency": 26765000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB62",
+        "frequency": 26775000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB63",
+        "frequency": 26785000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB64",
+        "frequency": 26795000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB65",
+        "frequency": 26805000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB66",
+        "frequency": 26815000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB67",
+        "frequency": 26825000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB68",
+        "frequency": 26835000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB69",
+        "frequency": 26845000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB70",
+        "frequency": 26855000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB71",
+        "frequency": 26865000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB72",
+        "frequency": 26875000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB73",
+        "frequency": 26885000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB74",
+        "frequency": 26895000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB75",
+        "frequency": 26905000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB76",
+        "frequency": 26915000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB77",
+        "frequency": 26925000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB78",
+        "frequency": 26935000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB79",
+        "frequency": 26945000,
+        "modulation": "nfm"
+    },
+    {
+        "name": "CB80",
+        "frequency": 26955000,
+        "modulation": "nfm"
+    },
+    {
+        "name" : "DX",
+        "frequency" : 27555000,
+        "modulation" : "am"
+    },
+    {
+        "name" : "DW",
+        "frequency" : 27765000,
+        "modulation" : "am"
+    }
+]

@@ -1,0 +1,37 @@
+[
+    {
+        "name" : "JAKT1",
+        "frequency" : 155425000, 
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT2",
+        "frequency" : 155475000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT3",
+        "frequency" : 155500000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT4",
+        "frequency" : 155525000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT5",
+        "frequency" : 156000000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT6",
+        "frequency" : 155400000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT7",
+        "frequency" : 155450000,
+        "modulation" : "nfm"
+    }
+]

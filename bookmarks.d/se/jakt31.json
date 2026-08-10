@@ -1,0 +1,202 @@
+[
+    {
+        "name" : "JAKT1",
+        "frequency" : 30930000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT2",
+        "frequency" : 30940000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT3",
+        "frequency" : 30950000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT4",
+        "frequency" : 30960000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT5",
+        "frequency" : 30970000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT6",
+        "frequency" : 31030000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT7",
+        "frequency" : 31040000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT8",
+        "frequency" : 31050000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT9",
+        "frequency" : 31060000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT10",
+        "frequency" : 31070000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT11",
+        "frequency" : 31080000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT12",
+        "frequency" : 31090000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT13",
+        "frequency" : 31100000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT14",
+        "frequency" : 31110000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT15",
+        "frequency" : 31120000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT16",
+        "frequency" : 31130000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT17",
+        "frequency" : 31140000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT18",
+        "frequency" : 31140000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT19",
+        "frequency" : 31160000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT20",
+        "frequency" : 31170000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT21",
+        "frequency" : 31180000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT22",
+        "frequency" : 31190000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT23",
+        "frequency" : 31200000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT24",
+        "frequency" : 31210000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT25",
+        "frequency" : 31220000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT26",
+        "frequency" : 31230000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT27",
+        "frequency" : 31240000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT28",
+        "frequency" : 31250000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT29",
+        "frequency" : 31260000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT30",
+        "frequency" : 31270000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT31",
+        "frequency" : 31280000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT32",
+        "frequency" : 31290000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT33",
+        "frequency" : 31300000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT34",
+        "frequency" : 31310000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT35",
+        "frequency" : 31320000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT36",
+        "frequency" : 31330000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT37",
+        "frequency" : 31340000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT38",
+        "frequency" : 31350000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT39",
+        "frequency" : 31360000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "JAKT40",
+        "frequency" : 31370000,
+        "modulation" : "nfm"
+    }
+]

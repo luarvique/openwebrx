@@ -23,6 +23,7 @@ from owrx.admin import add_admin_parser, run_admin_action
 from owrx.reporting import ReportingEngine
 from owrx.markers import Markers
 from owrx.gps import GpsUpdater
+from owrx.wifi import WiFi
 from datetime import datetime
 from pathlib import Path
 import signal
@@ -46,6 +47,19 @@ class SignalException(Exception):
 
 def handleSignal(sig, frame):
     raise SignalException("Received Signal {sig}".format(sig=sig))
+
+
+def reportServerState(state):
+    pm = Config.get()
+    if pm["report_radio"]:
+        ReportingEngine.getSharedInstance().spot({
+            "mode"      : "RX",
+            "timestamp" : round(datetime.now().timestamp() * 1000),
+            "version"   : openwebrx_version,
+            "lat"       : pm["receiver_gps"]["lat"],
+            "lon"       : pm["receiver_gps"]["lon"],
+            "state"     : state
+        })
 
 
 def main():
@@ -119,6 +133,9 @@ Support and info:       https://groups.io/g/openwebrx
     # config warmup
     Config.validateConfig()
 
+    # Check for WiFi connection and become hotspot if none
+    WiFi.getSharedInstance().startConnectionCheck(15)
+
     featureDetector = FeatureDetector()
     failed = featureDetector.get_failed_requirements("core")
     if failed:
@@ -146,12 +163,7 @@ Support and info:       https://groups.io/g/openwebrx
     Markers.start()
 
     # Report server started
-    ReportingEngine.getSharedInstance().spot({
-        "mode"      : "RX",
-        "timestamp" : round(datetime.now().timestamp() * 1000),
-        "version"   : openwebrx_version,
-        "state"     : "ServerStarted"
-    })
+    reportServerState("ServerStarted")
 
     try:
         # This is our HTTP server
@@ -184,12 +196,7 @@ Support and info:       https://groups.io/g/openwebrx
     DecoderQueue.stopAll()
 
     # Report server stopped
-    ReportingEngine.getSharedInstance().spot({
-        "mode"      : "RX",
-        "timestamp" : round(datetime.now().timestamp() * 1000),
-        "version"   : openwebrx_version,
-        "state"     : "ServerStopped"
-    })
+    reportServerState("ServerStopped")
 
     # Done with reporting now
     ReportingEngine.stopAll()

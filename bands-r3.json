@@ -51,6 +51,7 @@
       "jt9": 3572000,
       "ft4": [3568000, 3575000],
       "js8": 3578000,
+      "cwskimmer": 3510000,
       "sstv": [
         { "frequency": 3730000, "underlying": "lsb" },
         { "frequency": 3845000, "underlying": "lsb" }
@@ -80,6 +81,7 @@
       "jt9": 7078000,
       "ft4": 7047500,
       "js8": 7078000,
+      "cwskimmer": 7010000,
       "sstv": [
         { "frequency": 7165000, "underlying": "lsb" },
         { "frequency": 7171000, "underlying": "lsb" }
@@ -116,6 +118,7 @@
       "jt9": 14078000,
       "ft4": 14080000,
       "js8": 14078000,
+      "cwskimmer": 14010000,
       "sstv": 14230000
     },
     "tags": ["hamradio"]
@@ -179,6 +182,7 @@
       "jt9": 28078000,
       "ft4": 28180000,
       "js8": 28078000,
+      "cwskimmer": 28010000,
       "sstv": 28680000
     },
     "tags": ["hamradio"]
@@ -223,7 +227,9 @@
     "frequencies": {
       "page": 439987500,
       "q65": 432065000,
-      "msk144": 432360000
+      "msk144": 432360000,
+      "lora-aprs": 433775000,
+      "meshcom": 435775000
     },
     "tags": ["hamradio"]
   },
@@ -374,9 +380,10 @@
   {
     "name": "11m CB",
     "lower_bound": 26965000,
-    "upper_bound": 27405000,
+    "upper_bound": 28000000,
     "frequencies": {
-      "js8": 27245000
+      "js8": 27245000,
+      "sstv": 27700000
     },
     "tags": ["public"]
   },
@@ -399,6 +406,17 @@
     }
   },
   {
+    "name": "AU915",
+    "lower_bound": 915000000,
+    "upper_bound": 928000000,
+    "tags": ["public"],
+    "frequencies": {
+      "meshcore": 916575000,
+      "meshtastic": 919875000
+    },
+    "tags": ["public"]
+  },
+  {
     "name": "VHF Air",
     "lower_bound": 108000000,
     "upper_bound": 137000000,
@@ -414,9 +432,6 @@
     "upper_bound": 138000000,
     "tags": ["service"],
     "frequencies": {
-      "noaa-apt-15": 137620000,
-      "noaa-apt-18": 137912500,
-      "noaa-apt-19": 137100000,
       "meteor-lrpt": [137900000, 137101000]
     }
   },

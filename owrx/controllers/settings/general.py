@@ -8,6 +8,7 @@ from owrx.form.input import (
     FloatInput,
     TextAreaInput,
     DropdownInput,
+    PasswordInput,
     Option,
 )
 from owrx.form.input.validator import RangeValidator
@@ -16,9 +17,11 @@ from owrx.form.input.receiverid import ReceiverKeysInput
 from owrx.form.input.gfx import AvatarInput, TopPhotoInput
 from owrx.form.input.device import WaterfallLevelsInput, WaterfallAutoLevelsInput
 from owrx.form.input.location import LocationInput
+from owrx.form.input.country import CountryInput
 from owrx.waterfall import WaterfallOptions
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 from owrx.controllers.settings import SettingsBreadcrumb
+from owrx.users import UserList, DefaultPasswordClass
 import shutil
 import os
 import re
@@ -58,6 +61,13 @@ class GeneralSettingsController(SettingsFormController):
                         Option("3", "ITU Region 3 (South Asia, Pacific)"),
                     ],
                     converter=IntConverter(),
+                    infotext="Band plan ribbons and region-specific default bookmarks will follow "
+                    + "the selected ITU region.",
+                ),
+                CountryInput(
+                    "receiver_country",
+                    "Receiver country",
+                    infotext="Country-specific default bookmarks will follow the selected country.",
                 ),
                 LocationInput("receiver_gps", "Receiver coordinates"),
                 CheckboxInput(
@@ -90,6 +100,11 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Number of people who can connect at the same time.",
                 ),
                 NumberInput(
+                    "max_clients_per_ip",
+                    "Number of clients per IP",
+                    infotext="Number of people who can connect from the same IP address.",
+                ),
+                NumberInput(
                     "keep_files",
                     "Maximum number of files",
                     infotext="Number of received images and other files to keep.",
@@ -107,6 +122,10 @@ class GeneralSettingsController(SettingsFormController):
                     + "and shown when a client session times out.",
                 ),
                 CheckboxInput(
+                    "bot_ban_enabled",
+                    "Detect and ban bots trying to connect",
+                ),
+                CheckboxInput(
                     "allow_chat",
                     "Allow users to chat with each other",
                 ),
@@ -121,7 +140,7 @@ class GeneralSettingsController(SettingsFormController):
                 TextInput(
                     "magic_key",
                     "Magic key",
-                    infotext="Enter a key the user has to supply to change center frequency."
+                    infotext="Enter the key users have to supply to change center frequency."
                     + " Leave empty if you do not want to protect frequency changes with a key."
                     + " When enabled, the key has to be added to receiver's URL after the hash"
                     + " sign: http://my.receiver.com/#key=keyvalue.",
@@ -155,7 +174,14 @@ class GeneralSettingsController(SettingsFormController):
                     + "Higher values will give you a faster waterfall, but will also use more CPU.",
                     append="frames per second",
                 ),
-                NumberInput("fft_size", "FFT size", append="bins"),
+                NumberInput(
+                    "fft_size",
+                    "FFT size",
+                    infotext="This setting specifies the horizontal resolution of the waterfall. "
+                    + "Raising it higher than 16384 bins may break waterfall display on some web browsers.",
+                    append="bins",
+                    validator=RangeValidator(256, 16384),
+                ),
                 FloatInput(
                     "fft_voverlap_factor",
                     "FFT vertical overlap factor",
@@ -205,6 +231,21 @@ class GeneralSettingsController(SettingsFormController):
             Section(
                 "Display settings",
                 DropdownInput(
+                    "ui_theme",
+                    "User interface color theme",
+                    options=[
+                        Option("default", "Gray"),
+                        Option("brown", "Brown"),
+                        Option("red", "Red"),
+                        Option("green", "Green"),
+                        Option("khaki", "Khaki"),
+                        Option("blue", "Blue"),
+                        Option("navy", "Navy"),
+                        Option("black", "Black"),
+                        Option("night", "Night")
+                    ]
+                ),
+                DropdownInput(
                     "tuning_precision",
                     "Tuning precision",
                     options=[Option(str(i), "{} Hz".format(10 ** i)) for i in range(0, 6)],
@@ -253,6 +294,14 @@ class GeneralSettingsController(SettingsFormController):
                     + '<a href="https://openweathermap.org/appid" target="_blank">'
                     + "their documentation</a> on how to obtain one.",
                 ),
+# Will enable once this works.
+#                TextInput(
+#                    "repeaterbook_api_key",
+#                    "RepeaterBook API key",
+#                    infotext="RepeaterBook requires an API key, check out "
+#                    + '<a href="https://www.repeaterbook.com/api/token_request.php" target="_blank">'
+#                    + "their documentation</a> on how to obtain one.",
+#                ),
                 NumberInput(
                     "map_position_retention_time",
                     "Map retention time",
@@ -311,6 +360,38 @@ class GeneralSettingsController(SettingsFormController):
                     + "allowing to look up aircraft by their Mode-S codes. Place curly "
                     + "brackets ({}) where aircraft Mode-S code is supposed to be.",
                 ),
+                TextInput(
+                    "sonde_url",
+                    "Radiosonde database URL",
+                    infotext="Specifies radiosonde lookup URL, such as SONDEHUB.ORG, "
+                    + "allowing to look up sonde information by its ID number. "
+                    + "Place curly brackets ({}) where ID is supposed to be.",
+                ),
+                TextInput(
+                    "geoip_url",
+                    "IP geolocation URL",
+                    infotext="Specifies IP geolocation URL, such as GEOLOCATION.COM, "
+                    + "allowing to estimate geographic locations of IP addresses. "
+                    + "Place curly brackets ({}) where IP is supposed to be.",
+                ),
+            ),
+            Section(
+                "Change password for '{0}'".format(self.user.name),
+                PasswordInput(
+                    "admin_pass_0",
+                    "Current password",
+                    infotext="Enter current password in order to change it."
+                ),
+                PasswordInput(
+                    "admin_pass_1",
+                    "New password",
+                    infotext="Enter non-empty value in order to change the password."
+                ),
+                PasswordInput(
+                    "admin_pass_2",
+                    "Repeat new password",
+                    infotext="Enter the same value in order to change the password."
+                ),
             ),
         ]
 
@@ -353,6 +434,17 @@ class GeneralSettingsController(SettingsFormController):
         # Image handling
         for img in ["receiver_avatar", "receiver_top_photo"]:
             self.handle_image(data, img)
+        # Handle changing admin password
+        if len(data["admin_pass_1"]) > 0 or len(data["admin_pass_2"]) > 0:
+            if not self.user.password.is_valid(data["admin_pass_0"]):
+                raise Exception("Cannot change password. The current password is incorrect.")
+            if data["admin_pass_1"] != data["admin_pass_2"]:
+                raise Exception("Cannot change password. The new passwords do not match.")
+            self.user.setPassword(DefaultPasswordClass(data["admin_pass_1"]))
+            UserList.getSharedInstance().store()
+        del data["admin_pass_0"]
+        del data["admin_pass_1"]
+        del data["admin_pass_2"]
         # special handling for waterfall colors: custom colors only stay in config if custom color scheme is selected
         if "waterfall_scheme" in data:
             scheme = WaterfallOptions(data["waterfall_scheme"])

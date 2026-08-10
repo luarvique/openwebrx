@@ -6,6 +6,7 @@ function Utils() {}
 
 Utils.fm_url = 'https://www.google.com/search?q={}+FM';
 Utils.callsign_url = null;
+Utils.sonde_url = null;
 Utils.vessel_url = null;
 Utils.flight_url = null;
 Utils.icao_url = null;
@@ -24,6 +25,11 @@ Utils.getReceiverPos = function() {
 // Set URL for linkifying callsigns
 Utils.setCallsignUrl = function(url) {
     this.callsign_url = url;
+};
+
+// Set URL for linkifying radiosonde IDs
+Utils.setSondeUrl = function(url) {
+    this.sonde_url = url;
 };
 
 // Set URL for linkifying AIS vessel IDs
@@ -63,7 +69,7 @@ Utils.printFreq = function(freq) {
 Utils.offsetFreq = function(freq, mod) {
     switch(mod) {
         case 'cw':
-            return freq - 800;
+            return freq - UI.getCwOffset();
         case 'fax':
             return freq - 1900;
         case 'cwdecoder':
@@ -98,6 +104,18 @@ Utils.linkify = function(id, url = null, content = null, tip = null) {
     }
 };
 
+// Linkify name by mode
+Utils.linkifyByMode = function(mode, name) {
+    switch (mode) {
+        case 'SONDE': return this.linkifySonde(name);
+        case 'AIS':   return this.linkifyVessel(name);
+        case 'HDR':   return this.linkifyFM(name);
+    }
+
+    // Default is HAM callsign
+    return this.linkifyCallsign(name);
+};
+
 // Create link to an FM station
 Utils.linkifyFM = function(name) {
     return this.linkify(name, this.fm_url);
@@ -109,6 +127,11 @@ Utils.linkifyCallsign = function(callsign) {
     var id = callsign.replace(/[-/].*$/, '');
     // Add country name as a tooltip
     return this.linkify(id, this.callsign_url, callsign, Lookup.call2cname(id));
+};
+
+// Create link to a radiosonde
+Utils.linkifySonde = function(id) {
+    return this.linkify(id, this.sonde_url, id);
 };
 
 // Create link to a maritime vessel, with country tooltip, etc.
@@ -154,13 +177,53 @@ Utils.linkToMap = function(id, content = null, attrs = "") {
 };
 
 // Print time in hours, minutes, and seconds.
-Utils.HHMMSS = function(t) {
+Utils.HHMMSS = function(t, local = false) {
     var pad = function (i) { return ('' + i).padStart(2, "0") };
 
     // Convert timestamps into dates
     if (!(t instanceof Date)) t = new Date(t);
 
-    return pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes()) + ':' + pad(t.getUTCSeconds());
+    if (local) {
+        return pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
+    } else {
+        return pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes()) + ':' + pad(t.getUTCSeconds());
+    }
+};
+
+// Print location
+Utils.latLon = function(latlon) {
+    if (!latlon.lat || !latlon.lon) return '';
+
+    return
+      Math.abs(latlon.lat).toFixed(3) + (latlon.lat >= 0.0? '&deg;N, ':'&deg;S, ')
+    + Math.abs(latlon.lon).toFixed(3) + (latlon.lon >= 0.0? '&deg;E':'&deg;W');
+};
+
+// Snap given frequency to the nearest step.
+Utils.snapFrequency = function(freq, step) {
+    if (step <= 0) {
+        return Math.round(freq);
+    } else if (step == 8330) {
+        return this.snapAirbandFrequency(freq);
+    } else {
+        return Math.round(freq / step) * step;
+    }
+};
+
+// Snap given frequency to the nearest airband frequency,
+// with respect to the uneven 8.33kHz step.
+Utils.snapAirbandFrequency = function(freq) {
+    freq = Math.round(freq);
+
+    var base = Math.floor(freq / 25000.0) * 25000;
+    var rem  = freq - base;
+
+    rem = rem < 4165?  0
+        : rem < 12500? 8330
+        : rem < 20835? 16670
+        : 25000;
+
+    return base + rem;
 };
 
 // Compute distance, in kilometers, between two latlons. Use receiver
@@ -261,6 +324,11 @@ function LS() {}
 // Return true of setting exist in storage.
 LS.has = function(key) {
     return localStorage && (localStorage.getItem(key)!=null);
+};
+
+// Remove item from local storage.
+LS.delete = function(key) {
+    if (localStorage) localStorage.removeItem(key);
 };
 
 // Save named UI setting to local storage.

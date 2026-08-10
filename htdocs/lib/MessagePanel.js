@@ -135,12 +135,13 @@ $.fn.wsjtMessagePanel = function(){
 function PacketMessagePanel(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
+    this.modes = ['APRS', 'AIS', 'SONDE'];
 }
 
 PacketMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 PacketMessagePanel.prototype.supportsMessage = function(message) {
-    return (message['mode'] === 'APRS') || (message['mode'] === 'AIS');
+    return this.modes.indexOf(message['mode']) >= 0;
 };
 
 PacketMessagePanel.prototype.render = function() {
@@ -160,8 +161,8 @@ PacketMessagePanel.prototype.render = function() {
 PacketMessagePanel.prototype.pushMessage = function(msg) {
     var $b = $(this.el).find('tbody');
 
-    if (msg.type && msg.type === 'thirdparty' && msg.data) {
-        msg = msg.data;
+    if (msg.type && msg.type === 'thirdparty' && msg.forwarded) {
+        msg = msg.forwarded;
     }
 
     var source = msg.source;
@@ -219,6 +220,32 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     if (comment !== '') {
         // Escape all special characters
         comment = Utils.htmlEscape(comment);
+    } else if (msg.weather) {
+        // Add weather readings
+        if (msg.weather.temperature) {
+            comment += 'Temperature ' + msg.weather.temperature.toFixed(1) + '&deg;C';
+        }
+        if (msg.weather.humidity) {
+            comment += (comment? ', ':'') + 'Humidity ' + msg.weather.humidity + '%';
+        }
+        if (msg.weather.barometricpressure) {
+            comment += (comment? ', ':'') + 'Pressure ' + msg.weather.barometricpressure.toFixed(1) + ' mbar';
+        }
+    } else if (msg.altitude || msg.speed) {
+        // Add position readings
+        if (msg.altitude) {
+            comment += 'Altitude ' + msg.altitude.toFixed(0) + ' m';
+            if (msg.vspeed > 0) comment += ' &uarr;' + msg.vspeed.toFixed(1) + ' m/s';
+            if (msg.vspeed < 0) comment += ' &darr;' + (-msg.vspeed).toFixed(1) + ' m/s';
+        }
+        if (msg.speed) {
+            comment += (comment? ', ':'') + 'Speed ' + msg.speed.toFixed(1) + ' km/h';
+            if (msg.course) comment += ' ' + Utils.degToCompass(msg.course);
+        }
+    } else if (msg.device) {
+        // Add device model and manufacturer
+        comment = msg.device.manufacturer?
+            msg.device.manufacturer + ' ' + msg.device.device : msg.device;
     } else if (msg.country) {
         // Add country flag and name in lieu of comment
         comment = Lookup.cdata2country([msg.ccode, msg.country]);
@@ -227,9 +254,8 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         comment = Lookup.mmsi2country(source);
     }
 
-    // Linkify source based on what it is (vessel or HAM callsign)
-    source = msg.mode === 'AIS'?
-        Utils.linkifyVessel(source) : Utils.linkifyCallsign(source);
+    // Linkify source based on what it is (sonde, vessel, or HAM callsign)
+    source = Utils.linkifyByMode(msg.mode, source);
 
     $b.append($(
         '<tr>' +
@@ -355,7 +381,7 @@ $.fn.pageMessagePanel = function() {
 HfdlMessagePanel = function(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
-    this.modes = ['HFDL', 'VDL2', 'ADSB', 'ACARS'];
+    this.modes = ['HFDL', 'VDL2', 'ADSB', 'ACARS', 'UAT'];
 }
 
 HfdlMessagePanel.prototype = Object.create(MessagePanel.prototype);
@@ -416,6 +442,14 @@ HfdlMessagePanel.prototype.pushMessage = function(msg) {
 
     // Make data point to the map
     if (data.length && msg.mapid) data = Utils.linkToMap(msg.mapid, data);
+
+    // Add message direction to the aircraft
+    //if (aircraft && msg.direction) {
+    //    aircraft += (
+    //      msg.direction === 'U'? '&#9664;'
+    //    : msg.direction === 'D'? '&#9654;'
+    //    : '');
+    //}
 
     // Append report
     var $b = $(this.el).find('tbody');
@@ -493,6 +527,10 @@ AdsbMessagePanel.prototype.pushMessage = function(msg) {
           entry.aircraft? Utils.linkifyFlight(entry.aircraft)
         : entry.icao?     Utils.linkifyIcao(entry.icao)
         : '';
+
+        // Add country flag
+        var flag = entry.ccode && Lookup.ccode2flag(entry.ccode);
+        if (flag) aircraft = flag + '&nbsp;' + aircraft;
 
         // Altitude and climb / descent
         var alt  = entry.altitude? '' + entry.altitude : '';
@@ -653,7 +691,7 @@ IsmMessagePanel = function(el) {
 IsmMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 IsmMessagePanel.prototype.supportsMessage = function(message) {
-    return message['mode'] === 'ISM';
+    return (message['mode'] === 'ISM') || (message['mode'] === 'WMBUS');
 };
 
 IsmMessagePanel.prototype.render = function() {
@@ -673,7 +711,7 @@ IsmMessagePanel.prototype.formatAttr = function(msg, key) {
     return('<td class="attr" colspan="2">' +
         '<div style="border-bottom:1px dotted;">' +
         '<span style="float:left;">' + key + '</span>' +
-        '<span style="float:right;">' + msg[key] + '</span>' +
+        '<span style="float:right;word-break:break-all;">' + msg[key] + '</span>' +
         '</div></td>'
     );
 };
@@ -898,7 +936,7 @@ $.fn.faxMessagePanel = function() {
     return this.data('panel');
 };
 
-CwSkimmerMessagePanel = function(el) {
+SkimmerMessagePanel = function(el) {
     MessagePanel.call(this, el);
     this.texts = [];
 
@@ -907,13 +945,13 @@ CwSkimmerMessagePanel = function(el) {
     this.clearButton.on('click', function() { me.texts = []; });
 }
 
-CwSkimmerMessagePanel.prototype = Object.create(MessagePanel.prototype);
+SkimmerMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
-CwSkimmerMessagePanel.prototype.supportsMessage = function(message) {
-    return message['mode'] === 'CW';
+SkimmerMessagePanel.prototype.supportsMessage = function(message) {
+    return (message['mode'] === 'CW') || (message['mode'] === 'RTTY');
 };
 
-CwSkimmerMessagePanel.prototype.render = function() {
+SkimmerMessagePanel.prototype.render = function() {
     $(this.el).append($(
         '<table width="100%">' +
             '<thead><tr>' +
@@ -925,57 +963,222 @@ CwSkimmerMessagePanel.prototype.render = function() {
     ));
 };
 
-CwSkimmerMessagePanel.prototype.pushMessage = function(msg) {
+SkimmerMessagePanel.prototype.renderLine = function(data) {
+    return(
+        '<td class="freq">' +
+            '<span class="db" style="width:0%;">&nbsp;</span>' +
+            '<span>&nbsp;</span>' +
+        '</td>' +
+        '<td class="text">&nbsp;</td>'
+    );
+};
+
+SkimmerMessagePanel.prototype.pushMessage = function(msg) {
     // Must have some text
     if (!msg.text) return;
 
     // Clear cache if requested
 //    if (msg.changed) this.texts = [];
 
-    // Current time
+    // Current time and SnR
     var now = Date.now();
+    var snr = msg.db || 0;
+
+    // Skimmer table body
+    var body = $(this.el).find('tbody')[0];
+
+    // No need to recolor yet
+    var needRecolor = this.texts.length;
 
     // Modify or add a new entry
     var j = this.texts.findIndex(function(x) { return x.freq >= msg.freq });
     if (j < 0) {
         // Append a new entry
         if (msg.text.trim().length > 0) {
-            this.texts.push({ freq: msg.freq, text: msg.text, ts: now });
+            this.texts.push({ freq: msg.freq, text: msg.text, db: snr, ts: now });
+            j = this.texts.length - 1;
+            body.insertRow(j).innerHTML = this.renderLine(this.texts[j]);
+            needRecolor = j;
+        } else {
+            return;
         }
     } else if (this.texts[j].freq == msg.freq) {
         // Update existing entry
         this.texts[j].text = (this.texts[j].text + msg.text).slice(-64);
+        this.texts[j].db   = snr;
         this.texts[j].ts   = now;
     } else {
         // Insert a new entry
         if (msg.text.trim().length > 0) {
-            this.texts.splice(j, 0, { freq: msg.freq, text: msg.text, ts: now });
+            this.texts.splice(j, 0, { freq: msg.freq, text: msg.text, db: snr, ts: now });
+            body.insertRow(j).innerHTML = this.renderLine(this.texts[j]);
+            needRecolor = j;
+        } else {
+            return;
         }
     }
 
-    // Generate table body
-    var body = '';
+    // Update row contents
+    var f = Math.floor(this.texts[j].freq / 100.0) / 10.0;
+    var d = Math.floor(Math.max(0, Math.min(100, 100.0 * this.texts[j].db / 30.0)));
+    body.rows[j].cells[0].children[0].style.width = '' + d + '%';
+    body.rows[j].cells[0].children[1].innerText = f.toFixed(1);
+    body.rows[j].cells[1].innerText = this.texts[j].text;
+
+    // Remove stale rows, recolor as needed
     for (var j = 0 ; j < this.texts.length ; j++) {
         // Limit the lifetime of entries depending on their length
         var cutoff = 5000 * this.texts[j].text.length;
         if (now - this.texts[j].ts >= cutoff) {
+            body.deleteRow(j);
+            needRecolor = j;
             this.texts.splice(j--, 1);
-        } else {
-            var f = Math.floor(this.texts[j].freq / 100.0) / 10.0;
-            body +=
-                '<tr style="color:black;background-color:' + (j&1? '#E0FFE0':'#FFFFFF') +
-                ';"><td class="freq">' + f.toFixed(1) +
-                '</td><td class="text">' + this.texts[j].text + '</td></tr>\n';
+        } else if (j >= needRecolor) {
+            body.rows[j].style = 'color:black;background-color:' + (j&1? '#E0FFE0':'#FFFFFF') + ';';
+        }
+    }
+};
+
+$.fn.skimmerMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new SkimmerMessagePanel(this));
+    }
+    return this.data('panel');
+};
+
+MeshtasticMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+MeshtasticMessagePanel.prototype = Object.create(MessagePanel.prototype);
+
+MeshtasticMessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'Meshtastic';
+};
+
+MeshtasticMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="timestamp">Time</th>' +
+                '<th class="src">From</th>' +
+                '<th class="dst">To</th>' +
+                '<th class="data">Data</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+MeshtasticMessagePanel.prototype.makeAddr = function(addr) {
+  return '!' + ('0000000' + addr.toString(16)).slice(-8);
+};
+
+MeshtasticMessagePanel.prototype.formatAttr = function(data, key, prefix = '') {
+    var v = data[key];
+
+    // If value is a dictionary, iterate over its contents
+    if ((typeof(v) === 'object') && (Object.getPrototypeOf(v) === Object.prototype)) {
+        var result = '';
+        // prefix += key + '.';
+        for (var key in v) {
+            result += this.formatAttr(v, key, prefix);
+        }
+        return(result);
+    }
+
+    // Perform conversions
+    switch (key) {
+    case 'time':
+    case 'timestamp':
+        v = (new Date(v * 1000)).toUTCString();
+        break;
+    case 'latitude_i':
+    case 'longitude_i':
+        v = v / 10000000.0;
+        break;
+    case 'voltage':
+    case 'ch1_voltage':
+    case 'ch2_voltage':
+        v = v.toFixed(2) + ' V';
+        break;
+    case 'ch1_current':
+    case 'ch2_current':
+        v = v.toFixed(3) + ' A';
+        break;
+    case 'battery_level':
+    case 'channel_utilization':
+    case 'air_util_tx':
+    case 'relative_humidity':
+        v = v.toFixed(0) + ' %';
+        break;
+    case 'temperature':
+        v = v.toFixed(1) + ' &deg;C';
+        break;
+    case 'barometric_pressure':
+        v = v.toFixed(1) + ' hPa';
+        break;
+    case 'macaddr':
+        v = atob(v).split('').map(function(c) {
+            return ('0' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join('').toUpperCase();
+        break;
+    }
+
+    // Output regular values as they are
+    return('<tr><td colspan="4">' +
+        '<div style="border-bottom:1px dotted;">' +
+        '<span style="float:left;">' + prefix + key + '</span>' +
+        '<span style="float:right;word-break:break-all;">' + v + '</span>' +
+        '</div></td></tr>'
+    );
+};
+
+MeshtasticMessagePanel.prototype.pushMessage = function(msg) {
+    var bcolor = msg.color? msg.color : '#000';
+    var fcolor = msg.color? '#000' : '#FFF';
+    var tstamp = msg.timestamp? Utils.HHMMSS(msg.timestamp) : '';
+    var text   = msg.type || msg.longName || msg.comment || '';
+    var id     = this.makeAddr(msg.src);
+    var src    = Utils.linkToMap(id, msg.nickName || id);
+    var dst    = msg.dst == 0xFFFFFFFF? 'ALL'
+               : (msg.dstNickName || this.makeAddr(msg.dst));
+
+    // Append report
+    var $b = $(this.el).find('tbody');
+    $b.append($(
+        '<tr>' +
+            '<td class="timestamp">' + tstamp + '</td>' +
+            '<td class="src">' + src + '</td>' +
+            '<td class="dst">' + dst + '</td>' +
+            '<td class="data" style="text-align:left;">' + text + '</td>' +
+        '</tr>'
+    ).css('background-color', bcolor).css('color', fcolor));
+
+    // Append message
+    if (msg.message) {
+        $b.append($(
+            '<tr>' +
+                '<td colspan="4">' + Utils.htmlEscape(msg.message) + '</td>' +
+            '</tr>'
+        ));
+    }
+
+    // Append data
+    if (msg.data) {
+        for (var key in msg.data) {
+            $b.append($(this.formatAttr(msg.data, key)));
         }
     }
 
-    // Assign new table body
-    $(this.el).find('tbody').html(body);
+    // Jump list to the last received message
+    this.scrollToBottom();
 };
 
-$.fn.cwskimmerMessagePanel = function() {
+$.fn.meshtasticMessagePanel = function() {
     if (!this.data('panel')) {
-        this.data('panel', new CwSkimmerMessagePanel(this));
+        this.data('panel', new MeshtasticMessagePanel(this));
     }
     return this.data('panel');
 };

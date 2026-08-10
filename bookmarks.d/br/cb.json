@@ -1,0 +1,427 @@
+[
+    {
+        "name": "CB1",
+        "frequency": 26965000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB2",
+        "frequency": 26975000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB3",
+        "frequency": 26985000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB4",
+        "frequency": 27005000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB5",
+        "frequency": 27015000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB6",
+        "frequency": 27025000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB7",
+        "frequency": 27035000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB8",
+        "frequency": 27055000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB9",
+        "frequency": 27065000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB10",
+        "frequency": 27075000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB11",
+        "frequency": 27085000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB12",
+        "frequency": 27105000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB13",
+        "frequency": 27115000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB14",
+        "frequency": 27125000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB15",
+        "frequency": 27135000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB16",
+        "frequency": 27155000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB17",
+        "frequency": 27165000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB18",
+        "frequency": 27175000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB19",
+        "frequency": 27185000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB20",
+        "frequency": 27205000,
+        "modulation": "am"
+    },
+    {
+        "name": "CB21",
+        "frequency": 27215000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB22",
+        "frequency": 27225000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB23",
+        "frequency": 27255000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB24",
+        "frequency": 27235000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB25",
+        "frequency": 27245000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB26",
+        "frequency": 27265000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB27",
+        "frequency": 27275000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB28",
+        "frequency": 27285000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB29",
+        "frequency": 27295000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB30",
+        "frequency": 27305000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB31",
+        "frequency": 27315000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB32",
+        "frequency": 27325000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB33",
+        "frequency": 27335000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB34",
+        "frequency": 27345000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB35",
+        "frequency": 27355000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB36",
+        "frequency": 27365000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB37",
+        "frequency": 27375000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB38",
+        "frequency": 27385000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB39",
+        "frequency": 27395000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB40",
+        "frequency": 27405000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB41",
+        "frequency": 27415000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB42",
+        "frequency": 27425000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB43",
+        "frequency": 27435000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB44",
+        "frequency": 27445000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB45",
+        "frequency": 27455000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB46",
+        "frequency": 27465000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB47",
+        "frequency": 27475000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB48",
+        "frequency": 27485000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB49",
+        "frequency": 27495000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB50",
+        "frequency": 27505000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB51",
+        "frequency": 27515000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB52",
+        "frequency": 27525000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB53",
+        "frequency": 27535000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB54",
+        "frequency": 27545000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB55",
+        "frequency": 27555000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB56",
+        "frequency": 27565000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB57",
+        "frequency": 27575000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB58",
+        "frequency": 27585000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB59",
+        "frequency": 27595000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB60",
+        "frequency": 27605000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB61",
+        "frequency": 27615000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB62",
+        "frequency": 27625000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB63",
+        "frequency": 27635000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB64",
+        "frequency": 27645000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB65",
+        "frequency": 27655000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB66",
+        "frequency": 27665000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB67",
+        "frequency": 27675000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB68",
+        "frequency": 27685000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB69",
+        "frequency": 27695000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB70",
+        "frequency": 27705000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB71",
+        "frequency": 27715000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB72",
+        "frequency": 27725000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB73",
+        "frequency": 27735000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB74",
+        "frequency": 27745000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB75",
+        "frequency": 27755000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB76",
+        "frequency": 27765000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB77",
+        "frequency": 27775000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB78",
+        "frequency": 27785000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB79",
+        "frequency": 27795000,
+        "modulation": "usb"
+    },
+    {
+        "name": "CB80",
+        "frequency": 27805000,
+        "modulation": "usb"
+    },
+    {
+        "name": "T1",
+        "frequency": 26995000,
+        "modulation": "am"
+    },
+    {
+        "name": "T2",
+        "frequency": 27045000,
+        "modulation": "am"
+    },
+    {
+        "name": "T3",
+        "frequency": 27095000,
+        "modulation": "am"
+    },
+    {
+        "name": "T4",
+        "frequency": 27145000,
+        "modulation": "am"
+    },
+    {
+        "name": "T5",
+        "frequency": 27195000,
+        "modulation": "am"
+    }
+]

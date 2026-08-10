@@ -302,6 +302,7 @@ class WsjtParser(AudioChopperParser):
                     out["callsign"], LocatorLocation(out["locator"]), mode, band
                 )
                 ReportingEngine.getSharedInstance().spot(out)
+            # currently not reporting calls, not to confuse PSKReporter
             if "callsign" in out and "callee" in out:
                 Map.getSharedInstance().updateCall(
                     out["callsign"], out["callee"], mode, band

@@ -5,6 +5,7 @@ from owrx.storage import Storage
 
 import json
 import re
+import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,10 +40,13 @@ class FilesController(WebpageController):
             # Show images as they are, show document icon for the rest
             if self.isimg.match(files[i]):
                 shot = "files/" + files[i]
+                size = 0
             elif self.issnd.match(files[i]):
                 shot = "static/gfx/audio-file.png"
+                size = os.path.getsize(Storage.getFilePath(files[i]))
             else:
                 shot = "static/gfx/text-file.png"
+                size = os.path.getsize(Storage.getFilePath(files[i]))
             # Admin user gets to delete files
             if admin:
                 buttons = ('<button type="button" ' +
@@ -50,10 +54,20 @@ class FilesController(WebpageController):
                     'value="' + files[i] + '">delete</button>')
             else:
                 buttons = ""
+            # If there is file size...
+            if size >= 1024 * 1024:
+                size = ("%dMB" % round(size / 1024 / 1024))
+            elif size >= 1024:
+                size = ("%dkB" % round(size / 1024))
+            elif size > 0:
+                size = ("%d bytes" % size)
+            else:
+                size = ""
             # Print out individual tiles
             rows += ('<td class="file-tile">' +
                 ('<a href="files/%s" download="%s">' % (files[i], files[i])) +
                 ('<img src="%s" download="%s">' % (shot, files[i])) +
+                ('<div class="file-size">%s</div>' % size) +
                 ('<p class="file-title">%s</p>' % files[i]) +
                 ('</a>%s</td>\n' % buttons))
             # Finish a row

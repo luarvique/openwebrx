@@ -3,6 +3,7 @@ import ctypes
 import datetime
 import enum
 import math
+import os
 import platform
 import socket
 
@@ -27,6 +28,19 @@ class EventType(enum.Enum):
     SIS = 11
     STREAM = 12
     PACKET = 13
+    AUDIO_SERVICE = 14
+    STATION_ID = 15
+    STATION_NAME = 16
+    STATION_SLOGAN = 17
+    STATION_MESSAGE = 18
+    STATION_LOCATION = 19
+    AUDIO_SERVICE_DESCRIPTOR = 20
+    DATA_SERVICE_DESCRIPTOR = 21
+    EMERGENCY_ALERT = 22
+    HERE_IMAGE = 23
+    LOT_HEADER = 24
+    LOT_FRAGMENT = 25
+    AGC = 26
 
 
 AUDIO_FRAME_SAMPLES = 2048
@@ -45,6 +59,12 @@ class ServiceType(enum.Enum):
 class ComponentType(enum.Enum):
     AUDIO = 0
     DATA = 1
+
+
+class AASType(enum.Enum):
+    STREAM = 0
+    PACKET = 1
+    LOT = 3
 
 
 class MIMEType(enum.Enum):
@@ -130,32 +150,92 @@ class ProgramType(enum.Enum):
     SPECIAL_READING_SERVICES = 76
 
 
+class Blend(enum.Enum):
+    DISABLE = 0
+    SELECT = 1
+    ENABLE = 2
+
+
+class LocationFormat(enum.Enum):
+    SAME = 0
+    FIPS = 1
+    ZIP = 2
+
+
+class AlertCategory(enum.Enum):
+    NON_SPECIFIC = 1
+    GEOPHYSICAL = 2
+    WEATHER = 3
+    SAFETY = 4
+    SECURITY = 5
+    RESCUE = 6
+    FIRE = 7
+    HEALTH = 8
+    ENVIRONMENTAL = 9
+    TRANSPORTATION = 10
+    UTILITIES = 11
+    HAZMAT = 12
+    TEST = 30
+
+
+class HEREImageType(enum.Enum):
+    TRAFFIC = 8
+    WEATHER = 13
+
+class PacketFlags(enum.IntFlag):
+    NONE = 0
+    CRC_ERROR = 1 << 0
+
+
 IQ = collections.namedtuple("IQ", ["data"])
+Sync = collections.namedtuple("Sync", ["freq_offset", "psmi"])
 MER = collections.namedtuple("MER", ["lower", "upper"])
 BER = collections.namedtuple("BER", ["cber"])
-HDC = collections.namedtuple("HDC", ["program", "data"])
+HDC = collections.namedtuple("HDC", ["program", "data", "flags"])
 Audio = collections.namedtuple("Audio", ["program", "data"])
+Comment = collections.namedtuple("Comment", ["lang", "short_content_desc", "full_text"])
 UFID = collections.namedtuple("UFID", ["owner", "id"])
 XHDR = collections.namedtuple("XHDR", ["mime", "param", "lot"])
-ID3 = collections.namedtuple("ID3", ["program", "title", "artist", "album", "genre", "ufid", "xhdr"])
+ID3 = collections.namedtuple("ID3", ["program", "title", "artist", "album", "genre", "ufid", "xhdr", "comments"])
 SIGAudioComponent = collections.namedtuple("SIGAudioComponent", ["port", "type", "mime"])
 SIGDataComponent = collections.namedtuple("SIGDataComponent", ["port", "service_data_type", "type", "mime"])
 SIGComponent = collections.namedtuple("SIGComponent", ["type", "id", "audio", "data"])
-SIGService = collections.namedtuple("SIGService", ["type", "number", "name", "components"])
+SIGService = collections.namedtuple("SIGService", ["type", "number", "name", "components", "audio_component"])
 SIG = collections.namedtuple("SIG", ["services"])
-STREAM = collections.namedtuple("STREAM", ["port", "seq", "mime", "data"])
-PACKET = collections.namedtuple("PACKET", ["port", "seq", "mime", "data"])
-LOT = collections.namedtuple("LOT", ["port", "lot", "mime", "name", "data", "expiry_utc"])
+STREAM = collections.namedtuple("STREAM", ["port", "seq", "mime", "data", "service", "component"])
+PACKET = collections.namedtuple("PACKET", ["port", "seq", "mime", "data", "service", "component"])
+LOT = collections.namedtuple("LOT", ["port", "lot", "mime", "name", "data", "expiry_utc", "service", "component"])
+LOTHeader = collections.namedtuple("LOTHeader", ["port", "lot", "mime", "name", "size", "expiry_utc", "service", "component"])
+LOTFragment = collections.namedtuple("LOTFragment", ["lot", "seq", "repeat", "bytes_so_far", "is_duplicate", "data", "service", "component"])
 SISAudioService = collections.namedtuple("SISAudioService", ["program", "access", "type", "sound_exp"])
 SISDataService = collections.namedtuple("SISDataService", ["access", "type", "mime_type"])
 SIS = collections.namedtuple("SIS", ["country_code", "fcc_facility_id", "name", "slogan", "message", "alert",
-                                     "latitude", "longitude", "altitude", "audio_services", "data_services"])
+                                     "latitude", "longitude", "altitude", "audio_services", "data_services",
+                                     "alert_cnt", "alert_categories", "alert_location_format", "alert_locations"])
+StationID = collections.namedtuple("StationID", ["country_code", "fcc_facility_id"])
+StationName = collections.namedtuple("StationName", ["name"])
+StationSlogan = collections.namedtuple("StationSlogan", ["slogan"])
+StationMessage = collections.namedtuple("StationMessage", ["message"])
+StationLocation = collections.namedtuple("StationLocation", ["latitude", "longitude", "altitude"])
+EmergencyAlert = collections.namedtuple("EmergencyAlert", ["message", "control_data", "categories", "location_format", "locations"])
+AudioService = collections.namedtuple("AudioService", ["program", "access", "type", "codec_mode", "blend_control",
+                                                       "digital_audio_gain", "common_delay", "latency"])
+HEREImage = collections.namedtuple("HEREImage", ["image_type", "seq", "n1", "n2", "time_utc", "latitude1", "longitude1",
+                                                 "latitude2", "longitude2", "name", "data"])
+AGC = collections.namedtuple("AGC", ["gain_db", "peak_dbfs", "is_final"])
 
 
 class _IQ(ctypes.Structure):
     _fields_ = [
         ("data", ctypes.POINTER(ctypes.c_char)),
         ("count", ctypes.c_size_t),
+    ]
+
+
+class _Sync(ctypes.Structure):
+    _fields_ = [
+        ("freq_offset", ctypes.c_float),
+        ("psmi", ctypes.c_int),
     ]
 
 
@@ -177,6 +257,7 @@ class _HDC(ctypes.Structure):
         ("program", ctypes.c_uint),
         ("data", ctypes.POINTER(ctypes.c_char)),
         ("count", ctypes.c_size_t),
+        ("flags", ctypes.c_uint),
     ]
 
 
@@ -186,6 +267,18 @@ class _Audio(ctypes.Structure):
         ("data", ctypes.POINTER(ctypes.c_char)),
         ("count", ctypes.c_size_t),
     ]
+
+
+class _Comment(ctypes.Structure):
+    pass
+
+
+_Comment._fields_ = [
+    ("next", ctypes.POINTER(_Comment)),
+    ("lang", ctypes.c_char_p),
+    ("short_content_desc", ctypes.c_char_p),
+    ("full_text", ctypes.c_char_p),
+]
 
 
 class _UFID(ctypes.Structure):
@@ -212,6 +305,7 @@ class _ID3(ctypes.Structure):
         ("genre", ctypes.c_char_p),
         ("ufid", _UFID),
         ("xhdr", _XHDR),
+        ("comments", ctypes.POINTER(_Comment)),
     ]
 
 
@@ -261,6 +355,7 @@ _SIGService._fields_ = [
     ("number", ctypes.c_uint16),
     ("name", ctypes.c_char_p),
     ("components", ctypes.POINTER(_SIGComponent)),
+    ("audio_component", ctypes.POINTER(_SIGComponent)),
 ]
 
 
@@ -277,6 +372,8 @@ class _STREAM(ctypes.Structure):
         ("size", ctypes.c_uint),
         ("mime", ctypes.c_uint32),
         ("data", ctypes.POINTER(ctypes.c_char)),
+        ("service", ctypes.POINTER(_SIGService)),
+        ("component", ctypes.POINTER(_SIGComponent)),
     ]
 
 
@@ -287,6 +384,8 @@ class _PACKET(ctypes.Structure):
         ("size", ctypes.c_uint),
         ("mime", ctypes.c_uint32),
         ("data", ctypes.POINTER(ctypes.c_char)),
+        ("service", ctypes.POINTER(_SIGService)),
+        ("component", ctypes.POINTER(_SIGComponent)),
     ]
 
 
@@ -313,6 +412,22 @@ class _LOT(ctypes.Structure):
         ("name", ctypes.c_char_p),
         ("data", ctypes.POINTER(ctypes.c_char)),
         ("expiry_utc", ctypes.POINTER(_TimeStruct)),
+        ("service", ctypes.POINTER(_SIGService)),
+        ("component", ctypes.POINTER(_SIGComponent)),
+    ]
+
+
+class _LOTFragment(ctypes.Structure):
+    _fields_ = [
+        ("lot", ctypes.c_uint),
+        ("seq", ctypes.c_uint),
+        ("repeat", ctypes.c_uint),
+        ("size", ctypes.c_uint),
+        ("bytes_so_far", ctypes.c_uint),
+        ("is_duplicate", ctypes.c_int),
+        ("data", ctypes.POINTER(ctypes.c_char)),
+        ("service", ctypes.POINTER(_SIGService)),
+        ("component", ctypes.POINTER(_SIGComponent)),
     ]
 
 
@@ -354,12 +469,121 @@ class _SIS(ctypes.Structure):
         ("altitude", ctypes.c_int),
         ("audio_services", ctypes.POINTER(_SISAudioService)),
         ("data_services", ctypes.POINTER(_SISDataService)),
+        ("alert_cnt", ctypes.POINTER(ctypes.c_char)),
+        ("alert_cnt_length", ctypes.c_int),
+        ("alert_category1", ctypes.c_int),
+        ("alert_category2", ctypes.c_int),
+        ("alert_location_format", ctypes.c_int),
+        ("alert_num_locations", ctypes.c_int),
+        ("alert_locations", ctypes.POINTER(ctypes.c_int)),
+    ]
+
+
+class _StationID(ctypes.Structure):
+    _fields_ = [
+        ("country_code", ctypes.c_char_p),
+        ("fcc_facility_id", ctypes.c_int),
+    ]
+
+
+class _StationName(ctypes.Structure):
+    _fields_ = [
+        ("name", ctypes.c_char_p),
+    ]
+
+
+class _StationSlogan(ctypes.Structure):
+    _fields_ = [
+        ("slogan", ctypes.c_char_p),
+    ]
+
+
+class _StationMessage(ctypes.Structure):
+    _fields_ = [
+        ("message", ctypes.c_char_p),
+    ]
+
+
+class _StationLocation(ctypes.Structure):
+    _fields_ = [
+        ("latitude", ctypes.c_float),
+        ("longitude", ctypes.c_float),
+        ("altitude", ctypes.c_int),
+    ]
+
+
+class _ASD(ctypes.Structure):
+    _fields_ = [
+        ("program", ctypes.c_uint),
+        ("access", ctypes.c_uint),
+        ("type", ctypes.c_uint),
+        ("sound_exp", ctypes.c_uint),
+    ]
+
+
+class _DSD(ctypes.Structure):
+    _fields_ = [
+        ("access", ctypes.c_uint),
+        ("type", ctypes.c_uint),
+        ("mime_type", ctypes.c_uint32),
+    ]
+
+
+class _EmergencyAlert(ctypes.Structure):
+    _fields_ = [
+        ("message", ctypes.c_char_p),
+        ("control_data", ctypes.POINTER(ctypes.c_char)),
+        ("control_data_length", ctypes.c_int),
+        ("category1", ctypes.c_int),
+        ("category2", ctypes.c_int),
+        ("location_format", ctypes.c_int),
+        ("num_locations", ctypes.c_int),
+        ("locations", ctypes.POINTER(ctypes.c_int)),
+    ]
+
+
+class _AudioService(ctypes.Structure):
+    _fields_ = [
+        ("program", ctypes.c_uint),
+        ("access", ctypes.c_uint),
+        ("type", ctypes.c_uint),
+        ("codec_mode", ctypes.c_uint),
+        ("blend_control", ctypes.c_uint),
+        ("digital_audio_gain", ctypes.c_int),
+        ("common_delay", ctypes.c_uint),
+        ("latency", ctypes.c_uint),
+    ]
+
+
+class _HEREImage(ctypes.Structure):
+    _fields_ = [
+        ("image_type", ctypes.c_int),
+        ("seq", ctypes.c_int),
+        ("n1", ctypes.c_int),
+        ("n2", ctypes.c_int),
+        ("time_utc", ctypes.POINTER(_TimeStruct)),
+        ("latitude1", ctypes.c_float),
+        ("longitude1", ctypes.c_float),
+        ("latitude2", ctypes.c_float),
+        ("longitude2", ctypes.c_float),
+        ("name", ctypes.c_char_p),
+        ("size", ctypes.c_uint),
+        ("data", ctypes.POINTER(ctypes.c_char)),
+    ]
+
+
+class _AGC(ctypes.Structure):
+    _fields_ = [
+        ("gain_db", ctypes.c_float),
+        ("peak_dbfs", ctypes.c_float),
+        ("is_final", ctypes.c_int),
     ]
 
 
 class _EventUnion(ctypes.Union):
     _fields_ = [
         ("iq", _IQ),
+        ("sync", _Sync),
         ("mer", _MER),
         ("ber", _BER),
         ("hdc", _HDC),
@@ -369,7 +593,19 @@ class _EventUnion(ctypes.Union):
         ("stream", _STREAM),
         ("packet", _PACKET),
         ("lot", _LOT),
+        ("lot_fragment", _LOTFragment),
         ("sis", _SIS),
+        ("station_id", _StationID),
+        ("station_name", _StationName),
+        ("station_slogan", _StationSlogan),
+        ("station_message", _StationMessage),
+        ("station_location", _StationLocation),
+        ("asd", _ASD),
+        ("dsd", _DSD),
+        ("emergency_alert", _EmergencyAlert),
+        ("audio_service", _AudioService),
+        ("here_image", _HEREImage),
+        ("agc", _AGC),
     ]
 
 
@@ -390,6 +626,7 @@ class NRSC5:
     def _load_library(self):
         if NRSC5.libnrsc5 is None:
             if platform.system() == "Windows":
+                dll_dir = os.add_dll_directory(os.path.dirname(__file__))
                 lib_name = "libnrsc5.dll"
             elif platform.system() == "Linux":
                 lib_name = "libnrsc5.so"
@@ -398,6 +635,8 @@ class NRSC5:
             else:
                 raise NRSC5Error("Unsupported platform: " + platform.system())
             NRSC5.libnrsc5 = ctypes.cdll.LoadLibrary(lib_name)
+            if platform.system() == "Windows":
+                dll_dir.close()
             self.radio = ctypes.c_void_p()
 
     @staticmethod
@@ -405,6 +644,18 @@ class NRSC5:
         if string is None:
             return string
         return string.decode()
+
+    @staticmethod
+    def _timestruct_to_datetime(ts):
+        return datetime.datetime(
+            ts.contents.tm_year + 1900,
+            ts.contents.tm_mon + 1,
+            ts.contents.tm_mday,
+            ts.contents.tm_hour,
+            ts.contents.tm_min,
+            ts.contents.tm_sec,
+            tzinfo=datetime.timezone.utc
+        )
 
     def _callback_wrapper(self, c_evt):
         c_evt = c_evt.contents
@@ -418,6 +669,9 @@ class NRSC5:
         if evt_type == EventType.IQ:
             iq = c_evt.u.iq
             evt = IQ(iq.data[:iq.count])
+        elif evt_type == EventType.SYNC:
+            sync = c_evt.u.sync
+            evt = Sync(sync.freq_offset, sync.psmi)
         elif evt_type == EventType.MER:
             mer = c_evt.u.mer
             evt = MER(mer.lower, mer.upper)
@@ -426,7 +680,7 @@ class NRSC5:
             evt = BER(ber.cber)
         elif evt_type == EventType.HDC:
             hdc = c_evt.u.hdc
-            evt = HDC(hdc.program, hdc.data[:hdc.count])
+            evt = HDC(hdc.program, hdc.data[:hdc.count], PacketFlags(hdc.flags))
         elif evt_type == EventType.AUDIO:
             audio = c_evt.u.audio
             evt = Audio(audio.program, audio.data[:audio.count * 2])
@@ -442,51 +696,75 @@ class NRSC5:
                 xhdr = XHDR(None if id3.xhdr.mime == 0 else MIMEType(id3.xhdr.mime),
                             None if id3.xhdr.param == -1 else id3.xhdr.param,
                             None if id3.xhdr.lot == -1 else id3.xhdr.lot)
+            comments = []
+            comment_ptr = id3.comments
+            while comment_ptr:
+                c = comment_ptr.contents
+                comments.append(Comment(self._decode(c.lang), self._decode(c.short_content_desc), self._decode(c.full_text)))
+                comment_ptr = c.next
 
             evt = ID3(id3.program, self._decode(id3.title), self._decode(id3.artist),
-                      self._decode(id3.album), self._decode(id3.genre), ufid, xhdr)
+                      self._decode(id3.album), self._decode(id3.genre), ufid, xhdr, comments)
         elif evt_type == EventType.SIG:
             evt = []
+            self.services = {}
+            self.components = {}
             service_ptr = c_evt.u.sig.services
             while service_ptr:
                 service = service_ptr.contents
                 components = []
                 component_ptr = service.components
+                audio_component = None
                 while component_ptr:
                     component = component_ptr.contents
                     component_type = ComponentType(component.type)
+                    audio = None
+                    data = None
                     if component_type == ComponentType.AUDIO:
                         audio = SIGAudioComponent(component.u.audio.port, ProgramType(component.u.audio.type),
                                                   MIMEType(component.u.audio.mime))
-                        components.append(SIGComponent(component_type, component.id, audio, None))
                     if component_type == ComponentType.DATA:
                         data = SIGDataComponent(component.u.data.port,
                                                 ServiceDataType(component.u.data.service_data_type),
-                                                component.u.data.type, MIMEType(component.u.data.mime))
-                        components.append(SIGComponent(component_type, component.id, None, data))
+                                                AASType(component.u.data.type), MIMEType(component.u.data.mime))
+                    component_obj = SIGComponent(component_type, component.id, audio, data)
+                    if component_type == ComponentType.AUDIO:
+                        audio_component = component_obj
+                    components.append(component_obj)
+                    self.components[(service.number, component.id)] = component_obj
                     component_ptr = component.next
-                evt.append(SIGService(ServiceType(service.type), service.number,
-                                      self._decode(service.name), components))
+                service_obj = SIGService(ServiceType(service.type), service.number,
+                                         self._decode(service.name), components, audio_component)
+                evt.append(service_obj)
+                self.services[service.number] = service_obj
                 service_ptr = service.next
         elif evt_type == EventType.STREAM:
             stream = c_evt.u.stream
-            evt = STREAM(stream.port, stream.seq, MIMEType(stream.mime), stream.data[:stream.size])
+            service = self.services[stream.service.contents.number]
+            component = self.components[(stream.service.contents.number, stream.component.contents.id)]
+            evt = STREAM(component.data.port, stream.seq, MIMEType(component.data.mime), stream.data[:stream.size], service, component)
         elif evt_type == EventType.PACKET:
             packet = c_evt.u.packet
-            evt = PACKET(packet.port, packet.seq, MIMEType(packet.mime), packet.data[:packet.size])
+            service = self.services[packet.service.contents.number]
+            component = self.components[(packet.service.contents.number, packet.component.contents.id)]
+            evt = PACKET(component.data.port, packet.seq, MIMEType(component.data.mime), packet.data[:packet.size], service, component)
         elif evt_type == EventType.LOT:
             lot = c_evt.u.lot
-            expiry_struct = lot.expiry_utc.contents
-            expiry_time = datetime.datetime(
-                expiry_struct.tm_year + 1900,
-                expiry_struct.tm_mon + 1,
-                expiry_struct.tm_mday,
-                expiry_struct.tm_hour,
-                expiry_struct.tm_min,
-                expiry_struct.tm_sec,
-                tzinfo=datetime.timezone.utc
-            )
-            evt = LOT(lot.port, lot.lot, MIMEType(lot.mime), self._decode(lot.name), lot.data[:lot.size], expiry_time)
+            service = self.services[lot.service.contents.number]
+            component = self.components[(lot.service.contents.number, lot.component.contents.id)]
+            expiry_time = self._timestruct_to_datetime(lot.expiry_utc)
+            evt = LOT(component.data.port, lot.lot, MIMEType(lot.mime), self._decode(lot.name), lot.data[:lot.size], expiry_time, service, component)
+        elif evt_type == EventType.LOT_HEADER:
+            lot = c_evt.u.lot
+            service = self.services[lot.service.contents.number]
+            component = self.components[(lot.service.contents.number, lot.component.contents.id)]
+            expiry_time = self._timestruct_to_datetime(lot.expiry_utc)
+            evt = LOTHeader(component.data.port, lot.lot, MIMEType(lot.mime), self._decode(lot.name), lot.size, expiry_time, service, component)
+        elif evt_type == EventType.LOT_FRAGMENT:
+            lot_fragment = c_evt.u.lot_fragment
+            service = self.services[lot_fragment.service.contents.number]
+            component = self.components[(lot_fragment.service.contents.number, lot_fragment.component.contents.id)]
+            evt = LOTFragment(lot_fragment.lot, lot_fragment.seq, lot_fragment.repeat, lot_fragment.bytes_so_far, bool(lot_fragment.is_duplicate), lot_fragment.data[:lot_fragment.size], service, component)
         elif evt_type == EventType.SIS:
             sis = c_evt.u.sis
 
@@ -509,9 +787,82 @@ class NRSC5:
                 data_services.append(SISDataService(Access(dsd.access), ServiceDataType(dsd.type), dsd.mime_type))
                 data_service_ptr = dsd.next
 
+            alert_categories = []
+            if sis.alert_category1 >= 1:
+                alert_categories.append(AlertCategory(sis.alert_category1))
+            if sis.alert_category2 >= 1:
+                alert_categories.append(AlertCategory(sis.alert_category2))
             evt = SIS(self._decode(sis.country_code), sis.fcc_facility_id, self._decode(sis.name),
                       self._decode(sis.slogan), self._decode(sis.message), self._decode(sis.alert),
-                      latitude, longitude, altitude, audio_services, data_services)
+                      latitude, longitude, altitude, audio_services, data_services,
+                      sis.alert_cnt[:sis.alert_cnt_length], alert_categories,
+                      None if sis.alert_location_format == -1 else LocationFormat(sis.alert_location_format),
+                      sis.alert_locations[:sis.alert_num_locations])
+        elif evt_type == EventType.STATION_ID:
+            station_id = c_evt.u.station_id
+            evt = StationID(self._decode(station_id.country_code), station_id.fcc_facility_id)
+        elif evt_type == EventType.STATION_NAME:
+            station_name = c_evt.u.station_name
+            evt = StationName(self._decode(station_name.name))
+        elif evt_type == EventType.STATION_SLOGAN:
+            station_slogan = c_evt.u.station_slogan
+            evt = StationSlogan(self._decode(station_slogan.slogan))
+        elif evt_type == EventType.STATION_MESSAGE:
+            station_message = c_evt.u.station_message
+            evt = StationMessage(self._decode(station_message.message))
+        elif evt_type == EventType.STATION_LOCATION:
+            station_location = c_evt.u.station_location
+            evt = StationLocation(station_location.latitude, station_location.longitude, station_location.altitude)
+        elif evt_type == EventType.AUDIO_SERVICE_DESCRIPTOR:
+            asd = c_evt.u.asd
+            evt = SISAudioService(asd.program, Access(asd.access), ProgramType(asd.type), asd.sound_exp)
+        elif evt_type == EventType.DATA_SERVICE_DESCRIPTOR:
+            dsd = c_evt.u.dsd
+            evt = SISDataService(Access(dsd.access), ServiceDataType(dsd.type), dsd.mime_type)
+        elif evt_type == EventType.EMERGENCY_ALERT:
+            emergency_alert = c_evt.u.emergency_alert
+            categories = []
+            if emergency_alert.category1 >= 1:
+                categories.append(AlertCategory(emergency_alert.category1))
+            if emergency_alert.category2 >= 1:
+                categories.append(AlertCategory(emergency_alert.category2))
+            evt = EmergencyAlert(self._decode(emergency_alert.message),
+                                 emergency_alert.control_data[:emergency_alert.control_data_length],
+                                 categories,
+                                 None if emergency_alert.location_format == -1 else LocationFormat(emergency_alert.location_format),
+                                 emergency_alert.locations[:emergency_alert.num_locations])
+        elif evt_type == EventType.AUDIO_SERVICE:
+            service = c_evt.u.audio_service
+            evt = AudioService(
+                service.program,
+                Access(service.access),
+                ProgramType(service.type),
+                service.codec_mode,
+                Blend(service.blend_control),
+                service.digital_audio_gain,
+                service.common_delay,
+                service.latency
+            )
+        elif evt_type == EventType.HERE_IMAGE:
+            here_image = c_evt.u.here_image
+            time_utc = self._timestruct_to_datetime(here_image.time_utc)
+            evt = HEREImage(
+                HEREImageType(here_image.image_type),
+                here_image.seq,
+                here_image.n1,
+                here_image.n2,
+                time_utc,
+                here_image.latitude1,
+                here_image.longitude1,
+                here_image.latitude2,
+                here_image.longitude2,
+                self._decode(here_image.name),
+                here_image.data[:here_image.size]
+            )
+        elif evt_type == EventType.AGC:
+            agc = c_evt.u.agc
+            evt = AGC(agc.gain_db, agc.peak_dbfs, bool(agc.is_final))
+
         self.callback(evt_type, evt, *self.callback_args)
 
     def __init__(self, callback, callback_args=()):
@@ -538,6 +889,12 @@ class NRSC5:
         NRSC5.libnrsc5.nrsc5_program_type_name(program_type.value, ctypes.byref(name))
         return name.value.decode()
 
+    @staticmethod
+    def alert_category_name(category):
+        name = ctypes.c_char_p()
+        NRSC5.libnrsc5.nrsc5_alert_category_name(category.value, ctypes.byref(name))
+        return name.value.decode()
+
     def open(self, device_index):
         result = NRSC5.libnrsc5.nrsc5_open(ctypes.byref(self.radio), device_index)
         if result != 0:
@@ -556,7 +913,7 @@ class NRSC5:
         if result != 0:
             raise NRSC5Error("Failed to open rtl_tcp.")
         self._set_callback()
-    
+
     def _check_session(self):
         if not self.radio:
             raise NRSC5Error("No session opened. Call open(), open_pipe(), or open_rtltcp() first.")

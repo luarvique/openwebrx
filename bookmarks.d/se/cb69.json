@@ -1,0 +1,92 @@
+[
+    {
+        "name" : "K1",
+        "frequency" : 69012500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K2",
+        "frequency" : 69037500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K3",
+        "frequency" : 69062500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K4",
+        "frequency" : 69087500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K5",
+        "frequency" : 69112500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K6",
+        "frequency" : 69137500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K7",
+        "frequency" : 69162500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K8",
+        "frequency" : 69187500,
+        "modulation" : "fm"
+    },
+    {
+        "name" : "K9",
+        "frequency" : 69606250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K10",
+        "frequency" : 69618750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K11",
+        "frequency" : 69631250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K12",
+        "frequency" : 69643750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K13",
+        "frequency" : 69656250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K14",
+        "frequency" : 69668750,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K15",
+        "frequency" : 6968125,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K16",
+        "frequency" : 6969375,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K17",
+        "frequency" : 69706250,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "K18",
+        "frequency" : 69718250,
+        "modulation" : "nfm"
+    }
+]

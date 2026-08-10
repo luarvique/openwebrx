@@ -1,4 +1,6 @@
 from owrx.config.core import CoreConfig
+from owrx.config import Config
+from owrx.reporting import ReportingEngine
 from datetime import datetime
 from random import randint
 
@@ -69,36 +71,32 @@ class WebAgent(object):
     def stopThread(self):
         if self.thread is not None:
             logger.info("Stopping {0} database thread.".format(type(self).__name__))
-            self.event.set()
-            self.thread.join()
             self.thread = None
+            self.event.set()
 
     # This is the actual thread function
     def _refreshThread(self):
         # Random time to refresh data
         refreshMinute = random.randint(5, 49)
         # Main Loop
-        while not self.event.is_set():
+        while self.thread is not None and not self.event.is_set():
             # Wait until the check-and-update time
             waitMinutes = refreshMinute - datetime.utcnow().minute
             waitMinutes = waitMinutes + 60 if waitMinutes <= 0 else waitMinutes
             self.event.wait(waitMinutes * 60)
-            # Check if we need to exit
-            if self.event.is_set():
-                break
             # Check and refresh cached database as needed
-            self.refresh()
+            if self.thread is not None and not self.event.is_set():
+                self.refresh()
         # Done with the thread
         self.thread = None
+        logger.info("Stopped {0} database thread.".format(type(self).__name__))
 
     # Refresh database from the web.
     def refresh(self):
-        # This file contains cached receivers database
-        file = self._getCachedDatabaseFile()
         # If cached database is stale...
         if self.errorCount < self.maxErrors and time.time() - self.lastDownloaded() >= self.refreshPeriod:
             logger.info("Updating {0} database from web (attempt {1}/{2})...".format(type(self).__name__, self.errorCount + 1, self.maxErrors))
-            # Load receivers list from the web
+            # Load database from the web
             data = self._loadFromWeb()
             if data is None:
                 # Count continuous errors
@@ -106,8 +104,10 @@ class WebAgent(object):
             else:
                 # Clear error count
                 self.errorCount = 0
+                # Optionally sort loaded data
+                data = self._sortData(data)
                 # Save parsed data into a file
-                self.saveData(file, data)
+                self.saveData(self._getCachedDatabaseFile(), data)
                 # Update current database
                 with self.lock:
                     self.data = data
@@ -139,11 +139,55 @@ class WebAgent(object):
             except Exception as e:
                 logger.error("loadData() exception: {0}".format(e))
                 result = []
+        # Optionally sort loaded data
+        result = self._sortData(result)
         # Done
         logger.info("Loaded {0} items from '{1}'...".format(len(result), file))
         return result
+
+    # Report data download
+    def report(self, source: str, numEntries: int):
+        pm = Config.get()
+        if pm["report_radio"]:
+            out = {
+                "mode"      : "RX",
+                "timestamp" : round(datetime.now().timestamp() * 1000),
+                "source"    : source,
+                "entries"   : numEntries,
+                "state"     : "DataDownloaded"
+            }
+            ReportingEngine.getSharedInstance().spot(out)
+
+    # Optionally sort data after loading it
+    def _sortData(self, data):
+        # Fill in with your own method
+        return data
 
     # Scrape web site(s) for data
     def _loadFromWeb(self):
         # Fill in your own method
         return []
+
+    # Search sorted frequency list via bisection
+    def _bisect_left(self, freq):
+        lo = 0
+        hi = len(self.data)
+        while lo < hi:
+            x = (lo + hi) // 2
+            if self.data[x]["freq"] < freq:
+                lo = x + 1
+            else:
+                hi = x
+        return lo
+
+    # Search sorted frequency list via bisection
+    def _bisect_right(self, freq):
+        lo = 0
+        hi = len(self.data)
+        while lo < hi:
+            x = (lo + hi) // 2
+            if freq < self.data[x]["freq"]:
+                hi = x
+            else:
+                lo = x + 1
+        return lo

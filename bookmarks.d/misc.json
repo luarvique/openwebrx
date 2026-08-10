@@ -55,19 +55,14 @@
         "modulation" : "usb"
     },
     {
-        "name" : "Time - CHU",
-        "frequency" : 3330000,
-        "modulation" : "usb"
-    },
-    {
         "name" : "Time - RWM",
         "frequency" : 4996000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - EBC",
         "frequency" : 4998000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV, WWVH, BPM",
@@ -75,14 +70,9 @@
         "modulation" : "usb"
     },
     {
-        "name" : "Time - CHU",
-        "frequency" : 7850000,
-        "modulation" : "usb"
-    },
-    {
         "name" : "Time - RWM",
         "frequency" : 9996000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV, WWVH, BPM",
@@ -95,14 +85,9 @@
         "modulation" : "usb"
     },
     {
-        "name" : "Time - CHU",
-        "frequency" : 14670000,
-        "modulation" : "usb"
-    },
-    {
         "name" : "Time - RWM",
         "frequency" : 14996000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV, WWVH, BPM",
@@ -112,7 +97,7 @@
     {
         "name" : "Time - EBC",
         "frequency" : 15006000,
-        "modulation" : "usb"
+        "modulation" : "cw"
     },
     {
         "name" : "Time - WWV",

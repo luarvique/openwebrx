@@ -7,7 +7,6 @@ from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class HdRadio(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, DialFrequencyReceiver, AudioServiceSelector):

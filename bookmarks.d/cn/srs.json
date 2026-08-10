@@ -1,0 +1,602 @@
+[
+    {
+        "name" : "SRS1",
+        "frequency" : 406212400,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS2",
+        "frequency" : 406225000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS3",
+        "frequency" : 406237500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS4",
+        "frequency" : 406250000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS5",
+        "frequency" : 406262500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS6",
+        "frequency" : 406275000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS7",
+        "frequency" : 406287500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS8",
+        "frequency" : 406300000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS9",
+        "frequency" : 406312500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS10",
+        "frequency" : 406325000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS11",
+        "frequency" : 406337500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS12",
+        "frequency" : 406350000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS13",
+        "frequency" : 406362500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS14",
+        "frequency" : 406375000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS15",
+        "frequency" : 406387500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS16",
+        "frequency" : 406400000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS17",
+        "frequency" : 406412500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS18",
+        "frequency" : 406425000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS19",
+        "frequency" : 406437500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS20",
+        "frequency" : 406450000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS21",
+        "frequency" : 406462500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS22",
+        "frequency" : 406475000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS23",
+        "frequency" : 406487500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS24",
+        "frequency" : 406500000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS25",
+        "frequency" : 406512500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS26",
+        "frequency" : 406525000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS27",
+        "frequency" : 406537500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS28",
+        "frequency" : 406550000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS29",
+        "frequency" : 406562500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS30",
+        "frequency" : 406575000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS31",
+        "frequency" : 406587500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS32",
+        "frequency" : 406600000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS33",
+        "frequency" : 406612500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS34",
+        "frequency" : 406625000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS35",
+        "frequency" : 406637500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS36",
+        "frequency" : 406650000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS37",
+        "frequency" : 406662500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS38",
+        "frequency" : 406675000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS39",
+        "frequency" : 406687500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS40",
+        "frequency" : 406700000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS41",
+        "frequency" : 406712500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS42",
+        "frequency" : 406725000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS43",
+        "frequency" : 406737500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS44",
+        "frequency" : 406750000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS45",
+        "frequency" : 406762500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS46",
+        "frequency" : 406775000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS47",
+        "frequency" : 406787500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS48",
+        "frequency" : 406800000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS49",
+        "frequency" : 406812500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS50",
+        "frequency" : 406825000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS51",
+        "frequency" : 406837500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS52",
+        "frequency" : 406850000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS53",
+        "frequency" : 406862500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS54",
+        "frequency" : 406875000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS55",
+        "frequency" : 406887500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS56",
+        "frequency" : 406900000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS57",
+        "frequency" : 406912500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS58",
+        "frequency" : 406925000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS59",
+        "frequency" : 406937500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS60",
+        "frequency" : 406950000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS61",
+        "frequency" : 406962500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS62",
+        "frequency" : 406975000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS63",
+        "frequency" : 406987500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS64",
+        "frequency" : 407000000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS65",
+        "frequency" : 407012500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS66",
+        "frequency" : 407025000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS67",
+        "frequency" : 407037500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS68",
+        "frequency" : 407050000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS69",
+        "frequency" : 407062500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS70",
+        "frequency" : 407075000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS71",
+        "frequency" : 407087500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS72",
+        "frequency" : 407100000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS73",
+        "frequency" : 407112500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS74",
+        "frequency" : 407125000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS75",
+        "frequency" : 407137500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS76",
+        "frequency" : 407150000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS77",
+        "frequency" : 407162500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS78",
+        "frequency" : 407175000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS79",
+        "frequency" : 407187500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS80",
+        "frequency" : 407200000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS81",
+        "frequency" : 407212500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS82",
+        "frequency" : 407225000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS83",
+        "frequency" : 407237500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS84",
+        "frequency" : 407250000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS85",
+        "frequency" : 407262500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS86",
+        "frequency" : 407275000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS87",
+        "frequency" : 407287500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS88",
+        "frequency" : 407300000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS89",
+        "frequency" : 407312500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS90",
+        "frequency" : 407325000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS91",
+        "frequency" : 407337500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS92",
+        "frequency" : 407350000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS93",
+        "frequency" : 407362500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS94",
+        "frequency" : 407375000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS95",
+        "frequency" : 407387500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS96",
+        "frequency" : 407400000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS97",
+        "frequency" : 407412500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS98",
+        "frequency" : 407425000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS99",
+        "frequency" : 407437500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS100",
+        "frequency" : 407450000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS101",
+        "frequency" : 407462500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS102",
+        "frequency" : 407475000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS103",
+        "frequency" : 407487500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS104",
+        "frequency" : 407500000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS105",
+        "frequency" : 407512500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS106",
+        "frequency" : 407525000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS107",
+        "frequency" : 407537500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS108",
+        "frequency" : 407550000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS109",
+        "frequency" : 407562500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS110",
+        "frequency" : 407575000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS111",
+        "frequency" : 407587500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS112",
+        "frequency" : 407600000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS113",
+        "frequency" : 407612500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS114",
+        "frequency" : 407625000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS115",
+        "frequency" : 407637500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS116",
+        "frequency" : 407650000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS117",
+        "frequency" : 407662500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS118",
+        "frequency" : 407675000,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS119",
+        "frequency" : 407687500,
+        "modulation" : "nfm"
+    },
+    {
+        "name" : "SRS120",
+        "frequency" : 407700000,
+        "modulation" : "nfm"
+    }
+]

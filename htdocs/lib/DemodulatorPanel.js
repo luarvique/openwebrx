@@ -9,7 +9,9 @@ function DemodulatorPanel(el) {
     var displayEl = el.find('.webrx-actual-freq')
     this.tuneableFrequencyDisplay = displayEl.tuneableFrequencyDisplay();
     displayEl.on('frequencychange', function(event, freq) {
-        self.getDemodulator().set_offset_frequency(freq - self.center_freq);
+        var demod = self.getDemodulator();
+        var delta = demod.get_modulation() === 'cw'? UI.getCwOffset() : 0;
+        demod.set_offset_frequency(freq - self.center_freq - delta);
     });
 
     this.mouseFrequencyDisplay = el.find('.webrx-mouse-freq').frequencyDisplay();
@@ -129,7 +131,8 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation, underlyingMod
 
     var self = this;
     var updateFrequency = function(freq) {
-        self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
+        var delta = self.demodulator.get_modulation() === 'cw'? UI.getCwOffset() : 0;
+        self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq + delta);
         self.updateHash();
     };
     this.demodulator.on("frequencychange", updateFrequency);
@@ -179,11 +182,15 @@ DemodulatorPanel.prototype.updatePanels = function() {
     // WSJT-X modes share the same panel
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'fst4', 'fst4w', "q65", "msk144"].indexOf(modulation) >= 0);
     // Aeronautic modes share the same panel
-    toggle_panel("openwebrx-panel-hfdl-message", ['hfdl', 'vdl2', 'acars'].indexOf(modulation) >= 0);
+    toggle_panel("openwebrx-panel-hfdl-message", ['hfdl', 'vdl2', 'acars', 'uat'].indexOf(modulation) >= 0);
     // Packet modes share the same panel
-    toggle_panel("openwebrx-panel-packet-message", ['packet', 'ais'].indexOf(modulation) >= 0);
+    toggle_panel("openwebrx-panel-packet-message", ['packet', 'ais', 'lora-aprs', 'sonde-rs41', 'sonde-mts01', 'sonde-m10', 'sonde-m20', 'sonde-dfm9', 'sonde-dfm17'].indexOf(modulation) >= 0);
+    // ISM modes share the same panel
+    toggle_panel("openwebrx-panel-ism-message", ['ism', 'wmbus'].indexOf(modulation) >= 0);
+    // Skimmer modes share the same panel
+    toggle_panel("openwebrx-panel-skimmer-message", ['cwskimmer', 'rttyskimmer'].indexOf(modulation) >= 0);
     // These modes come with their own panels
-    ['js8', 'page', 'pocsag', 'sstv', 'fax', 'ism', 'dsc', 'adsb', 'cwskimmer'].forEach(function(m) {
+    ['js8', 'page', 'pocsag', 'sstv', 'fax', 'dsc', 'adsb', 'meshtastic'].forEach(function(m) {
         toggle_panel('openwebrx-panel-' + m + '-message', modulation === m);
     });
 

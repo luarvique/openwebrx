@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   id="Capa_1"
+   x="0px"
+   y="0px"
+   width="553.048px"
+   height="553.048px"
+   viewBox="0 0 553.048 553.048"
+   style="enable-background:new 0 0 553.048 553.048;"
+   xml:space="preserve"
+   sodipodi:docname="openwebrx-get-android-app.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs20" /><sodipodi:namedview
+   id="namedview20"
+   pagecolor="#000000"
+   bordercolor="#ffffff"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:zoom="1.5387454"
+   inkscape:cx="276.52398"
+   inkscape:cy="283.67266"
+   inkscape:window-width="1920"
+   inkscape:window-height="1111"
+   inkscape:window-x="-9"
+   inkscape:window-y="-9"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="Capa_1" />
+<g
+   id="g5"
+   transform="matrix(0.64031338,0,0,0.61692183,99.46197,105.92992)">
+	<g
+   id="g4">
+		<path
+   fill="#ffffff"
+   d="m 76.774,179.141 c -9.529,0 -17.614,3.323 -24.26,9.969 -6.646,6.646 -9.97,14.621 -9.97,23.929 v 142.914 c 0,9.541 3.323,17.619 9.97,24.266 6.646,6.646 14.731,9.97 24.26,9.97 9.522,0 17.558,-3.323 24.101,-9.97 6.53,-6.646 9.804,-14.725 9.804,-24.266 V 213.039 c 0,-9.309 -3.323,-17.283 -9.97,-23.929 -6.647,-6.646 -14.627,-9.969 -23.935,-9.969 z"
+   id="path1" />
+		<path
+   fill="#ffffff"
+   d="M 351.972,50.847 375.57,7.315 c 1.549,-2.882 0.998,-5.092 -1.658,-6.646 -2.883,-1.34 -5.098,-0.661 -6.646,1.989 l -23.928,43.88 c -21.055,-9.309 -43.324,-13.972 -66.807,-13.972 -23.488,0 -45.759,4.664 -66.806,13.972 L 185.796,2.658 c -1.555,-2.65 -3.77,-3.323 -6.646,-1.989 -2.662,1.561 -3.213,3.764 -1.658,6.646 l 23.599,43.532 c -23.929,12.203 -42.987,29.198 -57.167,51.022 -14.18,21.836 -21.273,45.698 -21.273,71.628 h 307.426 c 0,-25.924 -7.094,-49.787 -21.273,-71.628 C 394.623,80.045 375.675,63.05 351.972,50.847 Z m -136.433,63.318 c -2.552,2.558 -5.6,3.831 -9.143,3.831 -3.55,0 -6.536,-1.273 -8.972,-3.831 -2.436,-2.546 -3.654,-5.582 -3.654,-9.137 0,-3.543 1.218,-6.585 3.654,-9.137 2.436,-2.546 5.429,-3.819 8.972,-3.819 3.543,0 6.591,1.273 9.143,3.819 2.546,2.558 3.825,5.594 3.825,9.137 -0.007,3.549 -1.285,6.591 -3.825,9.137 z m 140.086,0 c -2.441,2.558 -5.434,3.831 -8.971,3.831 -3.551,0 -6.598,-1.273 -9.145,-3.831 -2.551,-2.546 -3.824,-5.582 -3.824,-9.137 0,-3.543 1.273,-6.585 3.824,-9.137 2.547,-2.546 5.594,-3.819 9.145,-3.819 3.543,0 6.529,1.273 8.971,3.819 2.438,2.558 3.654,5.594 3.654,9.137 0,3.549 -1.217,6.591 -3.654,9.137 z"
+   id="path2" />
+		<path
+   fill="#ffffff"
+   d="m 123.971,406.804 c 0,10.202 3.543,18.838 10.63,25.925 7.093,7.087 15.729,10.63 25.924,10.63 h 24.596 l 0.337,75.454 c 0,9.528 3.323,17.619 9.969,24.266 6.646,6.647 14.627,9.97 23.929,9.97 9.523,0 17.613,-3.323 24.26,-9.97 6.647,-6.647 9.97,-14.737 9.97,-24.266 v -75.447 h 45.864 v 75.447 c 0,9.528 3.322,17.619 9.969,24.266 6.647,6.647 14.73,9.97 24.26,9.97 9.523,0 17.613,-3.323 24.26,-9.97 6.647,-6.647 9.969,-14.737 9.969,-24.266 v -75.447 h 24.928 c 9.969,0 18.494,-3.544 25.594,-10.631 7.086,-7.087 10.631,-15.723 10.631,-25.924 V 185.45 h -305.09 z"
+   id="path3" />
+		<path
+   fill="#ffffff"
+   d="m 476.275,179.141 c -9.309,0 -17.283,3.274 -23.93,9.804 -6.646,6.542 -9.969,14.578 -9.969,24.094 v 142.914 c 0,9.541 3.322,17.619 9.969,24.266 6.647,6.647 14.627,9.97 23.93,9.97 9.523,0 17.613,-3.323 24.26,-9.97 6.647,-6.647 9.969,-14.725 9.969,-24.266 V 213.039 c 0,-9.517 -3.322,-17.552 -9.969,-24.094 -6.647,-6.53 -14.737,-9.804 -24.26,-9.804 z"
+   id="path4" />
+	</g>
+</g>
+<text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:69.33333333px;font-family:Bahnschrift;-inkscape-font-specification:'Bahnschrift Bold';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff"
+   id="text21"><textPath
+     xlink:href="#path23"
+     id="textPath24"><tspan
+       id="tspan22"
+       style="font-size:69.33333333px;-inkscape-font-specification:'Bahnschrift Bold';font-family:Bahnschrift;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal">GET ANDROID APP</tspan></textPath></text><path
+   id="path23"
+   style="fill:none;stroke-width:1.81466"
+   transform="rotate(168.82074)"
+   d="m -12.904053,-324.88931 a 204.76074,205.03795 0 0 1 -204.760737,205.03795 204.76074,205.03795 0 0 1 -204.76075,-205.03795 204.76074,205.03795 0 0 1 204.76075,-205.03795 204.76074,205.03795 0 0 1 204.760737,205.03795 z" /><path
+   id="path23-5"
+   style="fill:none;stroke-width:1.81466"
+   transform="rotate(-10.187387)"
+   d="M 428.01694,321.07272 A 204.76074,205.03795 0 0 1 223.2562,526.11067 204.76074,205.03795 0 0 1 18.495453,321.07272 204.76074,205.03795 0 0 1 223.2562,116.03477 204.76074,205.03795 0 0 1 428.01694,321.07272 Z" /><text
+   xml:space="preserve"
+   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:69.33333333px;font-family:Bahnschrift;-inkscape-font-specification:'Bahnschrift Bold';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff"
+   id="text21-1"><textPath
+     xlink:href="#path23-5"
+     id="textPath25"><tspan
+       id="tspan22-1"
+       style="font-size:69.33333333px;-inkscape-font-specification:'Bahnschrift Bold';font-family:Bahnschrift;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal">GET ANDROID APP</tspan></textPath></text></svg>

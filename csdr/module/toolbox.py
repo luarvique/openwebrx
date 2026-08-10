@@ -2,17 +2,20 @@ from pycsdr.modules import ExecModule
 from pycsdr.types import Format
 from csdr.module import PopenModule
 from owrx.config import Config
-import os
+
 
 class Rtl433Module(ExecModule):
     def __init__(self, sampleRate: int = 250000, jsonOutput: bool = False):
         cmd = [
-            "rtl_433", "-r", "cs16:-", "-s", str(sampleRate),
+            "rtl_433", "-r", "cf32:-", "-s", str(sampleRate),
             "-M", "time:unix" if jsonOutput else "time:utc",
             "-F", "json" if jsonOutput else "kv",
-            "-A",
+            "-A", "-Y", "autolevel",
         ]
-        super().__init__(Format.COMPLEX_SHORT, Format.CHAR, cmd)
+        pm = Config.get()
+        if pm["ism_report_levels"]:
+            cmd += ["-M", "level"]
+        super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
 
 
 class MultimonModule(ExecModule):
@@ -22,52 +25,6 @@ class MultimonModule(ExecModule):
         for x in decoders:
             cmd += ["-a", x]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
-
-
-class DumpHfdlModule(ExecModule):
-    def __init__(self, sampleRate: int = 12000, jsonOutput: bool = False):
-        cmd = [
-            "dumphfdl", "--iq-file", "-", "--sample-format", "CF32",
-            "--sample-rate", str(sampleRate), "--output",
-            "decoded:%s:file:path=-" % ("json" if jsonOutput else "text"),
-            "--utc", "--centerfreq", "0", "0"
-        ]
-        super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd)
-
-
-class DumpVdl2Module(ExecModule):
-    def __init__(self, sampleRate: int = 105000, jsonOutput: bool = False):
-        cmd = [
-            "dumpvdl2", "--iq-file", "-", "--sample-format", "S16_LE",
-            "--oversample", str(sampleRate // 105000), "--output",
-            "decoded:%s:file:path=-" % ("json" if jsonOutput else "text"),
-            "--decode-fragments", "--utc"
-        ]
-        super().__init__(Format.COMPLEX_SHORT, Format.CHAR, cmd)
-
-
-class Dump1090Module(ExecModule):
-    def __init__(self, rawOutput: bool = False, jsonFolder: str = None):
-        pm  = Config.get()
-        lat = pm["receiver_gps"]["lat"]
-        lon = pm["receiver_gps"]["lon"]
-        cmd = [
-            "dump1090", "--ifile", "-", "--iformat", "SC16",
-            "--lat", str(lat), "--lon", str(lon),
-            "--modeac", "--metric"
-        ]
-        # If JSON files folder supplied, use that, disable STDOUT output
-        if jsonFolder is not None:
-            try:
-                os.makedirs(jsonFolder, exist_ok = True)
-                cmd += [ "--quiet", "--write-json", jsonFolder ]
-            except:
-                self.jsonFolder = None
-                pass
-        # RAW STDOUT output only makes sense if we are not using JSON
-        if rawOutput and jsonFolder is None:
-            cmd += [ "--raw" ]
-        super().__init__(Format.COMPLEX_SHORT, Format.CHAR, cmd)
 
 
 class WavFileModule(PopenModule):
@@ -103,26 +60,16 @@ class WavFileModule(PopenModule):
         self.process.stdin.write(header)
 
 
-class AcarsDecModule(WavFileModule):
-    def __init__(self, sampleRate: int = 12500, jsonOutput: bool = False):
-        self.sampleRate = sampleRate
-        self.jsonOutput = jsonOutput
-        super().__init__()
-
-    def getCommand(self):
-        return [
-            "acarsdec", "-f", "/dev/stdin",
-            "-o", str(4 if self.jsonOutput else 1)
-        ]
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
-
-
 class CwSkimmerModule(ExecModule):
-    def __init__(self, sampleRate: int = 48000, charCount: int = 4):
-        cmd = ["csdr-cwskimmer", "-i", "-r", str(sampleRate), "-n", str(charCount)]
-        super().__init__(Format.SHORT, Format.CHAR, cmd)
+    def __init__(self, sampleRate: int = 96000, charCount: int = 4):
+        cmd = ["csdr-cwskimmer", "-f", "-r", str(sampleRate), "-n", str(charCount)]
+        super().__init__(Format.FLOAT, Format.CHAR, cmd)
+
+
+class RttySkimmerModule(ExecModule):
+    def __init__(self, sampleRate: int = 96000, charCount: int = 4):
+        cmd = ["csdr-rttyskimmer", "-f", "-r", str(sampleRate), "-n", str(charCount)]
+        super().__init__(Format.FLOAT, Format.CHAR, cmd)
 
 
 class RedseaModule(ExecModule):
@@ -155,32 +102,6 @@ class LameModule(ExecModule):
     def __init__(self, sampleRate: int = 24000):
         cmd = [
             "lame", "-r", "-m", "m", "--signed", "--bitwidth", "16",
-            "-s", str(sampleRate / 1000), "-", "-"
+            "-s", str(sampleRate / 1000), "-b", "128", "-", "-"
         ]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
-
-
-class SatDumpModule(ExecModule):
-    def __init__(self, mode: str = "noaa_apt", sampleRate: int = 50000, frequency: int = 137100000, outFolder: str = "/tmp/satdump", options = None):
-        # Make sure we have output folder
-        try:
-            os.makedirs(outFolder, exist_ok = True)
-        except:
-            outFolder = "/tmp"
-        # Compose command line
-        cmd = [
-            "satdump", "live", mode, outFolder,
-            "--source", "file", "--file_path", "/dev/stdin",
-            "--samplerate", str(sampleRate),
-            "--frequency", str(frequency),
-            "--baseband_format", "f32",
-# Not trying to decode actual imagery for now, leaving .CADU file instead
-#            "--finish_processing",
-        ]
-        # Add pipeline-specific options
-        if options:
-            for key in options.keys():
-                cmd.append("--" + key)
-                cmd.append(str(options[key]))
-        # Create parent object
-        super().__init__(Format.COMPLEX_FLOAT, Format.CHAR, cmd, doNotKill=True)

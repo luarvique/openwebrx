@@ -1,7 +1,7 @@
 from owrx.config import ConfigError
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 import os
 
 
@@ -69,8 +69,13 @@ class CoreConfig(object):
         self.web_port = config.getint("web", "port")
         self.web_ipv6 = config.getboolean("web", "ipv6")
         self.web_bind_address = config.get("web", "bind_address", fallback=None)
+        self.web_trusted_proxies = config.get("web", "trusted_proxies", fallback=None)
         self.aprs_symbols_path = config.get("aprs", "symbols_path")
         self.temperature_sensor = config.get("core", "temperature_sensor")
+
+        # Store trusted proxies in a list of string form
+        if self.web_trusted_proxies is not None:
+            self.web_trusted_proxies = [ip.strip() for ip in self.web_trusted_proxies.split(',')]
 
     @staticmethod
     def checkDirectory(dir, key):
@@ -89,6 +94,9 @@ class CoreConfig(object):
 
     def get_web_bind_address(self) -> Optional[str]:
         return self.web_bind_address
+
+    def get_web_trusted_proxies(self) -> Optional[List[str]]:
+        return self.web_trusted_proxies
 
     def get_data_directory(self) -> str:
         return self.data_directory

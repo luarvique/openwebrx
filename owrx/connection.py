@@ -21,6 +21,7 @@ from abc import ABCMeta, abstractmethod
 import json
 import threading
 import struct
+import time
 
 import logging
 
@@ -125,6 +126,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         "center_freq",
         "tuning_step",
         "initial_squelch_level",
+        "initial_nr_level",
         "sdr_id",
         "profile_id",
         "squelch_auto_margin",
@@ -148,6 +150,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         "flight_url",
         "modes_url",
         "receiver_gps",
+        "ui_theme",
     ]
 
     def __init__(self, conn):
@@ -159,6 +162,13 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.configSubs = []
         self.bookmarkSub = None
         self.connectionProperties = {}
+
+        # Get initial robot score based on the number of recent connections
+        self.lastProfileChange = time.time()
+        self.robotAlert = ClientRegistry.getSharedInstance().robotScore(self)
+        # Ban the suspected robot
+        if self.robotAlert >= 30 and self.stack["bot_ban_enabled"]:
+            ClientRegistry.getSharedInstance().banClient(self, 60 * 12)
 
         try:
             ClientRegistry.getSharedInstance().addClient(self)
@@ -317,7 +327,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                     else:
                         if "action" in message and message["action"] == "start":
                             dsp.start()
-
                         if "params" in message:
                             params = message["params"]
                             dsp.setProperties(params)
@@ -326,33 +335,25 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                     if "params" in message and "sdr" in message["params"]:
                         self.setSdr(message["params"]["sdr"])
                 elif message["type"] == "selectprofile":
-                    # Locked source's profile can only be changed with a key
                     if "params" in message and "profile" in message["params"]:
                         params  = message["params"]
                         profile = params["profile"].split("|")
-                        magic   = self.stack["magic_key"]
                         key     = params["key"] if "key" in params else None
-                        self.setSdr(profile[0])
-                        # If source not locked, or no magic key, or it matches...
-                        if not self.sdr.isLocked() or magic == "" or key == magic:
-                            # Select a new profile
-                            self.sdr.activateProfile(profile[1])
-                        else:
-                            # Force update back to the current profile
-                            self.resetSdr()
+                        self.setProfile(profile[0], profile[1], key)
                 elif message["type"] == "setfrequency":
                     # If the magic key is set in the settings, only allow
                     # changes if it matches the received key
                     if "params" in message and "frequency" in message["params"]:
-                        if self.stack["allow_center_freq_changes"]:
-                            params = message["params"]
-                            magic  = self.stack["magic_key"]
-                            key    = params["key"] if "key" in params else None
+                        params = message["params"]
+                        freq   = params["frequency"]
+                        if freq >= 0 and self.stack["allow_center_freq_changes"]:
+                            magic = self.stack["magic_key"]
+                            key   = params["key"] if "key" in params else None
                             if magic == "" or key == magic:
-                                self.sdr.setCenterFreq(params["frequency"])
+                                self.sdr.setCenterFreq(freq)
                 elif message["type"] == "connectionproperties":
                     if "params" in message:
-                        self.connectionProperties = message["params"]
+                        self.connectionProperties.update(message["params"])
                         if self.dsp:
                             self.getDsp().setProperties(self.connectionProperties)
                 elif message["type"] == "sendmessage":
@@ -368,6 +369,38 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
         except json.JSONDecodeError:
             logger.warning("message is not json: {0}".format(message))
+
+    def setProfile(self, sdr: str, profile: str, key: str = None):
+        # Set new SDR source
+        self.setSdr(sdr)
+
+        # Locked source's profile can only be changed with a key
+        magic = self.stack["magic_key"]
+        if self.sdr.isLocked(profile) and magic != "" and key != magic:
+            # Tell client of locked profile
+            self.write_log_message("This profile is locked, keeping current profile.")
+            # Force update back to the current profile
+            self.resetSdr()
+
+        else:
+            # Keep track of frequent profile changes
+            thisChange = time.time()
+            robotScore = 10 - (thisChange - self.lastProfileChange)
+            self.lastProfileChange = thisChange;
+
+            # Keep the robot score
+            if robotScore < 0:
+                self.robotAlert = 0
+            else:
+                self.robotAlert += robotScore
+
+            # If this may be a robot...
+            if self.robotAlert >= 30 and self.stack["bot_ban_enabled"]:
+                # Ban the suspected robot
+                ClientRegistry.getSharedInstance().banClient(self, 60 * 12)
+            else:
+                # Select a new profile
+                self.sdr.activateProfile(profile)
 
     def setSdr(self, id=None):
         next = None
@@ -406,7 +439,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def handleSdrAvailable(self):
         self.getDsp().setProperties(self.connectionProperties)
         self.stack.replaceLayer(0, self.sdr.getProps())
-
         self.sdr.addSpectrumClient(self)
 
     def handleNoSdrsAvailable(self):
@@ -437,6 +469,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         with self.dspLock:
             if self.dsp is None and self.sdr is not None:
                 self.dsp = DspManager(self, self.sdr)
+                self.dsp.setProperties(self.connectionProperties)
         return self.dsp
 
     def write_spectrum_data(self, data):
@@ -461,6 +494,9 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
     def write_temperature(self, temp):
         self.mp_send({"type": "temperature", "value": temp})
+
+    def write_battery(self, battery):
+        self.mp_send({"type": "battery", "value": battery})
 
     def write_clients(self, clients):
         self.mp_send({"type": "clients", "value": clients})

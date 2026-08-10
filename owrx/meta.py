@@ -84,7 +84,7 @@ class RadioIDEnricher(Enricher):
             data = json.loads(res.read().decode("utf-8"))
             if "count" in data and data["count"] > 0 and "results" in data:
                 for item in data["results"]:
-                    if "id" in item and item["id"] == id:
+                    if "radio_id" in item and item["radio_id"] == id:
                         return item
         except json.JSONDecodeError:
             logger.warning("unable to parse radioid response JSON")
@@ -175,6 +175,90 @@ class YsfMetaEnricher(DigihamEnricher):
         return meta
 
 
+class P25MetaEnricher(DigihamEnricher):
+    algorithms = {
+        0x00: "ACCORDION-3",
+        0x01: "BATON-AUTO-EVEN",
+        0x02: "FIREFLY",
+        0x03: "MAYFLY",
+        0x04: "SAVILLE",
+        0x05: "PADSTONE",
+        0x41: "BATON-AUTO-ODD",
+        0x80: "CLEARTEXT",
+        0x81: "DES-OFB",
+        0x82: "3DES-2K",
+        0x83: "3DES-3K",
+        0x84: "AES-256",
+        0x86: "AES-128",
+        0x88: "AES-CBC",
+        0x89: "AES-128-OFB",
+        0x9F: "DES-XL",
+        0xA0: "DVI-XL",
+        0xA1: "DVP-XL",
+        0xA2: "DVP-SPFL",
+        0xA3: "HAYSTACK",
+        0xAA: "ADP-40-RC4",
+        0xAB: "CFX-256",
+        0xAF: "AES-256-GCM",
+        0xB0: "DVP",
+    }
+
+    manufacturers = {
+        0x00: "Generic pre-2001",
+        0x01: "Generic post-2001",
+        0x09: "Aselsan",
+        0x10: "Relm / BK Radio",
+        0x18: "EADS Public Safety",
+        0x20: "Cycomm",
+        0x28: "Efratom Time and Frequency Products",
+        0x30: "Com-Net Ericsson",
+        0x34: "Etherstack",
+        0x38: "Datron",
+        0x40: "Icom",
+        0x48: "Garmin",
+        0x50: "GTE",
+        0x55: "IFR Systems",
+        0x5A: "INIT Innovations in Transportation",
+        0x60: "GEC-Marconi",
+        0x64: "Harris",
+        0x68: "Kenwood Communications",
+        0x70: "Glenayre Electronics",
+        0x74: "Japan Radio",
+        0x78: "Kokusai",
+        0x7C: "Maxon",
+        0x80: "Midland",
+        0x86: "Daniels Electronics",
+        0x90: "Motorola",
+        0xA0: "Thales",
+        0xA4: "M/A-COM",
+        0xB0: "Raytheon",
+        0xC0: "SEA",
+        0xC8: "Securicor",
+        0xD0: "ADI",
+        0xD8: "Tait Electronics",
+        0xE0: "Teletec",
+        0xF0: "Transcrypt International",
+        0xF8: "Vertex Standard",
+        0xFC: "Zetron",
+    }
+
+    def getCallsign(self, meta):
+        if "source" in meta:
+            return meta["source"]
+
+    def enrich(self, meta, callback):
+        meta = self.parseCoordinate(meta, "P25")
+        if "algid" in meta:
+            algid = int(meta["algid"])
+            if algid in self.algorithms:
+                meta["algorithm"] = self.algorithms[algid]
+        if "mfid" in meta:
+            mfid = int(meta["mfid"])
+            if mfid in self.manufacturers:
+                meta["manufacturer"] = self.manufacturers[mfid]
+        return meta
+
+
 class DStarEnricher(DigihamEnricher):
     def getCallsign(self, meta):
         if "ourcall" in meta:
@@ -214,6 +298,7 @@ class MetaParser(PickleModule):
         self.enrichers = {
             "DMR": DmrEnricher(self),
             "YSF": YsfMetaEnricher(self),
+            "P25": P25MetaEnricher(self),
             "DSTAR": DStarEnricher(self),
             "NXDN": RadioIDEnricher("nxdn", self),
         }

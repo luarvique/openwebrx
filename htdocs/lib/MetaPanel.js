@@ -560,6 +560,7 @@ WfmMetaPanel.prototype.clear = function() {
 function HdrMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['HDR'];
+    this.frequency = -1;
 
     // Create info panel
     var $container = $(
@@ -570,6 +571,7 @@ function HdrMetaPanel(el) {
             '</div>' +
             '<div class="hdr-station"></div>' +
             '<div class="hdr-message"></div>' +
+            '<div id="hdr-logo" class="hdr-image"></div>' +
             '<div class="hdr-title"></div>' +
             '<div class="hdr-artist"></div>' +
             '<div class="hdr-album"></div>' +
@@ -593,6 +595,20 @@ HdrMetaPanel.prototype = new MetaPanel();
 
 HdrMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
+
+    // If there is an image, display it and do not parse further
+    if ('image' in data && 'data' in data) {
+        $('#hdr-logo').html(
+            '<img src="data:image/png;base64,' + data.data + '">'
+        );
+        return;
+    }
+
+    // Clear logo image when frequency changes
+    if (data.frequency != this.frequency) {
+        this.frequency = data.frequency;
+        $('#hdr-logo').html('');
+    }
 
     // Convert FCC ID to hexadecimal
     var fcc_id = '';
@@ -653,13 +669,13 @@ function DabMetaPanel(el) {
     $(this.el).append($container);
     this.clear();
     this.programmeTimeout = false;
-}
+};
 
 DabMetaPanel.prototype = new MetaPanel();
 
 DabMetaPanel.prototype.isSupported = function(data) {
     return this.modes.includes(data.mode);
-}
+};
 
 DabMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
@@ -695,7 +711,7 @@ DabMetaPanel.prototype.update = function(data) {
             me.$select.val(me.$select.find('option:first').val()).change();
         }, 1000);
     }
-}
+};
 
 DabMetaPanel.prototype.clear = function() {
     this.service_id = 0;
@@ -703,7 +719,341 @@ DabMetaPanel.prototype.clear = function() {
     this.$select.html(
         '<option value="" disabled selected hidden>Loading...</option>'
     );
+};
+
+function DrmMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['DRM'];
+    this.frequency = -1;
+
+    // Create info panel
+    var $container = $(
+        '<div class="drm-container">' +
+            '<div class="drm-line">' +
+                '<span class="drm-indicator drm-io">IO</span>' +
+                '<span class="drm-indicator drm-time">Time</span>' +
+                '<span class="drm-indicator drm-frame">Frame</span>' +
+                '<span class="drm-indicator drm-fac">FAC</span>' +
+                '<span class="drm-indicator drm-sdc">SDC</span>' +
+                '<span class="drm-indicator drm-msc">MSC</span>' +
+            '</div>' +
+            '<div class="drm-separator">' +
+                '<span class="drm-left">IF Level</span>' +
+                '<span class="drm-right drm-if"></span>' +
+                '<span class="drm-left">SNR</span>' +
+                '<span class="drm-right drm-snr"></span>' +
+            '</div>' +
+            '<div class="drm-line">' +
+                '<span class="drm-left">Mode</span>' +
+                '<span class="drm-right drm-mode">-</span>' +
+                '<span class="drm-left">Bandwidth</span>' +
+                '<span class="drm-right drm-bandwidth">-</span>' +
+            '</div>' +
+            '<div class="drm-line">' +
+                '<span class="drm-left">SDC</span>' +
+                '<span class="drm-right drm-sdc-qam">-</span>' +
+                '<span class="drm-left">MSC</span>' +
+                '<span class="drm-right drm-msc-qam">-</span>' +
+            '</div>' +
+            '<div class="drm-line">' +
+                '<span class="drm-left">Interleave</span>' +
+                '<span class="drm-right drm-interleave">-</span>' +
+                '<span class="drm-left">Protection</span>' +
+                '<span class="drm-right">' +
+                  '<span class="drm-indicator drm-prot-a">A</span>' +
+                  '<span class="drm-indicator drm-prot-b">B</span>' +
+                '</span>' +
+            '</div>' +
+            '<div class="drm-separator">' +
+                '<span class="drm-audio drm-indicator">Audio</span>' +
+                '<span class="drm-data drm-indicator">Data</span>' +
+                '<span class="drm-indicator drm-guide">Guide</span>' +
+                '<span class="drm-indicator drm-journaline">Journaline</span>' +
+                '<span class="drm-indicator drm-slideshow">Slideshow</span>' +
+            '</div>' +
+            '<div class="drm-line drm-programs"></div>' +
+        '</div>'
+    );
+
+    $(this.el).append($container);
+};
+
+DrmMetaPanel.prototype = new MetaPanel();
+
+DrmMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    // Update panel
+    this.setIndicator('io', data.status.io);
+    this.setIndicator('time', data.status.time);
+    this.setIndicator('frame', data.status.frame);
+    this.setIndicator('fac', data.status.fac);
+    this.setIndicator('sdc', data.status.sdc);
+    this.setIndicator('msc', data.status.msc);
+
+    this.setIndicator('guide', data.media.program_guide);
+    this.setIndicator('journaline', data.media.journaline);
+    this.setIndicator('slideshow', data.media.slideshow);
+
+    this.setIndicator('prot-a', data.coding && data.coding.protection_a > 0? 1:0);
+    this.setIndicator('prot-b', data.coding && data.coding.protection_b > 0? 1:0);
+    this.setIndicator('audio', data.services && data.services.audio > 0? 1:0);
+    this.setIndicator('data', data.services && data.services.data > 0? 1:0);
+
+    this.setText('if', '' + data.signal.if_level_db + ' dB');
+    this.setText('snr', '' + data.signal.snr_db + ' dB');
+
+    if (data.drm_mode) {
+        var mode = ['A', 'B', 'C', 'D'][data.drm_mode.robustness] || '?';
+        var bw = ['4.5 kHz', '5 kHz', '9 kHz', '10 kHz', '18 kHz', '20 kHz'][data.drm_mode.bandwidth] || '?';
+        var ilv = ['Short', 'Long'][data.drm_mode.interleaver] || '?';
+        this.setText('mode', mode);
+        this.setText('bandwidth', bw);
+        this.setText('interleave', ilv);
+    } else {
+        this.setText('mode', '-');
+        this.setText('bandwidth', '-');
+        this.setText('interleave', '-');
+    }
+
+    if (data.coding) {
+        this.setQam('sdc-qam', data.coding.sdc_qam);
+        this.setQam('msc-qam', data.coding.msc_qam);
+    } else {
+        this.setText('sdc-qam', '-');
+        this.setText('msc-qam', '-');
+    }
+
+//    if (data.received_time > 0) {
+//        this.setText('clock', Utils.HHMMSS(data.received_time));
+//    } else {
+//        this.setText('clock', '');
+//    }
+
+    var programs = '';
+    if (data.service_list) {
+        programs += '';
+        for (var j = 0 ; j < data.service_list.length ; j++) {
+            var entry = data.service_list[j];
+            var codec = ['AAC', 'OPUS', 'RESERVED', 'xHE-AAC'][entry.audio_coding] || '?';
+            var id = '0x' + entry.id.toUpperCase();
+            var type = entry.program_type? entry.program_type.name
+                     : entry.is_audio? entry.audio_mode
+                     : 'Data';
+
+            programs +=
+                '<div class="drm-program">' +
+                    '<div style="color:yellow;"><b>' + entry.label + '</b> (ID: ' + id + ')</div>';
+
+            if (entry.text) {
+                programs += '<div style="color:cyan;" class="drm-label">' + entry.text + '</div>';
+            }
+
+            programs +=
+                '<div>' +
+                    '<span class="drm-label">Type:&nbsp;</span>' +
+                    '<span class="drm-value">' + type + '</span>';
+
+            if (entry.is_audio) {
+                programs +=
+                    ' | <span class="drm-label">Codec:&nbsp;</span>' +
+                    '<span class="drm-value">' + codec + '</span>';
+            }
+
+            if (entry.bitrate_kbps) {
+                programs +=
+                    ' | <span class="drm-label">Bitrate:&nbsp;</span>' +
+                    '<span class="drm-value">' + entry.bitrate_kbps + ' kbps</span>';
+            }
+
+            if (entry.protection_mode) {
+                programs +=
+                    ' | <span class="drm-label">Protection:&nbsp;</span>' +
+                    '<span class="drm-value">' + entry.protection_mode + '</span>';
+            }
+
+            if (entry.country && entry.country.name) {
+                programs +=
+                    ' | <span class="drm-label">Country:&nbsp;</span>' +
+                    '<span class="drm-value">' + entry.country.name + '</span>';
+            }
+
+            if (entry.language && entry.language.name) {
+                programs +=
+                    ' | <span class="drm-label">Language:&nbsp;</span>' +
+                    '<span class="drm-value">' + entry.language.name + '</span>';
+            }
+
+            programs += '</div></div>';
+        }
+    }
+
+    $(this.el).find('.drm-programs').html(programs);
+};
+
+DrmMetaPanel.prototype.isSupported = function(data) {
+    return this.modes.includes(data.mode);
+};
+
+DrmMetaPanel.prototype.setQam = function(name, n) {
+    this.setText(name, ['4-QAM', '16-QAM', '64-QAM'][n] || '?');
+};
+
+DrmMetaPanel.prototype.setText = function(name, text) {
+    $(this.el).find('.drm-' + name).text(text);
+};
+
+DrmMetaPanel.prototype.setIndicator = function(name, value, text = null) {
+    var $el = $(this.el).find('.drm-' + name);
+
+    // Remove all color
+    $el.removeClass('drm-error');
+    $el.removeClass('drm-off');
+    $el.removeClass('drm-on');
+
+    // Set new color based on the value
+    if (value > 0) {
+        $el.addClass('drm-on');
+    } else if (value == 0) {
+        $el.addClass('drm-off');
+    } else {
+        $el.addClass('drm-error');
+    }
+
+    // Set new text, if given
+    if (text != null) $el.text(text);
+};
+
+function TetraMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.clear();
 }
+
+TetraMetaPanel.prototype = new MetaPanel();
+
+TetraMetaPanel.prototype.isSupported = function(data) {
+    // TetraParser emits data.mode = 'TETRA'
+    return data.mode === 'TETRA';
+};
+
+TetraMetaPanel.prototype.row = function(name, value) {
+    return(
+        '<tr><td align="right">' + name +
+        '&nbsp;</td><td align="left">' + value +
+        '</td></tr>'
+    );
+};
+
+TetraMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    var slot = this.el.find('.openwebrx-meta-slot');
+
+    slot.addClass('active');
+
+    var html = '<table class="openwebrx-tetra-display" columns="2">';
+
+    if (data.ft)
+        html += this.row('TS:', data.ft);
+    if (data.network)
+        html += this.row('Net:', data.network);
+    if (data.mcc)
+        html += this.row('CCode:', data.mcc + ',' + data.mnc + ',' + data.bcc);
+    html += this.row('','');
+    html += this.row('','');
+    if (data.tx_mhz)
+        html += this.row('TX:', data.tx_mhz.toFixed(3) + 'Mhz');
+    if (data.rx_mhz)
+        html += this.row('RX:', data.rx_mhz.toFixed(3) + 'Mhz');
+    html += this.row('','');
+    html += this.row('','');
+    if (data.rfdb)
+        html += this.row('Signal:', data.rfdb.toFixed(1) + 'dB');
+    if (data.offset)
+        html += this.row('Offset:', data.offset + 'Hz');
+
+    // Subscriber identities
+    var ssi = [];
+    if (data.ssi && data.ssi.length)   ssi = ssi.concat(data.ssi);
+    if (data.ussi && data.ussi.length) ssi = ssi.concat(data.ussi);
+    if (ssi.length)
+        html += this.row('SSI:', ssi.join(', '));
+
+    html += '</table>';
+    slot.html(html);
+};
+
+TetraMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.el.find('.openwebrx-meta-slot').empty();
+};
+
+function P25MetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.clear();
+}
+
+P25MetaPanel.prototype = new MetaPanel();
+
+P25MetaPanel.prototype.isSupported = function(data) {
+    return data.protocol === 'P25';
+};
+
+P25MetaPanel.prototype.setSource = function(source) {
+    if (this.source === source) return;
+    this.source = source;
+    this.el.find('.openwebrx-p25-source').text(source || '');
+};
+
+P25MetaPanel.prototype.setDestination = function(destination) {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.el.find('.openwebrx-p25-destination').text(destination || '');
+};
+
+P25MetaPanel.prototype.setEncryption = function(encryption) {
+    if (this.encryption === encryption) return;
+    this.encryption = encryption;
+    this.el.find('.openwebrx-p25-encryption').text(encryption || '');
+};
+
+P25MetaPanel.prototype.setMode = function(mode) {
+    if (this.mode === mode) return;
+    this.mode = mode;
+    var classes = ['group', 'direct'].filter(function(c){
+        return c !== mode;
+    });
+    this.el.find('.openwebrx-meta-slot').removeClass(classes.join(' ')).addClass(mode);
+}
+
+P25MetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    if (data.sync === 'voice') {
+        this.el.find('.openwebrx-meta-slot').addClass('active');
+
+        this.setSource(data.source);
+        this.setDestination(data.destination);
+        this.setMode(['group', 'direct'].includes(data.type) ? data.type : undefined);
+
+        if ((data.encryption === 'encrypted') && data.algid) {
+            var encryption = data.algorithm || ('ALGID=0x' + parseInt(data.algid).toString(16).toUpperCase());
+            this.setEncryption(encryption);
+        } else {
+            this.setEncryption();
+        }
+    } else {
+        this.clear();
+    }
+};
+
+P25MetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.setMode();
+    this.setSource();
+    this.setDestination();
+    this.setEncryption();
+};
 
 MetaPanel.types = {
     dmr: DmrMetaPanel,
@@ -714,6 +1064,9 @@ MetaPanel.types = {
     wfm: WfmMetaPanel,
     dab: DabMetaPanel,
     hdr: HdrMetaPanel,
+    drm: DrmMetaPanel,
+    p25: P25MetaPanel,
+    tetra: TetraMetaPanel
 };
 
 $.fn.metaPanel = function() {

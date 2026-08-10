@@ -101,7 +101,7 @@ class Bandplan(object):
             self.file_modified = modified
 
     def _getRegionFile(self, file):
-        region = Config.get()["bandplan_region"];
+        region = Config.get()["bandplan_region"]
         return file.format("-r" + str(region) if region > 0 else "")
 
     def _getFileModifiedTimestamp(self):

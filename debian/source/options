@@ -1,2 +1,0 @@
-# Use xz instead of zstd
-compression = "xz"

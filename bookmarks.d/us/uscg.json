@@ -1,0 +1,296 @@
+[
+    {
+        "name" : "CG1A",
+        "frequency" : 156050000,
+        "modulation" : "nfm",
+        "description" : "Port Operations and Commercial, VTS. Available only in New Orleans/Lower Mississippi area."
+    },
+    {
+        "name" : "CG5A",
+        "frequency" : 156250000,
+        "modulation" : "nfm",
+        "description" : "Port Operations or VTS in Houston, New Orleans and Seattle."
+    },
+    {
+        "name" : "CG6",
+        "frequency" : 156300000,
+        "modulation" : "nfm",
+        "description" : "Intership Safety"
+    },
+    {
+        "name" : "CG7A",
+        "frequency" : 156350000,
+        "modulation" : "nfm",
+        "description" : "Commercial"
+    },
+    {
+        "name" : "CG8",
+        "frequency" : 156400000,
+        "modulation" : "nfm",
+        "description" : "Commercial (Intership only)"
+    },
+    {
+        "name" : "CG9",
+        "frequency" : 156450000,
+        "modulation" : "nfm",
+        "description" : "Boater Calling. Commercial and Non-Commercial."
+    },
+    {
+        "name" : "CG10",
+        "frequency" : 156500000,
+        "modulation" : "nfm",
+        "description" : "Commercial"
+    },
+    {
+        "name" : "CG11",
+        "frequency" : 156550000,
+        "modulation" : "nfm",
+        "description" : "Commercial. VTS in selected areas."
+    },
+    {
+        "name" : "CG12",
+        "frequency" : 156600000,
+        "modulation" : "nfm",
+        "description" : "Port Operations. VTS in selected areas."
+    },
+    {
+        "name" : "CG13",
+        "frequency" : 156650000,
+        "modulation" : "nfm",
+        "description" : "Intership Navigation Safety (Bridge-to-bridge). Ships >20m length maintain a listening watch on this channel in US waters."
+    },
+    {
+        "name" : "CG14",
+        "frequency" : 156700000,
+        "modulation" : "nfm",
+        "description" : "Port Operations. VTS in selected areas."
+    },
+    {
+        "name" : "CG15",
+        "frequency" : 156750000,
+        "modulation" : "nfm",
+        "description" : "Environmental (Receive only). Used by Class C EPIRBs."
+    },
+    {
+        "name" : "CG16",
+        "frequency" : 156800000,
+        "modulation" : "nfm",
+        "description" : "International Distress, Safety and Calling. Ships required to carry radio, USCG, and most coast stations maintain a listening watch on this channel."
+    },
+    {
+        "name" : "CG17",
+        "frequency" : 156850000,
+        "modulation" : "nfm",
+        "description" : "State Control"
+    },
+    {
+        "name" : "CG18A",
+        "frequency" : 156900000,
+        "modulation" : "nfm",
+        "description" : "Commercial"
+    },
+    {
+        "name" : "CG19A",
+        "frequency" : 156950000,
+        "modulation" : "nfm",
+        "description" : "Commercial"
+    },
+    {
+        "name" : "CG20",
+        "frequency" : 157000000,
+        "modulation" : "nfm",
+        "description" : "Port Operations (duplex)"
+    },
+    {
+        "name" : "CG20A",
+        "frequency" : 157000000,
+        "modulation" : "nfm",
+        "description" : "Port Operations"
+    },
+    {
+        "name" : "CG21A",
+        "frequency" : 157050000,
+        "modulation" : "nfm",
+        "description" : "U.S. Coast Guard only."
+    },
+    {
+        "name" : "CG22A",
+        "frequency" : 157100000,
+        "modulation" : "nfm",
+        "description" : "Coast Guard Liaison and Maritime Safety Information Broadcasts. Broadcasts announced on channel 16."
+    },
+    {
+        "name" : "CG23A",
+        "frequency" : 157150000,
+        "modulation" : "nfm",
+        "description" : "U.S. Coast Guard only"
+    },
+    {
+        "name" : "CG24",
+        "frequency" : 157200000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG25",
+        "frequency" : 157250000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG26",
+        "frequency" : 157300000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG27",
+        "frequency" : 157350000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG28",
+        "frequency" : 157400000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG63A",
+        "frequency" : 156175000,
+        "modulation" : "nfm",
+        "description" : "Port Operations and Commercial, VTS. Available only in New Orleans/Lower Mississippi area."
+    },
+    {
+        "name" : "CG65A",
+        "frequency" : 156275000,
+        "modulation" : "nfm",
+        "description" : "Port Operations"
+    },
+    {
+        "name" : "CG66A",
+        "frequency" : 156325000,
+        "modulation" : "nfm",
+        "description" : "Port Operations"
+    },
+    {
+        "name" : "CG67",
+        "frequency" : 156375000,
+        "modulation" : "nfm",
+        "description" : "Commercial. Used for Bridge-to-bridge communications in lower Mississippi River. Intership only."
+    },
+    {
+        "name" : "CG68",
+        "frequency" : 156425000,
+        "modulation" : "nfm",
+        "description" : "Non-Commercial"
+    },
+    {
+        "name" : "CG69",
+        "frequency" : 156475000,
+        "modulation" : "nfm",
+        "description" : "Non-Commercial"
+    },
+    {
+        "name" : "CG70",
+        "frequency" : 156525000,
+        "modulation" : "nfm",
+        "description" : "Digital Selective Calling DSC (voice communications not allowed)"
+    },
+    {
+        "name" : "CG71",
+        "frequency" : 156575000,
+        "modulation" : "nfm",
+        "description" : "Non-Commercial"
+    },
+    {
+        "name" : "CG72",
+        "frequency" : 156625000,
+        "modulation" : "nfm",
+        "description" : "Non-Commercial (Intership only)"
+    },
+    {
+        "name" : "CG73",
+        "frequency" : 156675000,
+        "modulation" : "nfm",
+        "description" : "Port Operations"
+    },
+    {
+        "name" : "CG74",
+        "frequency" : 156725000,
+        "modulation" : "nfm",
+        "description" : "Port Operations"
+    },
+    {
+        "name" : "CG77",
+        "frequency" : 156875000,
+        "modulation" : "nfm",
+        "description" : "Port Operations (Intership only)"
+    },
+    {
+        "name" : "CG78A",
+        "frequency" : 156925000,
+        "modulation" : "nfm",
+        "description" : "Non-Commercial"
+    },
+    {
+        "name" : "CG79A",
+        "frequency" : 156975000,
+        "modulation" : "nfm",
+        "description" : "Commercial. Non-Commercial in Great Lakes only"
+    },
+    {
+        "name" : "CG80A",
+        "frequency" : 157025000,
+        "modulation" : "nfm",
+        "description" : "Commercial. Non-Commercial in Great Lakes only"
+    },
+    {
+        "name" : "CG81A",
+        "frequency" : 157075000,
+        "modulation" : "nfm",
+        "description" : "U.S. Government only - Environmental protection operations."
+    },
+    {
+        "name" : "CG82A",
+        "frequency" : 157125000,
+        "modulation" : "nfm",
+        "description" : "U.S. Government only"
+    },
+    {
+        "name" : "CG83A",
+        "frequency" : 157175000,
+        "modulation" : "nfm",
+        "description" : "U.S. Coast Guard only"
+    },
+    {
+        "name" : "CG84",
+        "frequency" : 157225000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG85",
+        "frequency" : 157275000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG86",
+        "frequency" : 157325000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG87",
+        "frequency" : 157375000,
+        "modulation" : "nfm",
+        "description" : "Public Correspondence (Marine Operator)"
+    },
+    {
+        "name" : "CG88",
+        "frequency" : 157425000,
+        "modulation" : "nfm",
+        "description" : "Commercial, Intership only"
+    }
+]

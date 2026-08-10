@@ -25,6 +25,10 @@ class Module(BaseModule, metaclass=ABCMeta):
     def setWriter(self, writer: Writer) -> None:
         self.writer = writer
 
+    def stop(self):
+        self.reader = None
+        self.writer = None
+
     @abstractmethod
     def getInputFormat(self) -> Format:
         pass
@@ -83,7 +87,9 @@ class ThreadModule(AutoStartModule, Thread, metaclass=ABCMeta):
 
     def stop(self):
         self.doRun = False
-        self.reader.stop()
+        if self.reader is not None:
+            self.reader.stop()
+        super().stop()
 
     def start(self):
         # don't start twice.
@@ -164,7 +170,6 @@ class JsonParser(LineBasedModule):
         try:
             msg = json.loads(line)
             msg["mode"] = self.mode
-#            logger.debug(msg)
             return msg
         except json.JSONDecodeError:
             logger.exception("error parsing decoder json")
@@ -198,8 +203,9 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
             except TimeoutExpired:
                 self.process.kill()
             self.process = None
-        self.reader.stop()
-
+        if self.reader is not None:
+            self.reader.stop()
+        super().stop()
 
 class LogReader(Thread):
     def __init__(self, prefix: str, buffer: Buffer):
@@ -228,4 +234,6 @@ class LogReader(Thread):
                 self.logger.info("{}: {}".format("STDOUT", line.decode(errors="replace")))
 
     def stop(self):
-        self.reader.stop()
+        if self.reader is not None:
+            self.reader.stop()
+            self.reader = None

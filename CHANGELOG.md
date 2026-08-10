@@ -1,3 +1,340 @@
+**1.2.120**
+- Added bookmark info bubbles when clicked.
+- Muted encrypted P25 audio.
+- Fixed reporting third party APRS packets.
+- Disabled reporting non-reportable APRS packets.
+- Fixed typo in APRS "adressee" name.
+- Stripped whitespace from APRS addressee.
+
+**1.2.119**
+- Added unencrypted P25 support (please test).
+- Added total spot metrics to CW/RTTY skimmers.
+- Switched to forked Digiham libraries with P25.
+- Removed online font dependency from Settings.
+- Removed discontinued CHU beacon.
+
+**1.2.118**
+- Added native APRS IGate reporter module.
+- Added option for legacy Direwold IGate.
+- Added bookmark search (right button on icon).
+- Added [Y] shortcut to search bookmarks.
+- Handled case when feature binary not executable.
+- Multiple APRS decoders can report to APRS-IS.
+
+**1.2.117**
+- Added unencrypted Tetra support [Yiannis Sam].
+- Added support for ELAD FDM-S2 [DisagioDigitale].
+- Added ARINC622 payload parsing inside ACARS.
+- Added CPDLC payload parsing inside ACARS.
+- Added ADS-C payload parsing inside ACARS.
+- Added parsing ACARS legacy position reports.
+- Added ACARS parsing inside VDL2 and HFDL.
+- Added airplane temperature, wind, route display.
+- Added options to drop ACARS and VDL2 acks.
+- Added options for LoRa decoder bandwidths.
+- Made Meshtastic map objects use regular TTL.
+- Fixed flickering horizontal waterfall lines.
+- Fixed web agent threads hanging on exit.
+
+**1.2.116**
+- Added LoRa Meshtastic parser [Stanislav Lechev].
+- Added LoRa APRS parser [Stefan DC4HF].
+- Added Sondehub reporter for RS41 telemetry [Hai Tran].
+- Added paho-mqtt 2.0 compatibility [Marc Fontaine].
+- Added per-profile PPM correction option.
+- Fixed exception when stopping AdsbParser.
+- Fixed exception when stopping services.
+
+**1.2.115**
+- Added [T] shortcut to enter frequency [Rene Jaun].
+- Added [P] shortcut to select profile [Rene Jaun].
+- Added LoRa bands and frequencies [Stefan DC4HF].
+- Added MeshCom LoRa mode [Stefan DC4HF].
+- Added link to Android app.
+- Fixed single-stepping from unaligned frequency.
+- Fixed secondary sampling rate for services.
+- Fixed background audio recording rate to 128ksps.
+- Fixed weather RTTY bookmarks, removed duplicates
+- Optimized LoRa decoder invocations [Stefan DC4HF].
+- Updated feature install instructions.
+- Moved LoRa to its own source files.
+- Made more web assets zippable.
+
+**1.2.114**
+- Integrated dxlAPRS LoraRX tool.
+- Added LoRa WAN, LoRa APRS, and FANET modes.
+- Added LoRa Meshtastic and Meshcore modes.
+- Added setting for IP geolocation URL.
+- Added setting for the help page URL.
+- Blocked center frequency changes to <0Hz.
+- Updated IP geolocation URL since it changed.
+- Allowed more characters in WiFi SSIDs.
+- Escaped HTML entities in input field values.
+
+**1.2.113**
+- Greatly reduced memory footprint, eliminating leaks.
+- Now dropping unused modules and buffers immediately.
+- Fixed RigControl frequency at page load [Niccolo Izzo].
+- Fixed wrong audio rate when changing SDR source.
+- Fixed markers update thread hanging on exit.
+- Fixed ring buffers leaking from services.
+
+**1.2.112**
+- Fixed bookmarks sorting with older Python versions.
+- Improve JS plugin loader [Stanislav Lechev].
+
+**1.2.111**
+- Added support for the Amateur Repeater Directory (US only).
+- Added selection of the actual PerseusSDR sample rates.
+- Added Brazilian CB bookmarks [xnetinho].
+- Sorted repeaters data to speed up bookmarks generation.
+- Sorted EIBI data to speed up bookmarks generation.
+- Now showing local time in the chat rather than UTC.
+- Now updating repeater list weekly, not daily.
+
+**1.2.110**
+- Added AIS reporting to VesselFinder [Ari Cooper Davis].
+- Added 48kHz-2MHz sample rates for PerseusSDR [oettlalb].
+- Added 128MHz ADC support for RX-888mkII [SteamedFish].
+- Added 64MHz sample rate for RX-888mkII [SteamedFish].
+- No longer removing chain when stopping DSP.
+
+**1.2.109**
+- Added separate RADEL and RADEU modes.
+- Added trusted proxies config [Giulio Fieramosca].
+- Added back sound for digital modes.
+- Updated feature installation instructions.
+- Updated integration with latest NRSC5.
+- Updated AcarsDec version check.
+
+**1.2.108**
+- Added 100% UI opacity bump option.
+- Added FreeDV RADEv1 digital voice support.
+- Added SoapyMiri gain stages [Sergei Korolev].
+- Added LimeSDR gain stages [Sergei Korolev].
+
+**1.2.107**
+- Added SnR levels display to the skimmer.
+- Added AGC settings for AM and NFM modes.
+- Fixed DRM metadata display to skip missing items.
+- Fixed sonde speed display on the map.
+- Optimized skimmer window rendering.
+- Renamed CwSkimmer JS class to Skimmer.
+
+**1.2.106**
+- Added more sampling rates for Malahit-R1.
+- Insured IOC576 won't take precedence over IOC288.
+- Slowed AGC attack response to avoid clicking.
+- Fixed updateLocation() bug in the sonde decoder.
+- Fixed error parsing sonde type and subtype.
+- Truncated ascent/descent speeds to one decimal.
+- Recreating filter when secondary demodulator set.
+- Decreased initial WiFi check delay.
+
+**1.2.105**
+- Added receiving sonde spots over MQTT.
+- Added SnR readings to the skimmer reports.
+- Added profile-specific Malahit-R1 options.
+- Added MTS01 sonde support [Yiannis Sam].
+- Extended M10/M20 bandpass filter to 25kHz.
+- Converted sonde speed from m/s to km/h.
+- Optimized UI bandpass limits calculation.
+
+**1.2.104**
+- Added support for several radiosonde decoders.
+- Added setting for radiosonde lookup website.
+- Displaying more received info in PACKET panel.
+- Fixed battery display showing with no battery.
+- Fixed radioid.net name lookups [Yiannis Sam].
+- Fixed graying out relayed locator reports.
+- Delayed initial WiFi check by 30 seconds.
+- Made latest Malahit-R1 driver work.
+
+**1.2.103**
+- Added WiFi connections configuration.
+- Added standalone hotspot configuration.
+- Added option to change admin password.
+- Added GPS position to MQTT server events.
+- Added ability to lock individual profiles.
+- Added support for the Malahit-R1 source.
+- Improved pattern recognition in CW skimmer.
+
+**1.2.102**
+- Added MSK144 to WSJT modes received over MQTT.
+- Added ISM signal level reporting [Ryan Jacobs].
+- Added 27700kHz SSTV frequency to all bandplans.
+- Fixed MQTT initialization order [Jan Loewe].
+- Fixed background digital mode instantiation.
+- Enabled RTTY skimmer to send to PskReporter.
+- Extended CB band to 28MHz in all bandplans.
+- Removed NOAA satellites from the bandplans.
+- Improved HAM callsigns verification.
+
+**1.2.101**
+- Fixed bandwidth allocation for services.
+- Added callsign spotter to CW/RTTY skimmers.
+- Added CW spot reporting to PskReporter.
+- Added CW skimmer to band plans.
+- Added more checks to callsign-to-country conversion.
+- Added MQTT events for downloading data from the web.
+- Added timestamps to chat messages.
+- Enabled CW/RTTY skimmers as background services.
+- Extended CW/RTTY skimmer bandwidth to 96ksps.
+- Removed NOAA-15 and NOAA-19 satellite decoders.
+
+**1.2.100**
+- Added option to chat between OWRX+ servers via MQTT.
+- Added option to relay WSJT spots between OWRX+ servers.
+- Added option to relay APRS/AIS data between OWRX+ servers.
+- Added option to relay aircraft data between OWRX+ servers.
+- Added number of connected clients to CLIENT MQTT reports.
+- Added options to disable RX and CLIENT MQTT reports.
+- Fixed MQTT code to work with Paho MQTT 2.x.
+- Fixed some maps not wrapping properly.
+
+**1.2.99**
+- Fixing RTLSDR issues caused by 'dump978-fa'.
+- Switched to 'dump978-fa-minimal' package.
+- Please, do 'sudo apt remove dump978-fa'.
+- Please, do 'sudo apt remove skyaware978'.
+
+**1.2.98**
+- Added UAT decoder using Dump978.
+- Added RTTY skimmer (please, test).
+- Added PSKReporter rig info reports.
+- Added 131.825MHz ACARS frequency.
+- Added 978MHz UAT frequency.
+- Added cosmetic fixes to DRM panel.
+- Fixed PSKReporter packets [dchristle].
+- Switched to csdr-skimmer package.
+- Removed AGC from CW skimmer.
+
+**1.2.97**
+- Added Dream 2.2 support, with AAC.
+- Added DRM metadata display.
+- Fixed saving cloned profiles.
+
+**1.2.96**
+- Added WebSDR and OpenWebRX logos to the map.
+- Added WebSDR and KiwiSDR bands to the map.
+- Added KiwiSDR connections limit to the map.
+- CW tone now changes when shifting bandpass.
+- Disabled scanning for NOAA weather bookmarks.
+- Fixed CW offset caching when bandpass changes.
+- Fixed RDS demodulator reference.
+
+**1.2.95**
+- Added per-profile noise reduction option.
+- Can now change CW tone by moving bandpass.
+- Fixed frequency display/entry in CW mode.
+- Fixed typos in several setting cues.
+- Fixed creating new CW bookmarks.
+- Fixed bookmarks editor.
+
+**1.2.94**
+- Added a button for cloning SDR profiles.
+- Added country selector, affecting bookmarks.
+- Added Finnish, Norwegian, Swedish bookmarks.
+- Added Chinese and German bookmarks.
+- Added cues to several settings.
+- Removing duplicate bookmarks, by importance.
+- Disabling scanner when profile side-stepped.
+- Updated bookmarks infrastructure.
+
+**1.2.93**
+- Added country flags to the ADSB display.
+- Fixed problem with the ADSB decoder.
+- Sorted bookmarks: blue, then yellow, then green.
+- Added ITU region-specific bookmark folders.
+- Added AAR railroad bookmarks for ITU region 2.
+- Added UCSG marine bookmarks for ITU region 2.
+- Added generic VHF marine bookmarks for regions 1/3.
+- Added Chinese PRS and SRS public radio bookmarks.
+- Added separate CB bookmarks for ITU regions 1/2.
+- Moved NOAA bookmarks to ITU region 2.
+
+**1.2.92**
+- Switched to the new AcarsDec version 4.x.
+- Extended maximum fax page length to 10000 lines.
+- Added saving user-selected bandpass settings.
+- Added [|] shortcut to clear all bandpass settings.
+- Added acarsdec and original redsea to buildall.sh.
+- Added more shortcuts to the help page.
+- Fixed JS errors when demodulator not yet set.
+- Split aircraft and satellite code from toolbox.py.
+- Removed xz requirement from packaging.
+
+**1.2.91**
+- Added option to record silence in background recording.
+- Added range check to the FFT size setting.
+- Added option to disable bot protection scheme.
+- Increased recorded MP3 file size limit to 32MB.
+- Fixed bookmarks getting snapped to nearest step.
+- Fixed waterfall theme resetting on page reload.
+- Fixed zooming with the mouse wheel.
+- Fixed HydraSDR source selection.
+
+**1.2.90**
+- Added support for the HydraSDR RFOne receiver.
+- Added back option to select initial UI theme.
+- Fixed support for 8.33kHz steps (airband).
+- Fixed clicking in the noise reduction algorithm.
+- Fixed AGC algorithm, with help from VK4DL.
+- Refactored frequency snapping code.
+
+**1.2.89**
+- Automatically banning profile-scanning robots.
+- Added message about incorrect values in forms.
+- Added wrapping long ISM values.
+
+**1.2.88**
+- Further improved noise reduction algorithm.
+- Added separate WMBus decoder using rtl-433.
+- Switched rtl-433 decoder to CF32 IQ format.
+- Removed AGC from the rtl-433 decoder input.
+- Removed 250kHz bandpass from the ISM mode.
+- Fixed CW skimmer window not showing up.
+
+**1.2.87**
+- Added file size display to the file browser.
+- Added configurable limit of clients per IP address.
+- Added configurable hang time to audio recording.
+- Reduced squelch hang time back, by public request.
+- Widened noise reduction control range to 20dB.
+- Improved noise reduction algorithm.
+- Improved SNR computation.
+
+**1.2.86**
+- Added SNR-based "smart squelch" to audio recorder.
+- Set background recording squelch to around +20dB.
+- Increased default squelch hang time to one second.
+- Disabled awkward "camera control" in Google Maps.
+- Removed NOAA-18 support (satellite decommissioned).
+- Added logo display to HDRadio stations.
+- Added 'aprs-symbols' as requirement to receive APRS.
+
+**1.2.85**
+- Added configurable DAB output rate.
+- Added configurable AGC to SSB analog modes.
+- Added LAGGY and MID AGC modes, useful for SSB.
+- Changed SSB bandpass filter to 150..2750Hz.
+
+**1.2.84**
+- Enabled ADSB updates via MQTT.
+- Added hang time to squelch to avoid dropouts.
+- Added squelch to background audio recorder.
+- Background recording squelch set via Setings.
+
+**1.2.83**
+- Added configurable image compression (Jacob Morris).
+- Added SoapySDDC RX-888 SDR source (Lax Telcel).
+- Added more Yaesu radios to APRS (Geoffrey Phillips).
+- Added Kenwood TH-D75 to APRS (Geoffrey Phillips).
+
+**1.2.82**
+- Added check for a specific end-of-fax-page marker.
+- Set default maximum fax page length to 1500.
+
 **1.2.81**
 - Now truncating FAX images as transmission ends.
 - Now saving SSTV images if at least half is received.

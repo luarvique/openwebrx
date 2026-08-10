@@ -2,8 +2,7 @@ bands.json etc/openwebrx/
 bands-r1.json etc/openwebrx/
 bands-r2.json etc/openwebrx/
 bands-r3.json etc/openwebrx/
-bookmarks.json etc/openwebrx/
-bookmarks.d etc/openwebrx/
+bookmarks.d/ etc/openwebrx/
 openwebrx.conf etc/openwebrx/
 systemd/openwebrx.service lib/systemd/system/
 debian/openwebrx.svg usr/share/icons/hicolor/scalable/apps

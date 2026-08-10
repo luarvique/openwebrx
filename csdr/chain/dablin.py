@@ -59,7 +59,8 @@ class MetaProcessor(PickleModule):
 
 
 class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, AudioServiceSelector, DialFrequencyReceiver):
-    def __init__(self):
+    def __init__(self, outputRate: int = 48000):
+        self.outputRate = outputRate
         shift = Shift(0)
         self.decoder = EtiDecoder()
 
@@ -91,10 +92,11 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
         return 2048000
 
     def getFixedAudioRate(self) -> int:
-        return 48000
+        return self.outputRate
 
     def stop(self):
         self.processor.stop()
+        super().stop()
 
     def setMetaWriter(self, writer: Writer) -> None:
         self.processor.setWriter(writer)

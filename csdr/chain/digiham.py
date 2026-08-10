@@ -1,7 +1,7 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain, DemodulatorError, ServiceDemodulator
 from pycsdr.modules import FmDemod, Agc, Writer, Buffer, DcBlock, Lowpass
 from pycsdr.types import Format
-from digiham.modules import DstarDecoder, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, PocsagDecoder
+from digiham.modules import DstarDecoder, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, P25Decoder, PocsagDecoder
 from digiham.ambe import Modes, ServerError
 from owrx.meta import MetaParser
 from owrx.pocsag import PocsagParser
@@ -115,6 +115,17 @@ class Ysf(DigihamChain):
             fskDemodulator=GfskDemodulator(samplesPerSymbol=10),
             decoder=YsfDecoder(),
             mbeMode=Modes.YsfMode,
+            filter=WideRrcFilter(),
+            codecserver=codecserver
+        )
+
+
+class P25(DigihamChain):
+    def __init__(self, codecserver: str = ""):
+        super().__init__(
+            fskDemodulator=GfskDemodulator(samplesPerSymbol=10),
+            decoder=P25Decoder(),
+            mbeMode=Modes.P25Mode,
             filter=WideRrcFilter(),
             codecserver=codecserver
         )

@@ -6,9 +6,9 @@ from csdr.module import ThreadModule, LineBasedModule
 from pycsdr.types import Format
 from owrx.dsame3.dsame import same_decode_string
 from datetime import datetime, timezone
-import pickle
-import re
+
 import json
+import re
 
 import logging
 
@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 class Mp3Recorder(ThreadModule, DataRecorder):
-    def __init__(self, service: bool = False):
+    def __init__(self, service: bool = False, maxBytes: int = 32 * 1024 * 1024):
         self.service = service
-        DataRecorder.__init__(self, "REC", ".mp3")
+        DataRecorder.__init__(self, "REC", ".mp3", maxBytes)
         ThreadModule.__init__(self)
 
     def getInputFormat(self) -> Format:
@@ -372,40 +372,3 @@ class EasParser(TextParser):
 
         # Return received message as text
         return "\n".join(out)
-
-
-class CwSkimmerParser(TextParser):
-    def __init__(self, service: bool = False):
-        self.reLine = re.compile("^([0-9]+):(.+)$")
-        self.freqChanged = False
-        # Construct parent object
-        super().__init__(filePrefix="CW", service=service)
-
-    def parse(self, msg: bytes):
-        # Do not parse in service mode
-        if self.service:
-            return None
-        # Parse CW messages by frequency
-        msg = msg.decode("utf-8", "replace")
-        r = self.reLine.match(msg)
-        if r is not None:
-            freq = int(r.group(1))
-            text = r.group(2)
-            if len(text) > 0:
-                # Compose output
-                out = { "mode": "CW", "text": text }
-                # Add frequency, if known
-                if self.frequency:
-                    out["freq"] = self.frequency + freq
-                # Report frequency changes
-                if self.freqChanged:
-                    self.freqChanged = False
-                    out["changed"] = True
-                # Done
-                return out
-        # No result
-        return None
-
-    def setDialFrequency(self, frequency: int) -> None:
-        self.freqChanged = frequency != self.frequency
-        super().setDialFrequency(frequency)
