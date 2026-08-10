@@ -590,15 +590,18 @@ class MicEParser(object):
                         ")": "FTM-100D",
                         "2": "FTM-200D",
                         "1": "FTM-300D",
+                        "7": "FTM-310D
                         '"': "FTM-350",
-                        "4": "FTM-500D",
                         "%": "FTM-400DR",
+                        "4": "FTM-500D",
+                        "5": "FTM-510D",
                         "b": "VX-8",
                         "#": "VX-8G",
                         "$": "FT1D",
                         "(": "FT2D",
                         "0": "FT3D",
                         "3": "FT5D",
+                        "6": "FTX-1",
                     }
                     return comment[1:-2], {"manufacturer": "Yaesu", "device": devices.get(comment[-1], "Unknown")}
                 if comment[-2:] == " X":
