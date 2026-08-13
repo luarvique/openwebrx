@@ -3,6 +3,7 @@
 - [NR] Added 50% output buffer overlap.
 - [NR] Fixed sound pop when NR is engaged.
 - [NR] Fixed noise floor tracking.
+- [NR] Fixed NR threshold to use proper dB.
 - [AGC] Added initial peak computation.
 - [AGC] Fixed complex magnitude clamping.
 - [AGC] Fixed setHangTime() argument type.
