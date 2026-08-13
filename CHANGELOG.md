@@ -1,3 +1,25 @@
+**1.2.121**
+- [NR] Added Hamming window to the input.
+- [NR] Added 50% output buffer overlap.
+- [NR] Fixed sound pop when NR is engaged.
+- [NR] Fixed noise floor tracking.
+- [AGC] Added initial peak computation.
+- [AGC] Fixed complex magnitude clamping.
+- [AGC] Fixed setHangTime() argument type.
+- [CW] Fixed noise floor tracking.
+- [CW] Fixed CW codes table.
+- [CW] Fixed WPM computation.
+- [FAX] Fixed phase tracking.
+- [FAX] Fixed zero magnitude handling.
+- [FAX] Fixed color computation.
+- [SSTV] Fixed buffer deletion.
+- [SSTV] Fixed YUV to RGB conversion.
+- [SSTV] Fixed intra-scanline sync.
+- [SSTV] Fixed PD scanline sequence.
+- [DSC] Fixed coordinate parsing.
+- [DSC] Fixed frequency parsing.
+- [DSC] Fixed phone number parsing.
+
 **1.2.120**
 - Added bookmark info bubbles when clicked.
 - Muted encrypted P25 audio.
