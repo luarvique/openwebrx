@@ -2192,7 +2192,7 @@ img.openwebrx-mirror-img
     display: block;
     overflow-y: hidden;
     transition: max-height 0.2s ease-out;
-    max-height: 15rem;
+    max-height: 17rem;
 }
 
 .openwebrx-section.closed {
