@@ -1,4 +1,5 @@
 **1.2.121**
+- Now validating PskReporter spots.
 - [NR] Added Hamming window to the input.
 - [NR] Added 50% output buffer overlap.
 - [NR] Fixed sound pop when NR is engaged.

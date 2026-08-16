@@ -3,6 +3,7 @@ import threading
 import time
 import random
 import socket
+import re
 from functools import reduce
 from operator import and_
 from owrx.config import Config
@@ -20,6 +21,8 @@ class PskReporter(FilteredReporter):
 
     It interfaces with pskreporter as documented here: https://pskreporter.info/pskdev.html
     """
+    callPattern = re.compile(r"^[A-Z0-9]+(\/[A-Z0-9]+){0,3}$", re.IGNORECASE)
+
     interval = 300
 
     def getSupportedModes(self):
@@ -60,15 +63,23 @@ class PskReporter(FilteredReporter):
 
         return reduce(and_, map(lambda key: s1[key] == s2[key], keys))
 
+    def spotValid(self, spot):
+        # filter out "RR73", since it is not really a locator
+        if "locator" in spot and spot["locator"] == "RR73":
+            return False
+        # check callsign for rough validity
+        return "callsign" in spot and PskReporter.callPattern.match(spot["callsign"])
+
     def spot(self, spot):
-        with self.spotLock:
-            if any(x for x in self.spots if self.spotEquals(spot, x)):
-                # dupe
-                self.dupeCounter.inc()
-            else:
-                self.spotCounter.inc()
-                self.spots.append(spot)
-            self.scheduleNextUpload()
+        if self.spotValid(spot):
+            with self.spotLock:
+                if any(x for x in self.spots if self.spotEquals(spot, x)):
+                    # dupe
+                    self.dupeCounter.inc()
+                else:
+                    self.spotCounter.inc()
+                    self.spots.append(spot)
+                self.scheduleNextUpload()
 
     def upload(self):
         try:
