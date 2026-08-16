@@ -1,5 +1,6 @@
 **1.2.121**
 - Now validating PskReporter spots.
+- More Yaesu/Kenwood APRS IDs [Geoffrey Phillips].
 - [NR] Added Hamming window to the input.
 - [NR] Added 50% output buffer overlap.
 - [NR] Fixed sound pop when NR is engaged.
