@@ -209,6 +209,10 @@ class ReportingController(SettingsFormController):
                     "mqtt_sonde",
                     "Receive radiosonde reports over MQTT",
                 ),
+                CheckboxInput(
+                    "mqtt_meshtastic",
+                    "Receive Meshtastic reports over MQTT",
+                ),
             ),
             Section(
                 "RigControl settings",

@@ -34,19 +34,25 @@ class MqttReporter(Reporter):
         self.subscriber = MqttSubscriber(self)
         self.subscriptions = [
             pm.wireProperty("mqtt_topic", self._setTopic),
-            pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect),
-            pm.filter("mqtt_chat", "mqtt_wsjt", "mqtt_aircraft", "mqtt_aprs", "mqtt_ais", "mqtt_sonde").wire(self._resubscribe)
+            pm.filter(
+                "mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id",
+                "mqtt_use_ssl"
+            ).wire(self._reconnect),
+            pm.filter(
+                "mqtt_chat", "mqtt_wsjt", "mqtt_aircraft", "mqtt_aprs",
+                "mqtt_ais", "mqtt_sonde", "mqtt_meshtastic"
+            ).wire(self._resubscribe)
         ]
 
     def _getClient(self):
         pm = Config.get()
         clientId = pm["mqtt_client_id"] if "mqtt_client_id" in pm else ""
-        
+
         if paho_mqtt_v2_available:
             client = Client(mqtt_api_version, client_id=clientId, protocol=MQTTv5)
         else:
             client = Client(client_id=clientId, protocol=MQTTv5)
-        
+
         client.on_disconnect = self._onDisconnect
         client.on_connect = self._onConnect
         client.on_message = self._onMessage

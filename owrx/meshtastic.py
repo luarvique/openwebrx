@@ -195,6 +195,13 @@ class MeshtasticParser(TextParser):
     DEDUP_TTL = 60
     DEDUP_MAX = 4096
 
+    @staticmethod
+    def updateMap(data, band = None, timestamp = None):
+        if "lat" in data and "lon" in data and "src" in data:
+            loc  = MeshtasticLocation(data["lat"], data["lon"], data)
+            src  = data["src"]
+            Map.getSharedInstance().updateLocation(f"!{src:08x}", loc, data["mode"], band, timestamp=timestamp)
+
     def __init__(self, service: bool = False) -> None:
         super().__init__(filePrefix="MHTC", service=service)
         self.colors = ColorCache()
@@ -315,9 +322,8 @@ class MeshtasticParser(TextParser):
                     out[field] = cached[key]
 
         # Update map marker
-        if "lat" in out and "lon" in out:
-            loc = MeshtasticLocation(out["lat"], out["lon"], out)
-            Map.getSharedInstance().updateLocation(f"!{src:08x}", loc, "Meshtastic", self.band)
+        ts = datetime.fromtimestamp(out["timestamp"] / 1000, timezone.utc)
+        self.updateMap(out, self.band, ts)
 
         # Report received packet
         ReportingEngine.getSharedInstance().spot(out)
@@ -396,3 +402,4 @@ class MeshtasticParser(TextParser):
 
         except Exception as e:
             logger.error("Payload parsing failed for !%08x: %s", out["src"], e)
+
