@@ -4,7 +4,7 @@ from owrx.form.input.validator import Range, RangeValidator
 from typing import List
 
 
-class M17Sx1255Hat36000Source(SoapyConnectorSource):
+class M17Sx1255Hat36864Source(SoapyConnectorSource):
     def getSoapySettingsMappings(self):
         mappings = super().getSoapySettingsMappings()
         mappings.update(
@@ -18,7 +18,7 @@ class M17Sx1255Hat36000Source(SoapyConnectorSource):
         return "sx"
 
 
-class M17Sx1255Hat36000DeviceDescription(SoapyConnectorDeviceDescription):
+class M17Sx1255Hat36864DeviceDescription(SoapyConnectorDeviceDescription):
     def getName(self):
         return "M17 Project SX1255 HAT (with 36.864 MHz TCXO)"
 
