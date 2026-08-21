@@ -215,15 +215,11 @@ Utils.snapFrequency = function(freq, step) {
 Utils.snapAirbandFrequency = function(freq) {
     freq = Math.round(freq);
 
-    var base = Math.floor(freq / 25000.0) * 25000;
-    var rem  = freq - base;
+    var i  = freq % 25000;
+    freq += i < 4165?  0 : i < 12500? 8330 : i < 20835? 16670 : 25000;
+    freq -= i;
 
-    rem = rem < 4165?  0
-        : rem < 12500? 8330
-        : rem < 20835? 16670
-        : 25000;
-
-    return base + rem;
+    return freq;
 };
 
 // Compute distance, in kilometers, between two latlons. Use receiver
