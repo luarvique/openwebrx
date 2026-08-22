@@ -8,26 +8,26 @@
 
 set -euo pipefail
 
-GIT_CSDR=https://github.com/luarvique/csdr.git
-GIT_PYCSDR=https://github.com/luarvique/pycsdr.git
-GIT_OWRXCONNECTOR=https://github.com/luarvique/owrx_connector.git
+GIT_CSDR=https://github.com/pbranly/csdr.git
+GIT_PYCSDR=https://github.com/pbranly/pycsdr.git
+GIT_OWRXCONNECTOR=https://github.com/pbranly/owrx_connector.git
 GIT_CODECSERVER=https://github.com/jketterl/codecserver.git
-GIT_DIGIHAM=https://github.com/luarvique/digiham.git
-GIT_PYDIGIHAM=https://github.com/luarvique/pydigiham.git
-GIT_CSDR_ETI=https://github.com/luarvique/csdr-eti.git
-GIT_PYCSDR_ETI=https://github.com/luarvique/pycsdr-eti.git
+GIT_DIGIHAM=https://github.com/pbranly/digiham.git
+GIT_PYDIGIHAM=https://github.com/pbranly/pydigiham.git
+GIT_CSDR_ETI=https://github.com/pbranly/csdr-eti.git
+GIT_PYCSDR_ETI=https://github.com/pbranly/pycsdr-eti.git
 GIT_JS8PY=https://github.com/jketterl/js8py.git
-GIT_SKIMMER=https://github.com/luarvique/csdr-skimmer.git
-GIT_SOAPYSDRPLAY3=https://github.com/luarvique/SoapySDRPlay3.git
-GIT_OPENWEBRX=https://github.com/luarvique/openwebrx.git
+GIT_SKIMMER=https://github.com/pbranly/csdr-skimmer.git
+GIT_SOAPYSDRPLAY3=https://github.com/pbranly/SoapySDRPlay3.git
+GIT_OPENWEBRX=https://github.com/pbranly/openwebrx.git
 GIT_REDSEA=https://github.com/windytan/redsea.git
-GIT_DUMP978=https://github.com/luarvique/dump978.git
-GIT_NRSC5=https://github.com/luarvique/nrsc5.git
-GIT_MULTIMON=https://github.com/luarvique/multimon-ng.git
-GIT_LIBACARS=https://github.com/luarvique/libacars.git
-GIT_ACARSDEC=https://github.com/luarvique/acarsdec.git
-GIT_DUMPVDL2=https://github.com/luarvique/dumpvdl2.git
-GIT_DUMPHFDL=https://github.com/luarvique/dumphfdl.git
+GIT_DUMP978=https://github.com/pbranly/dump978.git
+GIT_NRSC5=https://github.com/pbranly/nrsc5.git
+GIT_MULTIMON=https://github.com/pbranly/multimon-ng.git
+GIT_LIBACARS=https://github.com/pbranly/libacars.git
+GIT_ACARSDEC=https://github.com/pbranly/acarsdec.git
+GIT_DUMPVDL2=https://github.com/pbranly/dumpvdl2.git
+GIT_DUMPHFDL=https://github.com/pbranly/dumphfdl.git
 
 BUILD_DIR=./owrx-build/`uname -m`
 OUTPUT_DIR=./owrx-output/`uname -m`
