@@ -59,8 +59,6 @@ class FeatureDetector(object):
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "sxceiver": ["soapy_connector", "soapy_sx"],
         "m17sx1255hat": ["soapy_connector", "soapy_sx"],
-        "m17sx1255hat36000": ["soapy_connector", "soapy_sx"],
-        "m17sx1255hat36864": ["soapy_connector", "soapy_sx"],
         "elad": ["soapy_connector", "soapy_elad"],
         "mirics": ["soapy_connector", "soapy_mirics"],
         "malahit_rr": ["soapy_connector", "soapy_malahit_rr"],
