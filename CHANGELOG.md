@@ -1,3 +1,12 @@
+**1.2.122**
+- Added sharing Meshtastic data over MQTT.
+- Disabled Meshtastic parsers not available on Trixie.
+- Switched to the PLL-based AFC module for SAM.
+- Switched to Hann window everywhere.
+- Fixed tuning with 8.33kHz airband step.
+- Fixed decoding of Scottie SSTV modes.
+- Improved SNR implementation.
+
 **1.2.121**
 - Now validating PskReporter spots.
 - More Yaesu/Kenwood APRS IDs [Geoffrey Phillips].
