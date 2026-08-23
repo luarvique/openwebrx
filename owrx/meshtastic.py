@@ -53,6 +53,8 @@ except ImportError:
     logger.warning("Meshtastic package not installed, payload decoding disabled. Install with: 'apt install python3-meshtastic' OR 'pip install meshtastic'")
 
 # Create a mapping from packet types to decoders
+# Commented out message types are not present in the
+# python3-meshtastic package available on Debian Trixie
 if _protobuf_available:
     APP_PROTO_DECODERS = {
         2:  remote_hardware_pb2.HardwareMessage,
@@ -61,10 +63,10 @@ if _protobuf_available:
         5:  mesh_pb2.Routing,
         6:  admin_pb2.AdminMessage,
         8:  mesh_pb2.Waypoint,
-        12: mesh_pb2.KeyVerification,
-        32: mesh_pb2.StatusMessage,
+        #12: mesh_pb2.KeyVerification,
+        #32: mesh_pb2.StatusMessage,
         34: paxcount_pb2.Paxcount,
-        35: mesh_pb2.StoreForwardPlusPlus,
+        #35: mesh_pb2.StoreForwardPlusPlus,
         65: storeforward_pb2.StoreAndForward,
         67: telemetry_pb2.Telemetry,
         70: mesh_pb2.RouteDiscovery,
