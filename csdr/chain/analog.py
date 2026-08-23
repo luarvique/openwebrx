@@ -129,14 +129,12 @@ class Empty(BaseDemodulatorChain):
 
 
 class SAm(BaseDemodulatorChain):
-    def __init__(self, agcProfile: AgcProfile = AgcProfile.SLOW):
-        self.updatePeriod = 10
-        self.samplePeriod = 4
+    def __init__(self, sampleRate: int, agcProfile: AgcProfile = AgcProfile.SLOW):
         agc = Agc(Format.FLOAT)
         agc.setProfile(agcProfile)
         agc.setInitialGain(200)
         workers = [
-            Afc(self.updatePeriod, self.samplePeriod),
+            Afc(sampleRate),
             RealPart(),
             DcBlock(),
             agc,

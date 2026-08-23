@@ -610,7 +610,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             return Am(AgcProfile(self.props["am_agc_profile"]))
         elif demod == "sam":
             from csdr.chain.analog import SAm
-            return SAm(AgcProfile(self.props["am_agc_profile"]))
+            return SAm(self.props["output_rate"], AgcProfile(self.props["am_agc_profile"]))
         elif demod in ["usb", "lsb", "cw"]:
             from csdr.chain.analog import Ssb
             return Ssb(AgcProfile(self.props["ssb_agc_profile"]))
