@@ -68,7 +68,7 @@ class BookmarksController(AuthorizationMixin, BreadcrumbMixin, WebpageController
             if exp in suffixes:
                 num = freq / 10 ** exp
                 suffix = suffixes[exp]
-            return "{num:g} {suffix}Hz".format(num=num, suffix=suffix)
+            return "{num:.7g} {suffix}Hz".format(num=num, suffix=suffix)
 
         scan  = bookmark.isScannable()
         name1 = bookmark.getModulation()

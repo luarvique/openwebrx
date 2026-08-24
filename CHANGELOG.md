@@ -3,6 +3,7 @@
 - Disabled Meshtastic parsers not available on Trixie.
 - Switched to the PLL-based AFC module for SAM.
 - Switched to Hann window everywhere.
+- Fixed number of digits in bookmark editor.
 - Fixed tuning with 8.33kHz airband step.
 - Fixed decoding of Scottie SSTV modes.
 - Improved SNR implementation.
