@@ -1,6 +1,8 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input, NumberInput, DropdownInput
 from owrx.form.input.validator import Range, RangeValidator
+from owrx.property import PropertyStack
+from owrx.command import Option
 from typing import List
 
 
@@ -9,7 +11,7 @@ class SxceiverSource(SoapyConnectorSource):
         mappings = super().getSoapySettingsMappings()
         mappings.update(
             {
-                "rfgain_sel": "rfgain_sel"
+                "rfgain_sel": "rfgain_sel",
             }
         )
         return mappings
@@ -22,12 +24,30 @@ class SxceiverSource(SoapyConnectorSource):
             "clk_freq", "clk_prescaler"
         ]
 
+    def populateSampleRate(self, new_prescaler = None):
+        # universal static to calculate sample rate from source changes
+        tcxo = 38400000
+        prescaler = 1536
+        if "clk_freq" in self.props:
+            tcxo = int(self.props["clk_freq"])
+        else:
+            self.logger.warning("Missing clk_freq, using default 38.4 MHz.")
+        if new_prescaler is not None:
+            prescaler = int(new_prescaler)
+        elif "clk_prescaler" in self.props:
+            prescaler = int(self.props["clk_prescaler"])
+        else:
+            self.logger.warning("Missing clk_prescaler, using default 1536.")
+        if new_prescaler is None:
+            self.props["samp_rate"] = round(tcxo / prescaler)
+        else:
+            return round(tcxo / prescaler)
+        self.logger.debug("Updated samp_rate %d for SX1255" % self.props["samp_rate"])
+
     def getCommandValues(self):
         # calculate samp_rate and re-inject it back to command values
-        dict = super().getCommandValues()
-        if "clk_freq" in dict and "clk_prescaler" in dict:
-            dict["samp_rate"] = round(dict["clk_freq"] / dict["clk_prescaler"])
-        return dict
+        self.populateSampleRate()
+        return super().getCommandValues()
 
     def validateProfiles(self):
         # adding validator for new required clk_prescaler
@@ -40,13 +60,19 @@ class SxceiverSource(SoapyConnectorSource):
                 self.logger.warning('Profile "%s" does not specify a clk_prescaler', id)
                 continue
 
+    def onPropertyChange(self, changes):
+        # calculate sample rate when clk_prescaler changes
+        mappings = self.getSoapySettingsMappings()
+        forward = {}
+        for prop, value in changes.items():
+            if prop == "clk_prescaler":
+                forward[prop] = value
+                forward["samp_rate"] = self.populateSampleRate(value)
+        super().onPropertyChange(forward)
+
     def reportProfileChange(self):
-        self.reportRxEvent({
-            "profile_id" : self.getProfileId(),
-            "profile"    : self.getProfileName(),
-            "freq"       : self.props["center_freq"],
-            "samplerate" : round(self.sdrProps["clk_freq"] / self.props["clk_prescaler"])
-        })
+        self.populateSampleRate()
+        super().reportProfileChange()
 
 class SxceiverClockFrequency:
     def __init__(self, frequency):
@@ -85,7 +111,7 @@ class SxceiverDeviceDescription(SoapyConnectorDeviceDescription):
                         SxceiverSampleRatePrescaler(128),
                         SxceiverSampleRatePrescaler(64),
                     ],
-                    "Selects the prescaler for calculating the sample rate for the HAT.  Sample rate is calculated by dividing the HAT TCXO frequency by the prescaler."
+                    infotext="Selects the prescaler for calculating the sample rate for the HAT.  Sample rate is calculated by dividing the HAT TCXO frequency by the prescaler.",
                 )
                 del elem
         return inputs + [
@@ -96,7 +122,7 @@ class SxceiverDeviceDescription(SoapyConnectorDeviceDescription):
                     SxceiverClockFrequency(38400000),
                     SxceiverClockFrequency(32000000),
                 ],
-                "Selects the HAT TCXO frequency: the official SXceiver HAT is 38.4 MHz while the M17 Project SX1255 HAT is 32 MHz.\
+                infotext="Selects the HAT TCXO frequency: the official SXceiver HAT is 38.4 MHz while the M17 Project SX1255 HAT is 32 MHz.\
                 This is important for setting the sample rate of the HAT and center frequency step size.",
             ),
             NumberInput(
