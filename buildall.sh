@@ -10,16 +10,16 @@ set -euo pipefail
 
 GIT_CSDR=https://github.com/luarvique/csdr.git
 GIT_PYCSDR=https://github.com/luarvique/pycsdr.git
-GIT_OWRXCONNECTOR=https://github.com/pbranly/owrx_connector.git
+GIT_OWRXCONNECTOR=https://github.com/luarvique/owrx_connector.git
 GIT_CODECSERVER=https://github.com/jketterl/codecserver.git
-GIT_DIGIHAM=https://github.com/pbranly/digiham.git
+GIT_DIGIHAM=https://github.com/luarvique/digiham.git
 GIT_PYDIGIHAM=https://github.com/luarvique/pydigiham.git
 GIT_CSDR_ETI=https://github.com/luarvique/csdr-eti.git
 GIT_PYCSDR_ETI=https://github.com/luarvique/pycsdr-eti.git
 GIT_JS8PY=https://github.com/jketterl/js8py.git
 GIT_SKIMMER=https://github.com/luarvique/csdr-skimmer.git
 GIT_SOAPYSDRPLAY3=https://github.com/luarvique/SoapySDRPlay3.git
-GIT_OPENWEBRX=https://github.com/pbranly/openwebrx.git
+GIT_OPENWEBRX=https://github.com/luarvique/openwebrx.git
 GIT_REDSEA=https://github.com/windytan/redsea.git
 GIT_DUMP978=https://github.com/flightaware/dump978.git
 GIT_NRSC5=https://github.com/luarvique/nrsc5.git
