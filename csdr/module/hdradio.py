@@ -1,4 +1,4 @@
-from csdr.module.nrsc5 import NRSC5, Mode, EventType, ComponentType, Access
+from csdr.module.nrsc5 import NRSC5, Mode, EventType, ComponentType, Access, ServiceType, MIMEType
 from csdr.module import ThreadModule
 from pycsdr.modules import Writer
 from pycsdr.types import Format
@@ -36,6 +36,9 @@ class HdRadioModule(ThreadModule):
         self.metaLock   = threading.Lock()
         self.metaWriter = None
         self.meta       = {}
+        # Station logo received for each HD audio service.
+        # Service numbers are 1-based: HD1=1, HD2=2, ...
+        self.programLogos = {}
         self._clearMeta()
         # Initialize and start NRSC5 decoder
         self.radio = NRSC5(lambda evt_type, evt: self.callback(evt_type, evt))
@@ -79,11 +82,21 @@ class HdRadioModule(ThreadModule):
                     del self.meta["genre"]
                 self._writeMeta()
 
+            # Restore the station logo for this HD program.
+            image = self.programLogos.get(self.program + 1)
+            if image is not None:
+                logger.info(
+                    "Restoring cached station logo for P%d: lot=%s name=%s",
+                    self.program + 1, image[0], image[1]
+                )
+                self._writeImage(*image)
+
     # Change frequency
     def setFrequency(self, frequency: int) -> None:
         if frequency != self.frequency:
             self.frequency = frequency
             self.program = 0
+            self.programLogos.clear()
             logger.info("Now playing program #{0} at {1}MHz".format(self.program, self.frequency / 1000000))
             self._clearMeta()
 
@@ -222,7 +235,25 @@ class HdRadioModule(ThreadModule):
             time_str = evt.expiry_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
             logger.info("LOT file: port=%04X lot=%s name=%s size=%s mime=%s expiry=%s",
                          evt.port, evt.lot, evt.name, len(evt.data), evt.mime, time_str)
-            self._writeImage(evt.lot, evt.name, evt.data)
+            if evt.service is not None and evt.service.type == ServiceType.AUDIO:
+                # Cache station logos, but not potentially transient images.
+                if (evt.component is not None
+                        and evt.component.data is not None
+                        and evt.component.data.mime == MIMEType.STATION_LOGO):
+                    self.programLogos[evt.service.number] = (
+                        evt.lot, evt.name, evt.data
+                    )
+                    logger.info(
+                        "Caching station logo for HD%d: port=%04X lot=%s name=%s",
+                        evt.service.number, evt.port, evt.lot, evt.name
+                    )
+
+                # Display LOT data only for the selected HD program.
+                if evt.service.number == self.program + 1:
+                    self._writeImage(evt.lot, evt.name, evt.data)
+            else:
+                # Preserve previous behaviour for non-audio/unknown services.
+                self._writeImage(evt.lot, evt.name, evt.data)
         elif evt_type == EventType.SIS:
             # Collect new metadata
             meta = {
