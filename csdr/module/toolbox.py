@@ -70,7 +70,7 @@ class CwSkimmerModule(ExecModule):
         super().__init__(Format.FLOAT, Format.CHAR, cmd)
 
 
-class RttySkimmerModule(WavFileModule):
+class RttySkimmerModule(ExecModule):
     def __init__(self, sampleRate: int = 96000, charCount: int = 4):
         cmd = ["csdr-rttyskimmer", "-f", "-r", str(sampleRate), "-n", str(charCount)]
         super().__init__(Format.FLOAT, Format.CHAR, cmd)
