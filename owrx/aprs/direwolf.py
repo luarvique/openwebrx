@@ -175,6 +175,7 @@ class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
         # avoid a duplicate spawn if _checkStart() fires again while already running
         if self.process is not None:
             return
+
         self.direwolfConfig = DirewolfConfig()
         self.direwolfConfig.wire(self)
         file = open(self.direwolfConfigPath, "w")
