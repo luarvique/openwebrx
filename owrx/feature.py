@@ -57,6 +57,7 @@ class FeatureDetector(object):
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
         "rtl_tcp": ["rtl_tcp_connector"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
+        "sxceiver": ["soapy_connector", "soapy_sx"],
         "elad": ["soapy_connector", "soapy_elad"],
         "mirics": ["soapy_connector", "soapy_mirics"],
         "malahit_rr": ["soapy_connector", "soapy_malahit_rr"],
@@ -357,6 +358,16 @@ class FeatureDetector(object):
         from the manufacturer.
         """
         return self._has_soapy_driver("sdrplay")
+
+    def has_soapy_sx(self):
+        """
+        The [SoapySX module for SXceiver](https://github.com/tejeez/sxxcvr)
+        module is required for interfacing with OH2EAT official SXceiver and
+        other Raspberry Pi HATs (possibly other boards as well) based around
+        SX1255 IQ Transceiver IC.  You can compile them from source given, along
+        with the necessary DTOverlay module for Raspberry Pi.
+        """
+        return self._has_soapy_driver("sx")
 
     def has_soapy_elad(self):
         """
