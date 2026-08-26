@@ -521,8 +521,6 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             mode = Modes.findByModulation(self.props["start_mod"])
             if mode:
                 self.setDemodulator(mode.get_modulation())
-                if isinstance(mode, DigitalMode):
-                    self.setSecondaryDemodulator(mode.modulation)
                 if mode.bandpass:
                     bpf = [mode.bandpass.low_cut, mode.bandpass.high_cut]
                     self.chain.setBandpass(*bpf)
@@ -563,6 +561,15 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             self.props.wireProperty("nr_enabled", self.chain.setNrEnabled),
             self.props.wireProperty("nr_threshold", self.chain.setNrThreshold),
         ]
+
+        # applying this via self.props (now that "secondary_mod" is wired above)
+        # instead of a raw setSecondaryDemodulator() call means a later dspcontrol
+        # message resending the same start_mod-derived value is a no-op instead of
+        # spawning a second, orphaned secondary demodulator (e.g. direwolf for AIS)
+        if "start_mod" in self.props:
+            startMode = Modes.findByModulation(self.props["start_mod"])
+            if isinstance(startMode, DigitalMode):
+                self.props["secondary_mod"] = startMode.modulation
 
         # wire power level output
         buffer = Buffer(Format.FLOAT)
