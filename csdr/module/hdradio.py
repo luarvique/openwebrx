@@ -89,7 +89,7 @@ class HdRadioModule(ThreadModule):
                     "Restoring cached station logo for P%d: lot=%s name=%s",
                     self.program + 1, image[0], image[1]
                 )
-                self._writeImage(*image)
+                self._writeImage(image[0], image[1], image[2])
 
     # Change frequency
     def setFrequency(self, frequency: int) -> None:
