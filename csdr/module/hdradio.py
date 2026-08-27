@@ -177,7 +177,7 @@ class HdRadioModule(ThreadModule):
             logger.info("Lost device")
             self.doRun = False
         elif evt_type == EventType.AUDIO:
-            if evt.program == self.program:
+            if evt.program == self.program and self.writer:
                 self.writer.write(evt.data)
         elif evt_type == EventType.HDC:
             if evt.program == self.program:
