@@ -561,6 +561,7 @@ function HdrMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['HDR'];
     this.frequency = -1;
+    this.program = -1;
 
     // Create info panel
     var $container = $(
@@ -596,18 +597,24 @@ HdrMetaPanel.prototype = new MetaPanel();
 HdrMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
 
+    // Clear logo image when frequency or HD program changes.
+    var frequencyChanged =
+        'frequency' in data && data.frequency != this.frequency;
+    var programChanged =
+        'program' in data && data.program != this.program;
+
+    if (frequencyChanged || programChanged) {
+        if ('frequency' in data) this.frequency = data.frequency;
+        if ('program' in data) this.program = data.program;
+        $('#hdr-logo').html('');
+    }
+
     // If there is an image, display it and do not parse further
     if ('image' in data && 'data' in data) {
         $('#hdr-logo').html(
             '<img src="data:image/png;base64,' + data.data + '">'
         );
         return;
-    }
-
-    // Clear logo image when frequency changes
-    if (data.frequency != this.frequency) {
-        this.frequency = data.frequency;
-        $('#hdr-logo').html('');
     }
 
     // Convert FCC ID to hexadecimal
