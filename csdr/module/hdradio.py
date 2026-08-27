@@ -234,26 +234,21 @@ class HdRadioModule(ThreadModule):
         elif evt_type == EventType.LOT:
             time_str = evt.expiry_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
             logger.info("LOT file: port=%04X lot=%s name=%s size=%s mime=%s expiry=%s",
-                         evt.port, evt.lot, evt.name, len(evt.data), evt.mime, time_str)
-            if evt.service is not None and evt.service.type == ServiceType.AUDIO:
+                evt.port, evt.lot, evt.name, len(evt.data), evt.mime, time_str)
+            if not evt.service or evt.service.type != ServiceType.AUDIO:
+                # Preserve previous behaviour for non-audio/unknown services.
+                self._writeImage(evt.lot, evt.name, evt.data)
+            else:
                 # Cache station logos, but not potentially transient images.
-                if (evt.component is not None
-                        and evt.component.data is not None
-                        and evt.component.data.mime == MIMEType.STATION_LOGO):
-                    self.programLogos[evt.service.number] = (
-                        evt.lot, evt.name, evt.data
-                    )
+                if evt.component and evt.component.data and evt.component.data.mime == MIMEType.STATION_LOGO:
+                    self.programLogos[evt.service.number] = (evt.lot, evt.name, evt.data)
                     logger.info(
                         "Caching station logo for HD%d: port=%04X lot=%s name=%s",
                         evt.service.number, evt.port, evt.lot, evt.name
                     )
-
                 # Display LOT data only for the selected HD program.
                 if evt.service.number == self.program + 1:
                     self._writeImage(evt.lot, evt.name, evt.data)
-            else:
-                # Preserve previous behaviour for non-audio/unknown services.
-                self._writeImage(evt.lot, evt.name, evt.data)
         elif evt_type == EventType.SIS:
             # Collect new metadata
             meta = {
