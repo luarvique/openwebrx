@@ -1,3 +1,12 @@
+openwebrx (1.2.123) bullseye jammy; urgency=low
+
+  * Added speech to text transcription using Whisper.
+  * Added per-program HDRadio image handling [Taxom].
+  * Added SX1255 Soapy driver [Circu1tI0N3rd].
+  * Minor fixes to DireWolf APRS decoder [jeepmanct].
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 31 Aug 2026 16:12:00 +0000
+
 openwebrx (1.2.122) bullseye jammy; urgency=low
 
   * Added sharing Meshtastic data over MQTT.

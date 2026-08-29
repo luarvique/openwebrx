@@ -1,3 +1,9 @@
+**1.2.123**
+- Added speech to text transcription using Whisper.
+- Added per-program HDRadio image handling [Taxom].
+- Added SX1255 Soapy driver [Circu1tI0N3rd].
+- Minor fixes to DireWolf APRS decoder [jeepmanct].
+
 **1.2.122**
 - Added sharing Meshtastic data over MQTT.
 - Disabled Meshtastic parsers not available on Trixie.
