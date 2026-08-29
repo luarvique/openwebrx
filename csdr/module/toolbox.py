@@ -109,18 +109,3 @@ class LameModule(ExecModule):
             "-s", str(sampleRate / 1000), "-b", "128", "-", "-"
         ]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
-
-
-class WhisperModule(WavFileModule):
-    def __init__(self, sampleRate: int = 12000):
-        super().__init__(sampleRate)
-
-    def getCommand(self):
-        pm  = Config.get()
-        return [
-            "whisper-cli", "--model", pm["whisper_model"],
-            "--output-txt", "--no-prints", "-"
-        ]
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR

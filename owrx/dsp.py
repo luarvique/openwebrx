@@ -774,8 +774,8 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             from csdr.chain.toolbox import IsmDemodulator
             return IsmDemodulator(1200000)
         elif mod == "stt":
-            from csdr.chain.toolbox import Transcriber
-            return Transcriber()
+            from csdr.chain.toolbox import AudioTranscriber
+            return AudioTranscriber()
         elif mod == "hfdl":
             from csdr.chain.aircraft import HfdlDemodulator
             return HfdlDemodulator()

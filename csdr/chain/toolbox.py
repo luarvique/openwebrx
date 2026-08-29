@@ -1,9 +1,10 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule, WhisperModule
+from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
 from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
 from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
+from owrx.transcribe import WhisperTranscriber
 from owrx.config import Config
 
 import math
@@ -205,12 +206,13 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
         self.recorder.setDialFrequency(frequency)
 
 
-class Transcriber(ServiceDemodulator, DialFrequencyReceiver):
+class AudioTranscriber(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 12000, service: bool = False):
         self.sampleRate = sampleRate
+        self.transcriber = WhisperTranscriber(sampleRate, service)
         workers = [
             Convert(Format.FLOAT, Format.SHORT),
-            WhisperModule(),
+            self.transcriber,
         ]
         # Connect all the workers
         super().__init__(workers)
@@ -219,5 +221,4 @@ class Transcriber(ServiceDemodulator, DialFrequencyReceiver):
         return self.sampleRate
 
     def setDialFrequency(self, frequency: int) -> None:
-        # @@@ TODO
-        pass
+        self.transcriber.setDialFrequency(frequency)

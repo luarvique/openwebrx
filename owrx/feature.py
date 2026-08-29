@@ -963,8 +963,8 @@ class FeatureDetector(object):
     def has_whisper(self):
         """
         OpenWebRX uses [Whisper.cpp](https://github.com/ggml-org/whisper.cpp)
-        tool to transcribe and translate voice transmissions. Compile and install
-        it by placing `whisper-cli` binary in your path (e.g. /usr/local/bin).
+        tool to transcribe and translate voice transmissions. Configure your
+        Whisper server URL in the Settings.
         """
-        return self.command_is_runnable("whisper-cli -h")
-
+        url = Config.get()["whisper_url"]
+        return url is not None and url

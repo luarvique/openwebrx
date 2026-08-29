@@ -342,7 +342,7 @@ class Modes(object):
         DigitalMode(
             "stt",
             "Speech to Text",
-            underlying=["am", "sam", "fm", "lsb", "usb"],
+            underlying=["am", "sam", "nfm", "wfm", "lsb", "usb"],
             requirements=["transcription"],
             service=True,
             squelch=True
