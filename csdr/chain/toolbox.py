@@ -220,5 +220,8 @@ class AudioTranscriber(ServiceDemodulator, DialFrequencyReceiver):
     def getFixedAudioRate(self) -> int:
         return self.sampleRate
 
+    def supportsSquelch(self) -> bool:
+        return True
+
     def setDialFrequency(self, frequency: int) -> None:
         self.transcriber.setDialFrequency(frequency)
