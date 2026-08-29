@@ -19,7 +19,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
         self.sampleRate = sampleRate
         self.service    = service
         self.chunkSize  = max(10, chunkSeconds) * sampleRate * 2
-        DataRecorder.__init__(self, "STT", ".txt", maxBytes)
+        DataRecorder.__init__(self, "SPEECH", ".txt", maxBytes)
         ThreadModule.__init__(self)
 
     def getInputFormat(self) -> Format:
@@ -58,7 +58,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                  try:
                      self.queue.put(self.buffer, block=False)
                  except Full:
-                     t = len(self.buffer) // self.sampleRate
+                     t = len(self.buffer) / self.sampleRate / 2
                      self.writeOutput(f"[skipped {t} seconds]\n")
                  # Start accumulating new audio chunk
                  self.buffer = b""
@@ -100,6 +100,8 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
 
     # Send data to Whisper at given URL
     def sendToWhisper(self, data: bytes, url: str):
+        # Length of data in seconds
+        t = len(data) / self.sampleRate / 2
         # Create request body
         boundary = "----WhisperFormBoundary7MA4YWxkTrZu0gW"
         payload = b"\r\n".join([
@@ -126,14 +128,14 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                     logger.error(f"JSON Error: {responseData}")
         except urllib.error.HTTPError as e:
             logger.error(f"HTTP Error {e.code}: {e.read().decode("utf-8")}")
-            return f"[http error {e.code}]\n"
+            return f"[http error {e.code} for {t} seconds]\n"
         except urllib.error.URLError as e:
             logger.error(f"Failed to reach the server: {e.reason}")
-            return f"[connection failed]\n"
+            return f"[no server for {t} seconds]\n"
         except Exception as e:
             logger.error(f"Error: {e}")
         # Something bad happened
-        return "[transcription failed]\n"
+        return "[failed for {t} seconds]\n"
 
     # Create a .WAV file header for given amount of data
     def getWavHeader(self, byteCount):

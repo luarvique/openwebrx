@@ -340,10 +340,10 @@ class Modes(object):
             secondaryFft=False
         ),
         DigitalMode(
-            "stt",
-            "Speech to Text",
+            "speech",
+            "Speech Transcriber",
             underlying=["am", "sam", "nfm", "wfm", "lsb", "usb"],
-            requirements=["transcription"],
+            requirements=["speech"],
             service=True,
             squelch=True
         ),
