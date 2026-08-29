@@ -1,5 +1,6 @@
 **1.2.123**
 - Added speech to text transcription using Whisper.
+- Added background service for speech to text.
 - Added per-program HDRadio image handling [Taxom].
 - Added SX1255 Soapy driver [Circu1tI0N3rd].
 - Minor fixes to DireWolf APRS decoder [jeepmanct].

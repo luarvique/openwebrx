@@ -19,7 +19,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
         self.sampleRate = sampleRate
         self.service    = service
         self.chunkSize  = max(10, chunkSeconds) * sampleRate * 2
-        DataRecorder.__init__(self, "TEXT", ".txt", maxBytes)
+        DataRecorder.__init__(self, "STT", ".txt", maxBytes)
         ThreadModule.__init__(self)
 
     def getInputFormat(self) -> Format:
@@ -32,6 +32,12 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
         if frequency != self.frequency:
             self.frequency = frequency
             self.closeFile()
+
+    def writeOutput(self, output):
+        if self.service:
+            self.writeFile(output.encode("utf-8"))
+        elif self.writer is not None:
+            self.writer.write(output.encode("utf-8"))
 
     def run(self):
         # Spawn a worker thread for sending queued data to Whisper
@@ -52,9 +58,8 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                  try:
                      self.queue.put(self.buffer, block=False)
                  except Full:
-                     if self.writer is not None:
-                         t = len(self.buffer) // self.sampleRate
-                         self.writer.write(f"[skipped {t} seconds]\n".encode("utf-8"))
+                     t = len(self.buffer) // self.sampleRate
+                     self.writeOutput(f"[skipped {t} seconds]\n")
                  # Start accumulating new audio chunk
                  self.buffer = b""
 
@@ -83,8 +88,8 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                     running = False
                 else:
                     out = self.sendToWhisper(data, Config.get()["whisper_url"])
-                    if out is not None and self.writer is not None:
-                        self.writer.write(out.encode("utf-8"))
+                    if out is not None:
+                        self.writeOutput(out)
                 self.queue.task_done()
             except Exception as e:
                 logger.error(f"Whisper thread failed: {e}")
