@@ -77,6 +77,11 @@ class DecodingSettingsController(SettingsFormController):
                     "ism_report_levels",
                     "Report ISM signal levels (RSSI/SNR)",
                 ),
+                TextInput(
+                    "whisper_server",
+                    "Whisper transcription server",
+                    infotext="Server URL used to send audio for transcription into text",
+                ),
             ),
             Section(
                 "Digital voice",

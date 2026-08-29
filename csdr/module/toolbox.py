@@ -28,6 +28,10 @@ class MultimonModule(ExecModule):
 
 
 class WavFileModule(PopenModule):
+    def __init__(self, sampleRate: int):
+        self.sampleRate = sampleRate
+        super().__init__()
+
     def getInputFormat(self) -> Format:
         return Format.SHORT
 

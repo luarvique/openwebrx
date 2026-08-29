@@ -4,6 +4,7 @@ from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
 from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
+from owrx.transcribe import WhisperTranscriber
 from owrx.config import Config
 
 import math
@@ -203,3 +204,21 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
     def setDialFrequency(self, frequency: int) -> None:
         # Not restarting LAME, it is ok to continue on a new file
         self.recorder.setDialFrequency(frequency)
+
+
+class AudioTranscriber(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, sampleRate: int = 12000, service: bool = False):
+        self.sampleRate = sampleRate
+        self.transcriber = WhisperTranscriber(sampleRate, service)
+        workers = [
+            Convert(Format.FLOAT, Format.SHORT),
+            self.transcriber,
+        ]
+        # Connect all the workers
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.transcriber.setDialFrequency(frequency)
