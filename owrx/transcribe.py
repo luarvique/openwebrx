@@ -59,7 +59,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                      self.queue.put(self.buffer, block=False)
                  except Full:
                      t = len(self.buffer) / self.sampleRate / 2
-                     self.writeOutput(f"[skipped {t} seconds]\n")
+                     self.writeOutput(f"[skipped {t:.2f} sec]\n")
                  # Start accumulating new audio chunk
                  self.buffer = b""
 
@@ -128,14 +128,14 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                     logger.error(f"JSON Error: {responseData}")
         except urllib.error.HTTPError as e:
             logger.error(f"HTTP Error {e.code}: {e.read().decode("utf-8")}")
-            return f"[http error {e.code} for {t} seconds]\n"
+            return f"[http error {e.code} for {t:.2f} sec]\n"
         except urllib.error.URLError as e:
             logger.error(f"Failed to reach the server: {e.reason}")
-            return f"[no server for {t} seconds]\n"
+            return f"[no server for {t:.2f} sec]\n"
         except Exception as e:
             logger.error(f"Error: {e}")
         # Something bad happened
-        return "[failed for {t} seconds]\n"
+        return "[failed for {t:.2f} sec]\n"
 
     # Create a .WAV file header for given amount of data
     def getWavHeader(self, byteCount):
