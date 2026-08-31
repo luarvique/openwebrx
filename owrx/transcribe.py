@@ -74,6 +74,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 # Mark current time
                 ts = time.time()
                 # Get accumulated data from the buffer
+                data = None
                 with self.lock:
                     self.event.clear()
                     if len(self.buffer) > 0:
