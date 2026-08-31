@@ -211,7 +211,7 @@ class AudioTranscriber(ServiceDemodulator, DialFrequencyReceiver):
         # Setting SNR squelch to 512-bin FFT every 2048 samples, 20sec
         # hang time, 1sec squelch step
         self.sampleRate = sampleRate
-        self.squelch = SnrSquelch(Format.FLOAT, 2048, 512, sampleRate * 20, 0, 1, False)
+        self.squelch = SnrSquelch(Format.FLOAT, 2048, 512, sampleRate * 5, 0, 1, False)
         self.transcriber = WhisperTranscriber(sampleRate, service)
         # Set recording squelch level to ignore the white noise
         self.setSquelchLevel(23.0)

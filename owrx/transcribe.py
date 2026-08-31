@@ -2,23 +2,26 @@ from csdr.module import ThreadModule
 from pycsdr.types import Format
 from owrx.storage import DataRecorder
 from owrx.config import Config
-from queue import Queue, Full, Empty
 
 import urllib.request
 import urllib.error
 import threading
 import json
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
-PoisonPill = object()
 
 class WhisperTranscriber(ThreadModule, DataRecorder):
     def __init__(self, sampleRate: int = 12000, service: bool = False, chunkSeconds: int = 20, maxBytes: int = 1024 * 1024):
         self.sampleRate = sampleRate
         self.service    = service
-        self.chunkSize  = max(10, chunkSeconds) * sampleRate * 2
+        self.chunkSeconds = max(10, chunkSeconds)
+        self.chunkSize  = self.chunkSeconds * sampleRate * 2
+        self.event      = threading.Event()
+        self.lock       = threading.RLock()
+        self.buffer     = b""
         DataRecorder.__init__(self, "SPEECH", ".txt", maxBytes)
         ThreadModule.__init__(self)
 
@@ -32,6 +35,8 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
         if frequency != self.frequency:
             self.frequency = frequency
             self.closeFile()
+            with self.lock:
+                self.buffer = b""
 
     def writeOutput(self, output):
         if self.service:
@@ -41,61 +46,59 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
 
     def run(self):
         # Spawn a worker thread for sending queued data to Whisper
-        self.queue  = Queue(3)
         self.thread = threading.Thread(target=self.whisperWorker, name="WhisperWorker").start()
-        self.buffer = b""
-
         # Consume input audio until it ends
         while self.doRun and self.reader is not None:
             data = self.reader.read()
             if data is None:
                 self.doRun = False
                 break
-            self.buffer += data
-            # If got enough audio to process...
-            if len(self.buffer) >= self.chunkSize:
-                 # Queue it for Whisper processing
-                 try:
-                     self.queue.put(self.buffer, block=False)
-                 except Full:
-                     t = len(self.buffer) / self.sampleRate / 2
-                     self.writeOutput(f"[skipped {t:.2f} sec]\n")
-                 # Start accumulating new audio chunk
-                 self.buffer = b""
-
-        # If worker thread still running...
-        if self.queue is not None:
-            # Drain queue
-            while True:
-                try:
-                    self.queue.get(block=False)
-                except Empty:
-                    break
-            # Queue up poison pill to make worker quit
-            try:
-                self.queue.put(PoisonPill, block=False)
-            except Exception:
-                pass
+            with self.lock:
+                self.buffer += data
+        # Signal worker thread to stop
+        self.doRun = False
+        self.event.set()
 
     # This thread keeps sending queue data to Whisper
     def whisperWorker(self):
         logger.info("Whisper worker thread is running")
-        running = True
-        while running:
+        ts = time.time()
+        while self.doRun and self.writer is not None:
             try:
-                data = self.queue.get()
-                if data is PoisonPill:
-                    running = False
-                else:
+                # Wait for enough input data
+                ts = ts - time.time() + self.chunkSeconds
+                if ts > 0:
+                    self.event.wait(ts)
+                    if not self.doRun:
+                        break
+                # Mark current time
+                ts = time.time()
+                # Get accumulated data from the buffer
+                with self.lock:
+                    self.event.clear()
+                    if len(self.buffer) > 0:
+                        data = self.buffer
+                        self.buffer = b""
+                # If there is data...
+                if data is not None and self.doRun:
+                    # Truncate extra data
+                    if len(data) >= self.chunkSize * 2:
+                        t = (len(data) - self.chunkSize) / self.sampleRate
+                        logger.info(f"Skipping {t:.2f} seconds...")
+                        self.writeOutput(f"[skipping {t:.2f} sec]\n")
+                        data = data[-self.chunkSize:]
+                    # Send rest for transcription
+                    t = len(data) / self.sampleRate / 2
+                    logger.info(f"Transcribing {t:.2f} seconds...")
                     out = self.sendToWhisper(data, Config.get()["whisper_url"])
                     if out is not None:
                         self.writeOutput(out)
-                self.queue.task_done()
             except Exception as e:
                 logger.error(f"Whisper thread failed: {e}")
-                running = False
+                break
+        # Stop main thread as well
         logger.info("Whisper worker thread is quitting")
-        self.queue = None
+        self.doRun = False
         self.thread = None
 
     # Send data to Whisper at given URL
