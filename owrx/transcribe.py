@@ -55,6 +55,8 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 break
             with self.lock:
                 self.buffer += data
+                if len(self.buffer) >= self.chunkSize:
+                    self.event.set()
         # Signal worker thread to stop
         self.doRun = False
         self.event.set()
@@ -66,9 +68,9 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
         while self.doRun and self.writer is not None:
             try:
                 # Wait for enough input data
-                ts = ts - time.time() + self.chunkSeconds
-                if ts > 0:
-                    self.event.wait(ts)
+                t = ts - time.time() + self.chunkSeconds
+                if t > 0:
+                    self.event.wait(t)
                     if not self.doRun:
                         break
                 # Mark current time
