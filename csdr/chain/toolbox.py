@@ -189,11 +189,8 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
         # Connect all the workers
         super().__init__(workers)
 
-    def _convertToLinear(self, db: float) -> float:
-        return float(math.pow(10, db / 10))
-
     def setSquelchLevel(self, level: float) -> None:
-        self.squelch.setSquelchLevel(self._convertToLinear(level))
+        self.squelch.setThreshold(level)
 
     def getFixedAudioRate(self) -> int:
         return self.sampleRate
@@ -223,11 +220,8 @@ class AudioTranscriber(ServiceDemodulator, DialFrequencyReceiver):
         # Connect all the workers
         super().__init__(workers)
 
-    def _convertToLinear(self, db: float) -> float:
-        return float(math.pow(10, db / 10))
-
     def setSquelchLevel(self, level: float) -> None:
-        self.squelch.setSquelchLevel(self._convertToLinear(level))
+        self.squelch.setThreshold(level)
 
     def getFixedAudioRate(self) -> int:
         return self.sampleRate
