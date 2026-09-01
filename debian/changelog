@@ -2,11 +2,15 @@ openwebrx (1.2.123) bullseye jammy; urgency=low
 
   * Added speech to text transcription using Whisper.
   * Added background service for speech to text.
+  * Added reporting of transcribed speech via MQTT.
   * Added per-program HDRadio image handling [Taxom].
   * Added SX1255 Soapy driver [Circu1tI0N3rd].
   * Minor fixes to DireWolf APRS decoder [jeepmanct].
+  * Migrated from pkg_resources [rhjdvsgsgks].
+  * Improved SNR squelch implementation.
+  * SnrSquelch now uses decibels for threshold.
 
- -- Marat Fayzullin <luarvique@gmail.com>  Mon, 31 Aug 2026 16:12:00 +0000
+ -- Marat Fayzullin <luarvique@gmail.com>  Wed, 2 Sep 2026 16:12:00 +0000
 
 openwebrx (1.2.122) bullseye jammy; urgency=low
 
