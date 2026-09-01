@@ -1,7 +1,9 @@
 from csdr.module import ThreadModule
 from pycsdr.types import Format
+from owrx.reporting import ReportingEngine
 from owrx.storage import DataRecorder
 from owrx.config import Config
+from datetime import datetime
 
 import urllib.request
 import urllib.error
@@ -55,6 +57,9 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 self.doRun = False
                 break
             with self.lock:
+                # Make a timestamp
+                if len(self.buffer) == 0:
+                    self.tstamp = datetime.now().timestamp()
                 # Collect incoming data
                 self.buffer += data
                 # Truncate extra data
@@ -85,9 +90,11 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                         break
                 # Get accumulated data from the buffer
                 data = None
+                stmp = None
                 with self.lock:
                     self.event.clear()
                     if len(self.buffer) > 0:
+                        stmp = self.tstamp
                         data = self.buffer
                         self.buffer = b""
                 # Mark time when the buffer became empty
@@ -96,7 +103,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 if data is not None and self.doRun:
                     t = len(data) / self.sampleRate / 2
                     logger.info(f"Transcribing {t:.2f} seconds...")
-                    out = self.sendToWhisper(data, url)
+                    out = self.sendToWhisper(data, url, stmp)
                     if out:
                         self.writeOutput(out)
             except Exception as e:
@@ -108,7 +115,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
         self.thread = None
 
     # Send data to Whisper at given URL
-    def sendToWhisper(self, data: bytes, url: str):
+    def sendToWhisper(self, data: bytes, url: str, tstamp = None):
         # Length of data in seconds
         t = len(data) / self.sampleRate / 2
         # Must have server
@@ -135,6 +142,15 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 try:
                     result = json.loads(responseData)
                     if "text" in result:
+                        # Report transcribed text
+                        if tstamp and self.frequency:
+                            ReportingEngine.getSharedInstance().spot({
+                                "mode": "SPEECH",
+                                "text": result["text"],
+                                "freq": self.frequency,
+                                "timestamp": round(tstamp * 1000)
+                            })
+                        # Return transcribed text
                         return result["text"]
                 except json.JSONDecodeError:
                     logger.error(f"JSON Error: {responseData}")
