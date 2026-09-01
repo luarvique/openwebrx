@@ -155,7 +155,7 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 except json.JSONDecodeError:
                     logger.error(f"JSON Error: {responseData}")
         except urllib.error.HTTPError as e:
-            logger.error(f"HTTP Error {e.code}: {e.read().decode("utf-8")}")
+            logger.error(f"HTTP Error {e.code}: {e.read().decode('utf-8')}")
             return f"[http error {e.code} for {t:.2f} sec]\n"
         except urllib.error.URLError as e:
             logger.error(f"Failed to reach the server: {e.reason}")
