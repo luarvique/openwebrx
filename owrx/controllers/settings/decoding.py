@@ -77,11 +77,6 @@ class DecodingSettingsController(SettingsFormController):
                     "ism_report_levels",
                     "Report ISM signal levels (RSSI/SNR)",
                 ),
-                TextInput(
-                    "whisper_server",
-                    "Whisper transcription server",
-                    infotext="Server URL used to send audio for transcription into text",
-                ),
             ),
             Section(
                 "Digital voice",
@@ -108,20 +103,42 @@ class DecodingSettingsController(SettingsFormController):
                 NumberInput(
                     "rec_squelch",
                     "Recording squelch level",
-                    validator=RangeValidator(5, 70),
+                    validator=RangeValidator(0, 70),
                     infotext="Signal-to-noise ratio (SNR) that triggers recording",
                     append="dB",
                 ),
                 NumberInput(
                     "rec_hang_time",
                     "Recording squelch hang time",
-                    validator=RangeValidator(0, 5000),
+                    validator=RangeValidator(0, 15000),
                     infotext="Time recording keeps going after signal disappears",
                     append="ms",
                 ),
                 CheckboxInput(
                     "rec_produce_silence",
                     "Record silence when there is no signal",
+                ),
+            ),
+            Section(
+                "Speech to text transcription",
+                TextInput(
+                    "speech_url",
+                    "Whisper transcription server",
+                    infotext="Server URL used to send audio for transcription into text",
+                ),
+                NumberInput(
+                    "speech_squelch",
+                    "Transcription squelch level",
+                    validator=RangeValidator(0, 70),
+                    infotext="Signal-to-noise ratio (SNR) that triggers transcription",
+                    append="dB",
+                ),
+                NumberInput(
+                    "speech_hang_time",
+                    "Transcription squelch hang time",
+                    validator=RangeValidator(0, 15000),
+                    infotext="Time transcription keeps going after signal disappears",
+                    append="ms",
                 ),
             ),
             Section(

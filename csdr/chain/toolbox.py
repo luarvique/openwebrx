@@ -207,8 +207,8 @@ class AudioTranscriber(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 12000, service: bool = False):
         # Get SNR squelch settings
         pm = Config.get()
-        squelchLevel = pm["rec_squelch"]
-        hangTime = int(sampleRate * pm["rec_hang_time"] / 1000)
+        squelchLevel = pm["speech_squelch"]
+        hangTime = int(sampleRate * pm["speech_hang_time"] / 1000)
         # Use SNR squelch to avoid sending noise to transcriber
         self.sampleRate = sampleRate
         self.squelch = SnrSquelch(Format.FLOAT, 512, 512, hangTime, 0, 1, False)

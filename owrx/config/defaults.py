@@ -484,5 +484,7 @@ defaultConfig = PropertyLayer(
     meshtastic_bw="8",
     meshcore_bw="6",
     meshcom_bw="8",
-    whisper_url="http://localhost:5000/inference"
+    speech_url="",
+    speech_squelch=20,
+    speech_hang_time=5000
 ).readonly()

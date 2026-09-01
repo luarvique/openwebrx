@@ -966,5 +966,5 @@ class FeatureDetector(object):
         tool to transcribe and translate speech transmissions. Configure your
         Whisper server URL in the Settings.
         """
-        url = Config.get()["whisper_url"]
+        url = Config.get()["speech_url"]
         return url is not None and url

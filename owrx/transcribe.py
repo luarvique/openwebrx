@@ -73,17 +73,16 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
     # This thread keeps sending queue data to Whisper
     def whisperWorker(self):
         logger.info("Whisper worker thread is running")
+        url = Config.get()["speech_url"]
         ts = time.time()
         while self.doRun and self.writer is not None:
             try:
                 # Wait for enough input data
-                t = ts - time.time() + self.chunkSeconds
+                t = self.chunkSeconds - (time.time() - ts);
                 if t > 0:
                     self.event.wait(t)
                     if not self.doRun:
                         break
-                # Mark current time
-                ts = time.time()
                 # Get accumulated data from the buffer
                 data = None
                 with self.lock:
@@ -91,12 +90,14 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                     if len(self.buffer) > 0:
                         data = self.buffer
                         self.buffer = b""
+                # Mark time when the buffer became empty
+                ts = time.time()
                 # If there is data...
                 if data is not None and self.doRun:
                     t = len(data) / self.sampleRate / 2
                     logger.info(f"Transcribing {t:.2f} seconds...")
-                    out = self.sendToWhisper(data, Config.get()["whisper_url"])
-                    if out is not None:
+                    out = self.sendToWhisper(data, url)
+                    if out:
                         self.writeOutput(out)
             except Exception as e:
                 logger.error(f"Whisper thread failed: {e}")
@@ -110,6 +111,9 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
     def sendToWhisper(self, data: bytes, url: str):
         # Length of data in seconds
         t = len(data) / self.sampleRate / 2
+        # Must have server
+        if not url:
+            return "[no server for {t:.2f} sec]\n"
         # Create request body
         boundary = "----WhisperFormBoundary7MA4YWxkTrZu0gW"
         payload = b"\r\n".join([
