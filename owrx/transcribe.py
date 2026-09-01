@@ -39,10 +39,11 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 self.buffer = b""
 
     def writeOutput(self, output):
-        if self.service:
-            self.writeFile(output.encode("utf-8"))
-        elif self.writer is not None:
-            self.writer.write(output.encode("utf-8"))
+        with self.lock:
+            if self.service:
+                self.writeFile(output.encode("utf-8"))
+            elif self.writer is not None:
+                self.writer.write(output.encode("utf-8"))
 
     def run(self):
         # Spawn a worker thread for sending queued data to Whisper
@@ -54,7 +55,15 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                 self.doRun = False
                 break
             with self.lock:
+                # Collect incoming data
                 self.buffer += data
+                # Truncate extra data
+                if len(self.buffer) >= self.chunkSize * 2:
+                    t = (len(self.buffer) - self.chunkSize) / self.sampleRate
+                    logger.info(f"Skipping {t:.2f} seconds...")
+                    self.writeOutput(f"[skipping {t:.2f} sec]\n")
+                    self.buffer = self.buffer[-self.chunkSize:]
+                # Kick transcription worker thread
                 if len(self.buffer) >= self.chunkSize:
                     self.event.set()
         # Signal worker thread to stop
@@ -84,13 +93,6 @@ class WhisperTranscriber(ThreadModule, DataRecorder):
                         self.buffer = b""
                 # If there is data...
                 if data is not None and self.doRun:
-                    # Truncate extra data
-                    if len(data) >= self.chunkSize * 2:
-                        t = (len(data) - self.chunkSize) / self.sampleRate
-                        logger.info(f"Skipping {t:.2f} seconds...")
-                        self.writeOutput(f"[skipping {t:.2f} sec]\n")
-                        data = data[-self.chunkSize:]
-                    # Send rest for transcription
                     t = len(data) / self.sampleRate / 2
                     logger.info(f"Transcribing {t:.2f} seconds...")
                     out = self.sendToWhisper(data, Config.get()["whisper_url"])

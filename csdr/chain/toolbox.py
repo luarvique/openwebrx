@@ -205,13 +205,15 @@ class AudioRecorder(ServiceDemodulator, DialFrequencyReceiver):
 
 class AudioTranscriber(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, sampleRate: int = 12000, service: bool = False):
-        # Setting SNR squelch to 512-bin FFT every 2048 samples, 20sec
-        # hang time, 1sec squelch step
+        # Get SNR squelch settings
+        pm = Config.get()
+        squelchLevel = pm["rec_squelch"]
+        hangTime = int(sampleRate * pm["rec_hang_time"] / 1000)
+        # Use SNR squelch to avoid sending noise to transcriber
         self.sampleRate = sampleRate
-        self.squelch = SnrSquelch(Format.FLOAT, 512, 512, sampleRate * 5, 0, 1, False)
+        self.squelch = SnrSquelch(Format.FLOAT, 512, 512, hangTime, 0, 1, False)
         self.transcriber = WhisperTranscriber(sampleRate, service)
-        # Set recording squelch level to ignore the white noise
-        self.setSquelchLevel(23.0)
+        self.setSquelchLevel(squelchLevel)
         workers = [
             self.squelch,
             Convert(Format.FLOAT, Format.SHORT),
