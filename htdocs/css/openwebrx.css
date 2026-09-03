@@ -750,15 +750,16 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-extension-window {
+    display: none;
     position: absolute;
-    z-index: 10000;
+    z-index: 2000;
     min-height: 150px;
+    min-width: 150px;
     height: 300px;
+    width: 300px;
     resize: both;
     overflow: auto;
     box-sizing: border-box;
-    background: #222;
-    border: 1px solid #444;
 }
 
 .openwebrx-extension-header {
