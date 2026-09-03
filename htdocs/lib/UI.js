@@ -105,14 +105,53 @@ UI.showBubble = function(message) {
 
 UI.addExtension = function(title, handler) {
     var $stack = $('#openwebrx-panel-extensions');
-    if ($stack) {
-        var $button = $(
-          '<div class="openwebrx-button openwebrx-extension-button">'
-        + Utils.htmlEscape(title)
-        + '</div>');
-        if (handler) $button.click(handler);
-        $stack.append($button);
-    }
+    if (!$stack) return;
+
+    var $button = $(
+      '<div class="openwebrx-button openwebrx-extension-button">'
+    + Utils.htmlEscape(title)
+    + '</div>');
+
+    if (handler) $button.click(handler);
+    $stack.append($button);
+};
+
+UI.addWindow = function(title) {
+    var $page = $('#webrx-page-container');
+    if (!$page) return;
+
+    var $window = $(
+      '<div class="openwebrx-extension-window" style="display:block;top:80px;left:80px;width:300px;height:200px;">'
+    + '<div class="openwebrx-extension-header">'
+    + '<span>' + Utils.htmlEscape(title) + '</span>'
+    + '<div class="openwebrx-button openwebrx-extension-close">✕</div>'
+    + '</div>'
+    + '<div class="openwebrx-extension-body">TEST</div>'
+    + '</div>');
+
+    var $header = $window.find('.openwebrx-extension-header');
+    var $close  = $window.find('.openwebrx-extension-close');
+
+    let dragging = false, offsetX = 0, offsetY = 0;
+
+    $close.click((e) => { $window.hide(); });
+
+    $header.on('mousedown', (e) => {
+        dragging = true;
+        offsetX = e.clientX - e.currentTarget.offsetLeft;
+        offsetY = e.clientY - e.currentTarget.offsetTop;
+        e.preventDefault();
+    });
+
+    $header.on('mousemove', (e) => {
+        if (!dragging) return;
+        e.currentTarget.style.left = (e.clientX - offsetX) + 'px';
+        e.currentTarget.style.top = (e.clientY - offsetY) + 'px';
+    });
+
+    $header.on('mouseup', () => { dragging = false; });
+
+    $page.append($window);
 };
 
 //

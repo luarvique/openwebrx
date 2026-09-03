@@ -749,6 +749,31 @@ img.openwebrx-mirror-img
     padding-right: 5px;
 }
 
+.openwebrx-extension-window {
+    position: absolute;
+    z-index: 10000;
+    min-height: 150px;
+    height: 300px;
+    resize: both;
+    overflow: auto;
+    box-sizing: border-box;
+    background: #222;
+    border: 1px solid #444;
+}
+
+.openwebrx-extension-header {
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background: rgba(0,0,0,0.3);
+}
+
+.openwebrx-extension-body {
+    padding: 8px;
+}
+
 .openwebrx-modes-grid {
     display: flex;
     flex-direction: row;
