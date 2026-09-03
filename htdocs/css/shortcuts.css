@@ -10,7 +10,7 @@
   color: white;
   background-color: #000;
   opacity: 0.8;
-  z-index: 10000;
+  z-index: 115;
   border: 3px solid white;
   border-radius: 20px;
   display: flex;

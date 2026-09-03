@@ -4,18 +4,18 @@
 
 function Plugin() {}
 
-// Add extension button to invoke plugin
+// Add plugin button to invoke plugin
 Plugin.addButton = function(id, title, handler) {
-    var $stack = $('#openwebrx-panel-extensions');
+    var $stack = $('#openwebrx-panel-plugins');
     if (!$stack) return false;
 
     var $button = $(
-      '<div class="openwebrx-button openwebrx-extension-button"'
+      '<div class="openwebrx-button openwebrx-plugin-button"'
     + ' id="plugin-button-' + Utils.htmlEscape(id) + '">'
     + Utils.htmlEscape(title)
     + '</div>');
 
-    if (handler) $button.click(handler);
+    if (handler) $button.on('click', handler);
     $stack.append($button);
     return true;
 };
@@ -39,20 +39,32 @@ Plugin.addWindow = function(id, title, content) {
     if (!$page) return false;
 
     var $window = $(
-      '<div class="openwebrx-extension-window openwebrx-dialog" id="plugin-window-' + id + '">'
-    + '  <div class="openwebrx-extension-header">'
+      '<div class="openwebrx-plugin-window" id="plugin-window-' + id + '">'
+    + '  <div class="openwebrx-plugin-header openwebrx-button">'
     + '    <span>' + Utils.htmlEscape(title) + '</span>'
-    + '    <div class="openwebrx-button openwebrx-extension-close">✕</div>'
+    + '    <div class="openwebrx-plugin-close openwebrx-button">✕</div>'
     + '  </div>'
-    + '  <div class="openwebrx-extension-body">' + content + '</div>'
+    + '  <div class="openwebrx-plugin-body">' + content + '</div>'
     + '</div>');
 
-    var $header = $window.find('.openwebrx-extension-header');
-    var $close  = $window.find('.openwebrx-extension-close');
+    var name = 'plugin_' + id;
+    if (LS.has(name + '_x')) $window.css('left',   LS.loadStr(name + '_x') + 'px');
+    if (LS.has(name + '_y')) $window.css('top',    LS.loadStr(name + '_y') + 'px');
+    if (LS.has(name + '_w')) $window.css('width',  LS.loadStr(name + '_w') + 'px');
+    if (LS.has(name + '_h')) $window.css('height', LS.loadStr(name + '_h') + 'px');
+
+    var $header = $window.find('.openwebrx-plugin-header');
+    var $close  = $window.find('.openwebrx-plugin-close');
 
     let dragging = false, offsetX = 0, offsetY = 0;
 
-    $close.click((e) => { $window.hide(); });
+    $close.on('click', (e) => { $window.hide(); });
+
+    $window.on('mouseup', (e) => {
+        var name = 'plugin_' + id;
+        LS.save(name + '_w', e.currentTarget.clientWidth);
+        LS.save(name + '_h', e.currentTarget.clientHeight);
+    });
 
     $header.on('mousedown', (e) => {
         dragging = true;
@@ -61,13 +73,16 @@ Plugin.addWindow = function(id, title, content) {
         e.preventDefault();
     });
 
-    $header.on('mousemove', (e) => {
+    document.addEventListener('mousemove', (e) => {
         if (!dragging) return;
-        e.currentTarget.parentElement.style.left = (e.clientX - offsetX) + 'px';
-        e.currentTarget.parentElement.style.top = (e.clientY - offsetY) + 'px';
+        $window.css('left', (e.clientX - offsetX) + 'px');
+        $window.css('top', (e.clientY - offsetY) + 'px');
+        var name = 'plugin_' + id;
+        LS.save(name + '_x', e.clientX - offsetX);
+        LS.save(name + '_y', e.clientY - offsetY);
     });
 
-    $header.on('mouseup', () => { dragging = false; });
+    document.addEventListener('mouseup', () => { dragging = false; });
 
     $page.append($window);
     return true;
