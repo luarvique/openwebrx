@@ -143,6 +143,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/Spectrum.js",
             "lib/Scanner.js",
             "lib/Lookup.js",
+            "lib/Plugin.js",
             "lib/Utils.js",
             "lib/Clock.js",
             "lib/Chat.js",
