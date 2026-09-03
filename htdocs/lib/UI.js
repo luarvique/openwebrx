@@ -454,6 +454,7 @@ UI.toggleFrame = function(on) {
         $('#openwebrx-dialog-search-bookmarks').css('border', border);
 //        $('#openwebrx-digimode-canvas-container').css('border', border);
 //        $('.openwebrx-message-panel').css('border', border);
+//        $('.openwebrx-plugin-window').css('border', border);
     }
 };
 

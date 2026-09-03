@@ -93,6 +93,7 @@ body.has-theme #openwebrx-frequency-container {
 
 body.has-theme .openwebrx-panel,
 body.has-theme .openwebrx-dialog,
+body.has-theme .openwebrx-plugin-window,
 body.has-theme .openwebrx-panel select option,
 body.has-theme .openwebrx-dialog select option {
     background-color: var(--theme-color2);

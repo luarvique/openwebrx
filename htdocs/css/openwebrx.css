@@ -164,25 +164,25 @@ input[type=range]:disabled {
 
 #openwebrx-scale-container
 {
-	height: 47px;
-	overflow: hidden;
-	z-index:1000;
-	position: relative;
+    height: 47px;
+    overflow: hidden;
+    z-index: 100;
+    position: relative;
 }
 
 #openwebrx-frequency-container {
-	background-image: url("../gfx/openwebrx-scale-background.png");
-	background-repeat: repeat-x;
-	background-size: auto 140px;
+    background-image: url("../gfx/openwebrx-scale-background.png");
+    background-repeat: repeat-x;
+    background-size: auto 140px;
     background-color: #444;
-    z-index: 1001;
+    z-index: 101;
 }
 
 #openwebrx-bookmarks-container
 {
     height: 25px;
     position: relative;
-    z-index: 1000;
+    z-index: 100;
 }
 
 #openwebrx-bookmarks-container .bookmark {
@@ -220,11 +220,11 @@ input[type=range]:disabled {
 }
 
 #openwebrx-bookmarks-container .bookmark.selected {
-    z-index: 1010;
+    z-index: 102;
 }
 
 #openwebrx-bookmarks-container .bookmark:hover {
-    z-index: 1011;
+    z-index: 103;
     max-height: none;
     max-width: none;
 }
@@ -731,7 +731,7 @@ img.openwebrx-mirror-img
     padding-top: 0;
 }
 
-.openwebrx-extension-stack {
+.openwebrx-plugin-stack {
     position: absolute;
     left: -45px;
     bottom: 10px;
@@ -741,7 +741,7 @@ img.openwebrx-mirror-img
     gap: 5px;
 }
 
-.openwebrx-extension-button {
+.openwebrx-plugin-button {
     height: 16px;
     font-size: 10pt;
     text-align: center;
@@ -749,30 +749,37 @@ img.openwebrx-mirror-img
     padding-right: 5px;
 }
 
-.openwebrx-extension-window {
+.openwebrx-plugin-window {
     display: none;
     position: absolute;
-    z-index: 2000;
+    z-index: 110;
     min-height: 150px;
     min-width: 150px;
-    height: 300px;
-    width: 300px;
     resize: both;
     overflow: auto;
     box-sizing: border-box;
+    background-color: #575757;
+    padding: 5px;
+    color: white;
+    font-size: 10pt;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
-.openwebrx-extension-header {
+.openwebrx-plugin-header {
     cursor: move;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 4px 8px;
-    background: rgba(0,0,0,0.3);
+    font-weight: bold;
 }
 
-.openwebrx-extension-body {
-    padding: 8px;
+.openwebrx-plugin-body {
+    padding: 5px;
 }
 
 .openwebrx-modes-grid {
@@ -855,7 +862,7 @@ img.openwebrx-mirror-img
     background-color: #777;
     left: 0;
     top: 0;
-    z-index: 1001;
+    z-index: 120;
     color: white;
     font-weight: bold;
     font-size: 20pt;
@@ -1680,6 +1687,11 @@ img.openwebrx-mirror-img
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    z-index: 115;
+}
+
+.openwebrx-bubble {
+    z-index: 116;
 }
 
 .openwebrx-dialog .form-field {
