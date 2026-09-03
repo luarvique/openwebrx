@@ -100,6 +100,22 @@ UI.showBubble = function(message) {
 };
 
 //
+// Extension Buttons
+//
+
+UI.addExtension = function(title, handler) {
+    var $stack = $('#openwebrx-panel-extensions');
+    if ($stack) {
+        var $button = $(
+          '<div class="openwebrx-button openwebrx-extension-button">'
+        + Utils.htmlEscape(title)
+        + '</div>');
+        if (handler) $button.click(handler);
+        $stack.append($button);
+    }
+};
+
+//
 // Modulation Controls
 //
 
