@@ -738,7 +738,7 @@ img.openwebrx-mirror-img
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 10px;
+    gap: 5px;
 }
 
 .openwebrx-extension-button {
