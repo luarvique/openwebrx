@@ -491,6 +491,15 @@ class FeatureDetector(object):
         """
         return self._has_soapy_driver("bladerf")
 
+    def has_soapy_file(self):
+        """
+        The [SoapyFile](https://github.com/utn-ba-rf-lab/SoapyFile)
+        module allows to use both normal and pipe (FIFO) files instead
+        of an antenna. Reading IQ data in CF32 format.
+        To install it, please build it using the instructions in the repo.
+        """
+        return self._has_soapy_driver("file")
+
     def has_m17_demod(self):
         """
         OpenWebRX uses the [M17 Demodulator](https://github.com/mobilinkd/m17-cxx-demod)
