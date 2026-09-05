@@ -33,10 +33,10 @@ Plugin.toggleWindow = function(id, on) {
 Plugin.addWindow = function(id, title, content) {
     id = Utils.htmlEscape(id);
     var $window = $('#plugin-window-' + id);
-    if ($window.length > 0) return true;
+    if ($window.length > 0) return $window[0];
 
     var $page = $('#webrx-page-container');
-    if (!$page) return false;
+    if (!$page) return null;
 
     var $window = $(
       '<div class="openwebrx-plugin-window" id="plugin-window-' + id + '">'
@@ -55,6 +55,7 @@ Plugin.addWindow = function(id, title, content) {
 
     var $header = $window.find('.openwebrx-plugin-header');
     var $close  = $window.find('.openwebrx-plugin-close');
+    var $body   = $window.find('.openwebrx-plugin-body');
 
     let dragging = false, offsetX = 0, offsetY = 0;
 
@@ -85,5 +86,5 @@ Plugin.addWindow = function(id, title, content) {
     document.addEventListener('mouseup', () => { dragging = false; });
 
     $page.append($window);
-    return true;
+    return $body[0];
 };
