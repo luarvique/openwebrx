@@ -5,9 +5,9 @@
 function Plugin() {}
 
 // Add plugin button to invoke plugin
-Plugin.addButton = function(id, title, handler) {
+Plugin.addButton = function(id, title, handler = null, color = null) {
     var $stack = $('#openwebrx-panel-plugins');
-    if (!$stack) return false;
+    if (!$stack) return null;
 
     var $button = $(
       '<div class="openwebrx-button openwebrx-plugin-button"'
@@ -15,9 +15,11 @@ Plugin.addButton = function(id, title, handler) {
     + Utils.htmlEscape(title)
     + '</div>');
 
+    if (color)   $button.css('background', color);
     if (handler) $button.on('click', handler);
+
     $stack.append($button);
-    return true;
+    return $button[0];
 };
 
 Plugin.toggleWindow = function(id, on) {
@@ -30,7 +32,7 @@ Plugin.toggleWindow = function(id, on) {
     if (on) $window.show(); else $window.hide();
 }
 
-Plugin.addWindow = function(id, title, content) {
+Plugin.addWindow = function(id, title, content = "") {
     id = Utils.htmlEscape(id);
     var $window = $('#plugin-window-' + id);
     if ($window.length > 0) return $window[0];
