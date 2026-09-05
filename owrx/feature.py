@@ -75,6 +75,7 @@ class FeatureDetector(object):
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
         "bladerf": ["soapy_connector", "soapy_bladerf"],
+        "file": ["soapy_connector", "soapy_file"],
         "sddc": ["sddc_connector"],
         "sddc_soapy": ["soapy_connector", "soapy_sddc"],
         "hpsdr": ["hpsdr_connector"],
