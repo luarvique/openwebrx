@@ -775,6 +775,8 @@ img.openwebrx-mirror-img
     align-items: center;
     padding: 4px 8px;
     font-weight: bold;
+    border-radius: 0px;
+    -moz-border-radius: 0px;
 }
 
 .openwebrx-plugin-body {
