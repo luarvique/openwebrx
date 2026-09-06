@@ -750,7 +750,7 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-plugin-window {
-    display: none;
+    display: flex;
     position: absolute;
     z-index: 110;
     min-height: 150px;
@@ -758,7 +758,6 @@ img.openwebrx-mirror-img
     resize: both;
     box-sizing: border-box;
     background-color: #575757;
-    overflow: auto;
     color: white;
     font-size: 10pt;
     border-radius: 5px;
@@ -766,6 +765,8 @@ img.openwebrx-mirror-img
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .openwebrx-plugin-header {
@@ -780,7 +781,10 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-plugin-body {
+    box-sizing: border-box;
     padding: 5px;
+    width: 100%;
+    height: 100%;
 }
 
 .openwebrx-modes-grid {

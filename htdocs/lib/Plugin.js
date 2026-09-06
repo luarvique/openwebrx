@@ -86,6 +86,7 @@ Plugin.addWindow = function(id, title, content = "") {
 
     document.addEventListener('mouseup', () => { dragging = false; });
 
+    $window.hide();
     $page.append($window);
     return $window[0];
 };
