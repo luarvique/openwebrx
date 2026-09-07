@@ -760,13 +760,14 @@ img.openwebrx-mirror-img
     background-color: #575757;
     color: white;
     font-size: 10pt;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
     flex-direction: column;
     overflow: hidden;
+    border: 2px solid #888;
 }
 
 .openwebrx-plugin-header {

@@ -90,3 +90,27 @@ Plugin.addWindow = function(id, title, content = "") {
     $page.append($window);
     return $window[0];
 };
+
+function MapPlugin() {}
+
+MapPlugin.myname = 'map';
+MapPlugin.iframe = null;
+
+MapPlugin.init = function() {
+    Plugin.addButton(this.myname, 'Map', this.create);
+};
+
+MapPlugin.create = function() {
+    if (MapPlugin.iframe == null) {
+        var content = '<iframe src="/map" style="position:relative;top:0;left:0;width:100%;height:100%;border:none;"></iframe>';
+        var iframe = Plugin.addWindow(MapPlugin.myname, 'Map', content).querySelector('iframe');
+        MapPlugin.iframe = iframe;
+
+        iframe.addEventListener('load', () => {
+            var doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.querySelector('.webrx-top-bar').style.display = 'none';
+        });
+    }
+
+    Plugin.toggleWindow(MapPlugin.myname);
+}
