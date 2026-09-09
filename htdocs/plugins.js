@@ -15,7 +15,6 @@ $(document).ready(function () {
 });
 
 // Initialize the Plugins class and some defaults
-function Plugins () {}
 Plugins._initialized = false;
 Plugins._version = 0.1; // version of the plugin sub-system (keep it float)
 Plugins._enable_debug = false; // print debug to the console

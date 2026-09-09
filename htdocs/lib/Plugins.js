@@ -1,11 +1,14 @@
 //
-// Plugins Support Functions
+// Plugin Support Functions
 //
 
-function Plugin() {}
+function Plugins() {}
 
-// Add plugin button to invoke plugin
-Plugin.addButton = function(id, title, handler = null, color = null) {
+//
+// Add plugin invocation button.
+//
+
+Plugins.addButton = function(id, title, handler = null, color = null) {
     var $stack = $('#openwebrx-panel-plugins');
     if (!$stack) return null;
 
@@ -22,7 +25,11 @@ Plugin.addButton = function(id, title, handler = null, color = null) {
     return $button[0];
 };
 
-Plugin.toggleWindow = function(id, on) {
+//
+// Add a floating resizable window.
+//
+
+Plugins.toggleWindow = function(id, on) {
     var $window = $('#plugin-window-' + id);
     if (!$window) return;
 
@@ -32,7 +39,7 @@ Plugin.toggleWindow = function(id, on) {
     if (on) $window.show(); else $window.hide();
 }
 
-Plugin.addWindow = function(id, title, content = "") {
+Plugins.addWindow = function(id, title, content = '') {
     id = Utils.htmlEscape(id);
     var $window = $('#plugin-window-' + id);
     if ($window.length > 0) return $window[0];
@@ -105,19 +112,46 @@ Plugin.addWindow = function(id, title, content = "") {
     return $window[0];
 };
 
+//
+// Add a receiver panel section.
+//
+
+Plugins.toggleSection = function(id, on) {
+    var $section = $('#plugin-section-' + id);
+    if (!$section) return;
+    UI.toggleSection($section[0]);
+}
+
+Plugins.addSection = function(id, title, content = '') {
+    id = 'plugin-section-' + Utils.htmlEscape(id);
+
+    var $section = $(
+      '<div id="' + id + '" class="openwebrx-section-divider" onclick="UI.toggleSection(this);">'
+    + '&blacktriangledown;&nbsp;' + Utils.htmlEscape(title) + '</div>'
+    + '<div class="openwebrx-section">' + content + '</div>');
+
+    $section.insertBefore('#openwebrx-section-settings');
+    UI.toggleSection($section[0], LS.has(id)? LS.loadBool(id) : false);
+    return $section[0];
+};
+
+//
+// Sample map plugin that lives inside a floating window.
+//
+
 function MapPlugin() {}
 
 MapPlugin.myname = 'map';
 MapPlugin.iframe = null;
 
 MapPlugin.init = function() {
-    Plugin.addButton(this.myname, 'Map', this.create);
+    Plugins.addButton(this.myname, 'MAP', this.create);
 };
 
 MapPlugin.create = function() {
     if (MapPlugin.iframe == null) {
         var content = '<iframe src="/map" style="position:relative;top:0;left:0;width:100%;height:100%;border:none;"></iframe>';
-        var iframe = Plugin.addWindow(MapPlugin.myname, 'Map', content).querySelector('iframe');
+        var iframe = Plugins.addWindow(MapPlugin.myname, 'Map', content).querySelector('iframe');
         MapPlugin.iframe = iframe;
 
         iframe.addEventListener('load', () => {
@@ -126,5 +160,5 @@ MapPlugin.create = function() {
         });
     }
 
-    Plugin.toggleWindow(MapPlugin.myname);
+    Plugins.toggleWindow(MapPlugin.myname);
 }
