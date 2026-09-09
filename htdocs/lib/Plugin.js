@@ -50,41 +50,55 @@ Plugin.addWindow = function(id, title, content = "") {
     + '</div>');
 
     var name = 'plugin_' + id;
-    if (LS.has(name + '_x')) $window.css('left',   LS.loadStr(name + '_x') + 'px');
-    if (LS.has(name + '_y')) $window.css('top',    LS.loadStr(name + '_y') + 'px');
-    if (LS.has(name + '_w')) $window.css('width',  LS.loadStr(name + '_w') + 'px');
-    if (LS.has(name + '_h')) $window.css('height', LS.loadStr(name + '_h') + 'px');
+    if (LS.has(name + '_x')) $window.css('left',   LS.loadStr(name + '_x'));
+    if (LS.has(name + '_y')) $window.css('top',    LS.loadStr(name + '_y'));
+    if (LS.has(name + '_w')) $window.css('width',  LS.loadStr(name + '_w'));
+    if (LS.has(name + '_h')) $window.css('height', LS.loadStr(name + '_h'));
 
     var $header = $window.find('.openwebrx-plugin-header');
     var $close  = $window.find('.openwebrx-plugin-close');
 
     let dragging = false, offsetX = 0, offsetY = 0;
 
-    $close.on('click', (e) => { $window.hide(); });
+    $close.on('click touchend', (e) => { $window.hide(); });
 
-    $window.on('mouseup', (e) => {
+    $window.on('mouseup touchend', (e) => {
         var name = 'plugin_' + id;
-        LS.save(name + '_w', e.currentTarget.clientWidth);
-        LS.save(name + '_h', e.currentTarget.clientHeight);
+        LS.save(name + '_w', e.currentTarget.style.width);
+        LS.save(name + '_h', e.currentTarget.style.height);
+        LS.save(name + '_x', e.currentTarget.style.left);
+        LS.save(name + '_y', e.currentTarget.style.top);
     });
 
-    $header.on('mousedown', (e) => {
+    $header.on('mousedown touchstart', (e) => {
+        if (dragging) return;
         dragging = true;
-        offsetX = e.clientX - e.currentTarget.parentElement.offsetLeft;
-        offsetY = e.clientY - e.currentTarget.parentElement.offsetTop;
+
+        if (e.targetTouches) {
+            var t = e.targetTouches.item(0);
+            offsetX = t.clientX;
+            offsetY = t.clientY;
+        } else {
+            offsetX = e.clientX;
+            offsetY = e.clientY;
+        }
+
+        offsetX -= e.currentTarget.parentElement.offsetLeft;
+        offsetY -= e.currentTarget.parentElement.offsetTop;
         e.preventDefault();
     });
 
-    document.addEventListener('mousemove', (e) => {
+    $(document).on('mousemove touchmove', (e) => {
         if (!dragging) return;
-        $window.css('left', (e.clientX - offsetX) + 'px');
-        $window.css('top', (e.clientY - offsetY) + 'px');
-        var name = 'plugin_' + id;
-        LS.save(name + '_x', e.clientX - offsetX);
-        LS.save(name + '_y', e.clientY - offsetY);
+
+        var t = e.targetTouches? e.targetTouches.item(0) : e;
+        $window.css('left', (t.clientX - offsetX) + 'px');
+        $window.css('top', (t.clientY - offsetY) + 'px');
     });
 
-    document.addEventListener('mouseup', () => { dragging = false; });
+    $(document).on('mouseup touchend touchcancel', (e) => {
+        dragging = false;
+    });
 
     $window.hide();
     $page.append($window);
