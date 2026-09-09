@@ -164,25 +164,25 @@ input[type=range]:disabled {
 
 #openwebrx-scale-container
 {
-	height: 47px;
-	overflow: hidden;
-	z-index:1000;
-	position: relative;
+    height: 47px;
+    overflow: hidden;
+    z-index: 100;
+    position: relative;
 }
 
 #openwebrx-frequency-container {
-	background-image: url("../gfx/openwebrx-scale-background.png");
-	background-repeat: repeat-x;
-	background-size: auto 140px;
+    background-image: url("../gfx/openwebrx-scale-background.png");
+    background-repeat: repeat-x;
+    background-size: auto 140px;
     background-color: #444;
-    z-index: 1001;
+    z-index: 101;
 }
 
 #openwebrx-bookmarks-container
 {
     height: 25px;
     position: relative;
-    z-index: 1000;
+    z-index: 100;
 }
 
 #openwebrx-bookmarks-container .bookmark {
@@ -220,11 +220,11 @@ input[type=range]:disabled {
 }
 
 #openwebrx-bookmarks-container .bookmark.selected {
-    z-index: 1010;
+    z-index: 102;
 }
 
 #openwebrx-bookmarks-container .bookmark:hover {
-    z-index: 1011;
+    z-index: 103;
     max-height: none;
     max-width: none;
 }
@@ -731,6 +731,63 @@ img.openwebrx-mirror-img
     padding-top: 0;
 }
 
+.openwebrx-plugin-stack {
+    position: absolute;
+    left: -50px;
+    bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.openwebrx-plugin-button {
+    height: 16px;
+    font-size: 10pt;
+    text-align: center;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.openwebrx-plugin-window {
+    display: flex;
+    position: absolute;
+    z-index: 110;
+    min-height: 150px;
+    min-width: 150px;
+    resize: both;
+    box-sizing: border-box;
+    background-color: #575757;
+    color: white;
+    font-size: 10pt;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    flex-direction: column;
+    overflow: hidden;
+    border: 2px solid #888;
+}
+
+.openwebrx-plugin-header {
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    font-weight: bold;
+    border-radius: 0px;
+    -moz-border-radius: 0px;
+}
+
+.openwebrx-plugin-body {
+    box-sizing: border-box;
+    padding: 5px;
+    width: 100%;
+    height: 100%;
+}
+
 .openwebrx-modes-grid {
     display: flex;
     flex-direction: row;
@@ -811,7 +868,7 @@ img.openwebrx-mirror-img
     background-color: #777;
     left: 0;
     top: 0;
-    z-index: 1001;
+    z-index: 120;
     color: white;
     font-weight: bold;
     font-size: 20pt;
@@ -1636,6 +1693,11 @@ img.openwebrx-mirror-img
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    z-index: 115;
+}
+
+.openwebrx-bubble {
+    z-index: 116;
 }
 
 .openwebrx-dialog .form-field {
