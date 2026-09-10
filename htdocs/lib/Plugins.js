@@ -81,6 +81,9 @@ Plugins.addWindow = function(id, title, content = '') {
         if (dragging) return;
         dragging = true;
 
+        $('[id^="plugin-window-"]').css('z-index', 110);
+        $window.css('z-index', 111);
+
         if (e.targetTouches) {
             var t = e.targetTouches.item(0);
             offsetX = t.clientX;
