@@ -75,7 +75,7 @@ class FeatureDetector(object):
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
         "bladerf": ["soapy_connector", "soapy_bladerf"],
-        "file": ["soapy_connector", "soapy_file"],
+        "iqfile": ["soapy_connector", "soapy_iqfile"],
         "sddc": ["sddc_connector"],
         "sddc_soapy": ["soapy_connector", "soapy_sddc"],
         "hpsdr": ["hpsdr_connector"],
@@ -492,14 +492,14 @@ class FeatureDetector(object):
         """
         return self._has_soapy_driver("bladerf")
 
-    def has_soapy_file(self):
+    def has_soapy_iqfile(self):
         """
-        The [SoapyFile](https://github.com/utn-ba-rf-lab/SoapyFile)
+        The [SoapyIQFile](https://github.com/utn-ba-rf-lab/SoapyIQFile)
         module allows to use both normal and pipe (FIFO) files instead
         of an antenna. Reading IQ data in CF32 format.
         To install it, please build it using the instructions in the repo.
         """
-        return self._has_soapy_driver("file")
+        return self._has_soapy_driver("iqfile")
 
     def has_m17_demod(self):
         """
