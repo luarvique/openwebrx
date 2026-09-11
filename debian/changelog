@@ -1,6 +1,7 @@
 openwebrx (1.2.124) bullseye jammy; urgency=low
 
   * Added plugin APIs for buttons, windows, sections.
+  * Added optional pointer frequency display.
   * Added Soapy source for IQ files and streams [f-and].
 
  -- Marat Fayzullin <luarvique@gmail.com>  Wed, 16 Sep 2026 16:12:00 +0000

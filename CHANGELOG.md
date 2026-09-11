@@ -1,3 +1,8 @@
+**1.2.124**
+- Added plugin APIs for buttons, windows, sections.
+- Added optional pointer frequency display.
+- Added Soapy source for IQ files and streams [f-and].
+
 **1.2.123**
 - Added speech to text transcription using Whisper.
 - Added background service for speech to text.

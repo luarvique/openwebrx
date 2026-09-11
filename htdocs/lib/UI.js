@@ -34,6 +34,7 @@ UI.loadSettings = function() {
     this.setTheme(LS.has('ui_theme')? LS.loadStr('ui_theme') : this.theme0);
     this.setOpacity(LS.has('ui_opacity')? LS.loadInt('ui_opacity') : 100);
     this.toggleOpacity(LS.has('ui_opacityBump')? LS.loadBool('ui_opacityBump') : false);
+    this.toggleCrossFreq(LS.has('ui_crossfreq')? LS.loadBool('ui_crossfreq') : false);
     this.toggleFrame(LS.has('ui_frame')? LS.loadBool('ui_frame') : false);
     this.toggleWheelSwap(LS.has('ui_wheel')? LS.loadBool('ui_wheel') : false);
     this.toggleSpectrum(LS.has('ui_spectrum')? LS.loadBool('ui_spectrum') : false);
@@ -455,6 +456,42 @@ UI.toggleFrame = function(on) {
 //        $('#openwebrx-digimode-canvas-container').css('border', border);
 //        $('.openwebrx-message-panel').css('border', border);
 //        $('.openwebrx-plugin-window').css('border', border);
+    }
+};
+
+// Show or hide crosshair pointer with frequency
+UI.toggleCrossFreq = function(on) {
+    // Get current crosshair frequency display
+    var $freq = $('.webrx-cross-freq');
+
+    // If no argument given, toggle frame
+    if (typeof(on) === 'undefined') on = $freq.length == 0;
+
+    // If setting changed...
+    if (($freq.length > 0) != on) {
+        $('#openwebrx-crossfreq-checkbox').attr('checked', on);
+        LS.save('ui_crossfreq', on);
+
+        // Remove crosshair display when disabling
+        if (!on) {
+            $freq.remove();
+        } else {
+            $freq = $('<div class="webrx-cross-freq"></div>').appendTo('body');
+
+            $("#webrx-canvas-container").on("mousedown mouseleave", () => {
+                $freq.hide();
+            }).on('mousemove', (e) => {
+                // If mouse button pressed, it is dragging, cannot display
+                if (!e.buttons) {
+                    $freq.text($('.webrx-mouse-freq').text());
+                    $freq.show();
+                    $freq.css({
+                        'left': (e.pageX + 5) + 'px',
+                        'top': (e.pageY + 5) + 'px'
+                    });
+                }
+            });
+        }
     }
 };
 
