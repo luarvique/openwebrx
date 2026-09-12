@@ -520,7 +520,7 @@ UI.setOpacity = function(x) {
     if (this.opacity != x) {
         this.opacity = x;
         LS.save('ui_opacity', x);
-        $('.openwebrx-panel').css('opacity', x / 100);
+        $('.openwebrx-panel, .openwebrx-plugin-window').css('opacity', x / 100);
         $('#openwebrx-opacity-slider')
             .attr('title', 'Opacity (' + Math.round(x) + '%)')
             .val(x);
@@ -549,10 +549,10 @@ UI.toggleOpacity = function(on) {
 UI.bumpOpacity = function() {
     if (this.opacityBump && this.opBumped === null && this.opacity < 100) {
         // Bump opacity to 100%
-        $('.openwebrx-panel').css('opacity', 1);
+        $('.openwebrx-panel, .openwebrx-plugin-window').css('opacity', 1);
         // Return back to transparency after a while
         this.opBumped = setTimeout(function(that) {
-            $('.openwebrx-panel').css('opacity', that.opacity / 100);
+            $('.openwebrx-panel, .openwebrx-plugin-window').css('opacity', that.opacity / 100);
             that.opBumped = null;
         }, 3000, this);
     }
