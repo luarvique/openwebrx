@@ -2,6 +2,7 @@
 - Added plugin APIs for buttons, windows, sections.
 - Added optional pointer frequency display.
 - Added Soapy source for IQ files and streams [f-and].
+- Removed Direwolf "fix" since some users complained.
 
 **1.2.123**
 - Added speech to text transcription using Whisper.
