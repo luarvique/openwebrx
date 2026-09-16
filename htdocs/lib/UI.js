@@ -483,7 +483,9 @@ UI.toggleCrossFreq = function(on) {
             }).on('mousemove', (e) => {
                 // If mouse button pressed, it is dragging, cannot display
                 if (!e.buttons) {
-                    $freq.text($('.webrx-mouse-freq').text());
+                    var x = get_relative_x(e) / canvas_container.clientWidth;
+                    x = center_freq + (bandwidth * x) - (bandwidth / 2);
+                    $freq.text(Utils.printFreq(Math.round(x)));
                     $freq.show();
                     $freq.css({
                         'left': (e.pageX + 5) + 'px',
