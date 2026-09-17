@@ -745,7 +745,7 @@ img.openwebrx-mirror-img
 
 .openwebrx-plugin-stack {
     position: absolute;
-    left: -50px;
+    right: 100%;
     bottom: 10px;
     display: flex;
     flex-direction: column;
@@ -759,6 +759,13 @@ img.openwebrx-mirror-img
     text-align: center;
     padding-left: 5px;
     padding-right: 5px;
+}
+
+#openwebrx-panel-receiver[style*="display: none"] + .openwebrx-plugin-stack .openwebrx-plugin-button {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    height: auto;
+    white-space: nowrap;
 }
 
 .openwebrx-plugin-window {
