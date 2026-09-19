@@ -22,4 +22,7 @@ Plugins.load(rp_url + '/utils/utils.js').then(async function () {
 
 	Plugins.load(rp_url + '/colorful_spectrum/colorful_spectrum.js');
 	Plugins.load(rp_url + '/connect_notify/connect_notify.js');
+
+	// Load internal sample minimap plugin
+	MapPlugin.init();
 });
