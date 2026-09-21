@@ -165,3 +165,34 @@ MapPlugin.create = function() {
 
     Plugins.toggleWindow(MapPlugin.myname);
 }
+
+function SunPlugin() {}
+
+SunPlugin.myname = 'sun';
+SunPlugin.iframe = null;
+
+SunPlugin.init = function() {
+    Plugins.addButton(this.myname, 'SUN', this.create);
+};
+
+SunPlugin.create = function() {
+    if (SunPlugin.iframe == null) {
+        var content =
+          '<center>'
+        + '<a href="https://www.hamqsl.com/solar.html" target="_blank">'
+        + '<img src="https://www.hamqsl.com/solar101vhf.php">'
+        + '</a></center>';
+        var w = Plugins.addWindow(SunPlugin.myname, 'Solar Weather', content);
+        var h = w.querySelector('.openwebrx-plugin-header');
+        var b = w.querySelector('.openwebrx-plugin-body');
+        var i = w.querySelector('img');
+        b.style.backgroundColor = 'black';
+        w.style.resize = 'none';
+        i.addEventListener('load', () => {
+            w.style.width = i.naturalWidth + 20 + 'px';
+            w.style.height = i.naturalHeight + 20 + h.offsetHeight + 'px';
+        });
+    }
+
+    Plugins.toggleWindow(SunPlugin.myname);
+}
