@@ -22,6 +22,7 @@ from owrx.controllers.settings.reporting import ReportingController
 from owrx.controllers.settings.backgrounddecoding import BackgroundDecodingController
 from owrx.controllers.settings.decoding import DecodingSettingsController
 from owrx.controllers.settings.bookmarks import BookmarksController
+from owrx.adminaccess import is_admin_enabled
 from owrx.controllers.session import SessionController
 from owrx.controllers.profile import ProfileController
 from owrx.controllers.imageupload import ImageUploadController
@@ -104,93 +105,100 @@ class Router(object):
             StaticRoute("/api/features", ApiController),
             StaticRoute("/metrics", MetricsController, options={"action": "prometheusAction"}),
             StaticRoute("/metrics.json", MetricsController),
-            StaticRoute("/settings", SettingsController),
-            StaticRoute("/settings/general", GeneralSettingsController),
-            StaticRoute(
-                "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
-            ),
-            StaticRoute("/settings/sdr", SdrDeviceListController),
-            StaticRoute("/settings/newsdr", NewSdrDeviceController),
-            StaticRoute(
-                "/settings/newsdr", NewSdrDeviceController, method="POST", options={"action": "processFormData"}
-            ),
-            RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController),
-            RegexRoute(
-                "^/settings/sdr/([^/]+)$", SdrDeviceController, method="POST", options={"action": "processFormData"}
-            ),
-            RegexRoute("^/settings/deletesdr/([^/]+)$", SdrDeviceController, options={"action": "deleteDevice"}),
-            RegexRoute("^/settings/sdr/([^/]+)/newprofile$", NewProfileController),
-            RegexRoute("^/settings/sdr/([^/]+)/newprofile/([^/]+)$", NewProfileController),
-            RegexRoute(
-                "^/settings/sdr/([^/]+)/newprofile(/[^/]+)?$",
-                NewProfileController,
-                method="POST",
-                options={"action": "processFormData"},
-            ),
-            RegexRoute("^/settings/sdr/([^/]+)/profile/([^/]+)$", SdrProfileController),
-            RegexRoute(
-                "^/settings/sdr/([^/]+)/profile/([^/]+)$",
-                SdrProfileController,
-                method="POST",
-                options={"action": "processFormData"},
-            ),
-            RegexRoute(
-                "^/settings/sdr/([^/]+)/deleteprofile/([^/]+)$",
-                SdrProfileController,
-                options={"action": "deleteProfile"},
-            ),
-            RegexRoute(
-                "^/settings/sdr/([^/]+)/moveprofileup/([^/]+)$",
-                SdrProfileController,
-                options={"action": "moveProfileUp"},
-            ),
-            RegexRoute(
-                "^/settings/sdr/([^/]+)/moveprofiledown/([^/]+)$",
-                SdrProfileController,
-                options={"action": "moveProfileDown"},
-            ),
-            StaticRoute("/settings/bookmarks", BookmarksController),
-            StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
-            RegexRoute("^/settings/bookmarks/(.+)$", BookmarksController, method="POST", options={"action": "update"}),
-            RegexRoute(
-                "^/settings/bookmarks/(.+)$", BookmarksController, method="DELETE", options={"action": "delete"}
-            ),
-            StaticRoute("/settings/reporting", ReportingController),
-            StaticRoute(
-                "/settings/reporting", ReportingController, method="POST", options={"action": "processFormData"}
-            ),
-            StaticRoute("/settings/backgrounddecoding", BackgroundDecodingController),
-            StaticRoute(
-                "/settings/backgrounddecoding",
-                BackgroundDecodingController,
-                method="POST",
-                options={"action": "processFormData"},
-            ),
-            StaticRoute("/settings/decoding", DecodingSettingsController),
-            StaticRoute(
-                "/settings/decoding", DecodingSettingsController, method="POST", options={"action": "processFormData"}
-            ),
-            StaticRoute("/settings/wifi", WifiSettingsController),
-            StaticRoute(
-                "/settings/wifi", WifiSettingsController, method="POST", options={"action": "processFormData"}
-            ),
-            StaticRoute("/login", SessionController, options={"action": "loginAction"}),
-            StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
-            StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),
-            StaticRoute("/pwchange", ProfileController),
-            StaticRoute("/pwchange", ProfileController, method="POST", options={"action": "processPwChange"}),
-            StaticRoute("/imageupload", ImageUploadController),
-            StaticRoute("/imageupload", ImageUploadController, method="POST", options={"action": "processImage"}),
             StaticRoute("/files", FilesController),
             RegexRoute("^/files/(%s)$" % Storage.getNamePattern(), FileController),
             StaticRoute("/files/delete", FilesController, method="POST", options={"action": "delete"}),
             StaticRoute("/policy", PolicyController),
-            StaticRoute("/clients", ClientController),
-            StaticRoute("/services", ServiceController),
-            StaticRoute("/ban", ClientController, method="POST", options={"action": "ban"}),
-            StaticRoute("/unban", ClientController, method="POST", options={"action": "unban"}),
-            StaticRoute("/broadcast", ClientController, method="POST", options={"action": "broadcast"}),
         ]
+
+        # the admin interface (settings, user management, login, etc.) can be disabled entirely at
+        # startup via the OPENWEBRX_ADMIN_ENABLED environment variable; when disabled, none of these
+        # routes are registered, so they behave as if they didn't exist (404)
+        if is_admin_enabled():
+            self.routes += [
+                StaticRoute("/settings", SettingsController),
+                StaticRoute("/settings/general", GeneralSettingsController),
+                StaticRoute(
+                    "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
+                ),
+                StaticRoute("/settings/sdr", SdrDeviceListController),
+                StaticRoute("/settings/newsdr", NewSdrDeviceController),
+                StaticRoute(
+                    "/settings/newsdr", NewSdrDeviceController, method="POST", options={"action": "processFormData"}
+                ),
+                RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController),
+                RegexRoute(
+                    "^/settings/sdr/([^/]+)$", SdrDeviceController, method="POST", options={"action": "processFormData"}
+                ),
+                RegexRoute("^/settings/deletesdr/([^/]+)$", SdrDeviceController, options={"action": "deleteDevice"}),
+                RegexRoute("^/settings/sdr/([^/]+)/newprofile$", NewProfileController),
+                RegexRoute("^/settings/sdr/([^/]+)/newprofile/([^/]+)$", NewProfileController),
+                RegexRoute(
+                    "^/settings/sdr/([^/]+)/newprofile(/[^/]+)?$",
+                    NewProfileController,
+                    method="POST",
+                    options={"action": "processFormData"},
+                ),
+                RegexRoute("^/settings/sdr/([^/]+)/profile/([^/]+)$", SdrProfileController),
+                RegexRoute(
+                    "^/settings/sdr/([^/]+)/profile/([^/]+)$",
+                    SdrProfileController,
+                    method="POST",
+                    options={"action": "processFormData"},
+                ),
+                RegexRoute(
+                    "^/settings/sdr/([^/]+)/deleteprofile/([^/]+)$",
+                    SdrProfileController,
+                    options={"action": "deleteProfile"},
+                ),
+                RegexRoute(
+                    "^/settings/sdr/([^/]+)/moveprofileup/([^/]+)$",
+                    SdrProfileController,
+                    options={"action": "moveProfileUp"},
+                ),
+                RegexRoute(
+                    "^/settings/sdr/([^/]+)/moveprofiledown/([^/]+)$",
+                    SdrProfileController,
+                    options={"action": "moveProfileDown"},
+                ),
+                StaticRoute("/settings/bookmarks", BookmarksController),
+                StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
+                RegexRoute("^/settings/bookmarks/(.+)$", BookmarksController, method="POST", options={"action": "update"}),
+                RegexRoute(
+                    "^/settings/bookmarks/(.+)$", BookmarksController, method="DELETE", options={"action": "delete"}
+                ),
+                StaticRoute("/settings/reporting", ReportingController),
+                StaticRoute(
+                    "/settings/reporting", ReportingController, method="POST", options={"action": "processFormData"}
+                ),
+                StaticRoute("/settings/backgrounddecoding", BackgroundDecodingController),
+                StaticRoute(
+                    "/settings/backgrounddecoding",
+                    BackgroundDecodingController,
+                    method="POST",
+                    options={"action": "processFormData"},
+                ),
+                StaticRoute("/settings/decoding", DecodingSettingsController),
+                StaticRoute(
+                    "/settings/decoding", DecodingSettingsController, method="POST", options={"action": "processFormData"}
+                ),
+                StaticRoute("/settings/wifi", WifiSettingsController),
+                StaticRoute(
+                    "/settings/wifi", WifiSettingsController, method="POST", options={"action": "processFormData"}
+                ),
+                StaticRoute("/login", SessionController, options={"action": "loginAction"}),
+                StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
+                StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),
+                StaticRoute("/pwchange", ProfileController),
+                StaticRoute("/pwchange", ProfileController, method="POST", options={"action": "processPwChange"}),
+                StaticRoute("/imageupload", ImageUploadController),
+                StaticRoute("/imageupload", ImageUploadController, method="POST", options={"action": "processImage"}),
+                StaticRoute("/clients", ClientController),
+                StaticRoute("/services", ServiceController),
+                StaticRoute("/ban", ClientController, method="POST", options={"action": "ban"}),
+                StaticRoute("/unban", ClientController, method="POST", options={"action": "unban"}),
+                StaticRoute("/broadcast", ClientController, method="POST", options={"action": "broadcast"}),
+            ]
 
     def find_route(self, request):
         for r in self.routes:

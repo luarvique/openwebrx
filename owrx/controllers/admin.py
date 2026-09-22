@@ -1,5 +1,6 @@
 from owrx.controllers.session import SessionStorage
 from owrx.users import UserList
+from owrx.adminaccess import is_admin_enabled
 from urllib import parse
 from http.cookies import SimpleCookie
 
@@ -36,6 +37,8 @@ class AuthorizationMixin(object):
         super().__init__(handler, request, options)
 
     def isAuthorized(self):
+        if not is_admin_enabled():
+            return False
         return self.user is not None and self.user.is_enabled() and not self.user.must_change_password
 
     def handle_request(self):

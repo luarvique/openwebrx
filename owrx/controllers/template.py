@@ -1,4 +1,5 @@
 from owrx.controllers import Controller
+from owrx.adminaccess import is_admin_enabled
 from owrx.details import ReceiverDetails
 from owrx.config import Config
 from string import Template
@@ -28,7 +29,17 @@ class WebpageController(TemplateController):
     def header_variables(self):
         variables = { "document_root": self.get_document_root(), "map_type": "" }
         variables.update(ReceiverDetails().__dict__())
+        variables["settings_button"] = self.render_settings_button(variables["document_root"])
         return variables
+
+    def render_settings_button(self, document_root):
+        if not is_admin_enabled():
+            return ""
+        return (
+            '<a class="button" href="{root}settings" target="openwebrx-settings">'
+            '<svg viewBox="0 -960 960 960"><use xlink:href="{root}static/gfx/svg-defs.svg#panel-settings">'
+            "</use></svg><br/>Settings</a>"
+        ).format(root=document_root)
 
     def template_variables(self):
         header = self.render_template("include/header.include.html", **self.header_variables())
