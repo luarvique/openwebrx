@@ -166,6 +166,10 @@ MapPlugin.create = function() {
     Plugins.toggleWindow(MapPlugin.myname);
 }
 
+//
+// Sample solar weather plugin that lives inside a floating window.
+//
+
 function SunPlugin() {}
 
 SunPlugin.myname = 'sun';
@@ -177,11 +181,11 @@ SunPlugin.init = function() {
 
 SunPlugin.create = function() {
     if (SunPlugin.iframe == null) {
+        var src = 'https://www.hamqsl.com/solar101vhf.php';
         var content =
           '<center>'
         + '<a href="https://www.hamqsl.com/solar.html" target="_blank">'
-        + '<img src="https://www.hamqsl.com/solar101vhf.php">'
-        + '</a></center>';
+        + '<img src="' + src + '"></a></center>';
         var w = Plugins.addWindow(SunPlugin.myname, 'Solar Weather', content);
         var h = w.querySelector('.openwebrx-plugin-header');
         var b = w.querySelector('.openwebrx-plugin-body');
@@ -192,6 +196,9 @@ SunPlugin.create = function() {
             w.style.width = i.naturalWidth + 20 + 'px';
             w.style.height = i.naturalHeight + 20 + h.offsetHeight + 'px';
         });
+        setInterval(() => {
+            i.src = src + '?t=' + (new Date().getTime());
+        }, 15 * 60 * 1000);
     }
 
     Plugins.toggleWindow(SunPlugin.myname);
