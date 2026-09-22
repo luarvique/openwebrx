@@ -27,9 +27,10 @@ class WebpageController(TemplateController):
         return "../" * levels
 
     def header_variables(self):
-        variables = { "document_root": self.get_document_root(), "map_type": "" }
+        document_root = self.get_document_root()
+        variables = { "document_root": document_root, "map_type": "" }
         variables.update(ReceiverDetails().__dict__())
-        variables["settings_button"] = self.render_settings_button(variables["document_root"])
+        variables["settings_button"] = self.render_settings_button(document_root)
         return variables
 
     def render_settings_button(self, document_root):
