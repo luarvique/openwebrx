@@ -222,7 +222,7 @@ class ReportingController(SettingsFormController):
                 ),
                 CheckboxInput(
                     "rig_tx_enabled",
-                    "Enable sending PTT status to a standalone transceiver",
+                    "Enable sending PTT status to the transceiver",
                 ),
                 DropdownInput(
                     "rig_model",
