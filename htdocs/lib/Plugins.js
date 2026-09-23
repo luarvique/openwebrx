@@ -135,7 +135,7 @@ Plugins.addSection = function(id, title, content = '') {
 
     $section.insertBefore('#openwebrx-section-settings');
     UI.toggleSection($section[0], LS.has(id)? LS.loadBool(id) : false);
-    return $section[0];
+    return $section[0].nextElementSibling;
 };
 
 //
@@ -173,7 +173,6 @@ MapPlugin.create = function() {
 function SunPlugin() {}
 
 SunPlugin.myname = 'sun';
-SunPlugin.iframe = null;
 
 SunPlugin.init = function() {
     Plugins.addButton(this.myname, 'SUN', this.create);
