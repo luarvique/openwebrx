@@ -135,7 +135,7 @@ Plugins.addSection = function(id, title, content = '') {
 
     $section.insertBefore('#openwebrx-section-settings');
     UI.toggleSection($section[0], LS.has(id)? LS.loadBool(id) : false);
-    return $section[0];
+    return $section[0].nextElementSibling;
 };
 
 //
@@ -173,7 +173,6 @@ MapPlugin.create = function() {
 function SunPlugin() {}
 
 SunPlugin.myname = 'sun';
-SunPlugin.iframe = null;
 
 SunPlugin.init = function() {
     Plugins.addButton(this.myname, 'SUN', this.create);
@@ -203,3 +202,47 @@ SunPlugin.create = function() {
 
     Plugins.toggleWindow(SunPlugin.myname);
 }
+
+//
+// Add TRANSMIT button.
+//
+
+function PttPlugin() {}
+
+PttPlugin.myname = 'ptt';
+PttPlugin.ptt = null;
+PttPlugin.on = false;
+
+PttPlugin.start = function() {
+    if (PttPlugin.ptt && !PttPlugin.on) {
+        PttPlugin.ptt.style.background = 'red';
+        PttPlugin.ptt.style.color = 'white';
+        PttPlugin.on = true;
+
+        ws.send(JSON.stringify({ 'rig_transmit': true }));
+    }
+};
+
+PttPlugin.stop = function() {
+    if (PttPlugin.ptt && PttPlugin.on) {
+        PttPlugin.ptt.style.background = 'white';
+        PttPlugin.ptt.style.color = 'red';
+        PttPlugin.on = false;
+
+        ws.send(JSON.stringify({ 'rig_transmit': false }));
+    }
+};
+
+PttPlugin.init = function() {
+    var content =
+      '<div class="openwebrx-panel-line" style="display:grid;justify-items:center;">'
+    + '<input type="button" class="openwebrx-button" value="TRANSMIT" '
+    + 'style="width:95%;font-size:12pt;font-weight:bold;background:white;color:red;">'
+    + '</div>';
+    var ptt = Plugins.addSection(this.myname, 'PTT', content).querySelector('input');
+    PttPlugin.ptt = ptt;
+
+    ptt.addEventListener('mousedown', this.start, false);
+    ptt.addEventListener('mouseleave', this.stop, false);
+    ptt.addEventListener('mouseup', this.stop, false);
+};
