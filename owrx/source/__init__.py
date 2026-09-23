@@ -772,6 +772,10 @@ class SdrDeviceDescription(object):
                 "rig_enabled",
                 "Enable sending changes to a standalone transceiver",
             ),
+            CheckboxInput(
+                "rig_tx_enabled",
+                "Enable sending PTT status to a standalone transceiver",
+            ),
             NumberInput(
                 "eibi_bookmarks_range",
                 "Shortwave bookmarks range",
@@ -828,6 +832,7 @@ class SdrDeviceDescription(object):
             "eibi_bookmarks_range",
             "repeater_range",
             "rig_enabled",
+            "rig_rx_enabled",
             "key_locked",
         ]
         if self.supportsPpm():

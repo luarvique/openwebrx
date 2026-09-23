@@ -485,6 +485,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
                 "wfm_rds_rbds",
                 "digital_voice_codecserver",
                 "rig_enabled",
+                "rig_tx_enabled",
                 "dab_output_rate",
                 "ssb_agc_profile",
                 "nfm_agc_profile",
