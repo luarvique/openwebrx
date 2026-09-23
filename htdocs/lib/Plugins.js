@@ -204,41 +204,41 @@ SunPlugin.create = function() {
 }
 
 //
-// Add TRANSMIT button.
+// Add transceiver rig TRANSMIT button.
 //
 
-function PttPlugin() {}
+function RigPlugin() {}
 
-PttPlugin.myname = 'ptt';
-PttPlugin.ptt = null;
-PttPlugin.on = false;
+RigPlugin.myname = 'rig';
+RigPlugin.ptt = null;
+RigPlugin.tx = false;
 
-PttPlugin.start = function() {
-    if (PttPlugin.ptt && !PttPlugin.on) {
-        PttPlugin.ptt.style.background = 'red';
-        PttPlugin.ptt.style.color = 'white';
-        PttPlugin.on = true;
+RigPlugin.start = function() {
+    if (RigPlugin.ptt && !RigPlugin.tx) {
+        RigPlugin.ptt.style.background = 'red';
+        RigPlugin.ptt.style.color = 'white';
+        RigPlugin.tx = true;
         ws.send(JSON.stringify({ 'type': 'txcontrol', 'action': 'start' }));
     }
 };
 
-PttPlugin.stop = function() {
-    if (PttPlugin.ptt && PttPlugin.on) {
-        PttPlugin.ptt.style.background = 'white';
-        PttPlugin.ptt.style.color = 'red';
-        PttPlugin.on = false;
+RigPlugin.stop = function() {
+    if (RigPlugin.ptt && RigPlugin.tx) {
+        RigPlugin.ptt.style.background = 'white';
+        RigPlugin.ptt.style.color = 'red';
+        RigPlugin.tx = false;
         ws.send(JSON.stringify({ 'type': 'txcontrol', 'action': 'stop' }));
     }
 };
 
-PttPlugin.init = function() {
+RigPlugin.init = function() {
     var content =
       '<div class="openwebrx-panel-line" style="display:grid;justify-items:center;">'
     + '<input type="button" class="openwebrx-button" value="TRANSMIT" '
     + 'style="width:95%;font-size:12pt;font-weight:bold;background:white;color:red;">'
     + '</div>';
-    var ptt = Plugins.addSection(this.myname, 'PTT', content).querySelector('input');
-    PttPlugin.ptt = ptt;
+    var ptt = Plugins.addSection(this.myname, 'Rig', content).querySelector('input');
+    RigPlugin.ptt = ptt;
 
     ptt.addEventListener('mousedown', this.start, false);
     ptt.addEventListener('mouseleave', this.stop, false);
