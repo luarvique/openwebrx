@@ -329,7 +329,7 @@ class RigControl():
             props.wireProperty("center_freq", self.setCenterFrequency),
             props.wireProperty("rig_enabled", self.setRigEnabled),
             props.wireProperty("rig_tx_enabled", self.setRigTxEnabled),
-            props.wireProperty("rig_transmit", self.setRigTransmit),
+            props.wireProperty("rig_transmit", self.setTransmit),
             props.wireProperty("mod", self.setDemodulator),
         ]
 
@@ -357,7 +357,7 @@ class RigControl():
         pm = Config.get()
         tx = tx and pm["rig_tx_enabled"]
         if tx != self.tx:
-            self.rigTX(tx)
+            self.rigTx(tx)
             self.tx = tx
 
     def setRigTxEnabled(self, enabled: bool) -> None:
@@ -372,7 +372,8 @@ class RigControl():
                 self.rigStop()
 
     # Press or release rig's PTT (i.e. transmit)
-    def rigTX(self, active: bool) -> bool:
+    def rigTx(self, active: bool) -> bool:
+        logger.debug("PTT is now {0}.".format("ON" if active else "OFF"))
         return self.rigCommand("T {0}".format(1 if active else 0))
 
     # Set rig's frequency
