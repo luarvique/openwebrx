@@ -466,6 +466,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             "audio_service_id": "int",
             "nr_enabled": "bool",
             "nr_threshold": "int",
+            "rig_transmit": "bool",
         }
         self.localProps = PropertyValidator(PropertyLayer().filter(*validators.keys()), validators)
 

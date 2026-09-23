@@ -218,8 +218,7 @@ PttPlugin.start = function() {
         PttPlugin.ptt.style.background = 'red';
         PttPlugin.ptt.style.color = 'white';
         PttPlugin.on = true;
-
-        ws.send(JSON.stringify({ 'rig_transmit': true }));
+        ws.send(JSON.stringify({ 'type': 'txcontrol', 'action': 'start' }));
     }
 };
 
@@ -228,8 +227,7 @@ PttPlugin.stop = function() {
         PttPlugin.ptt.style.background = 'white';
         PttPlugin.ptt.style.color = 'red';
         PttPlugin.on = false;
-
-        ws.send(JSON.stringify({ 'rig_transmit': false }));
+        ws.send(JSON.stringify({ 'type': 'txcontrol', 'action': 'stop' }));
     }
 };
 
@@ -245,4 +243,6 @@ PttPlugin.init = function() {
     ptt.addEventListener('mousedown', this.start, false);
     ptt.addEventListener('mouseleave', this.stop, false);
     ptt.addEventListener('mouseup', this.stop, false);
+    ptt.addEventListener('touchstart', this.start, false);
+    ptt.addEventListener('touchend', this.stop, false);
 };

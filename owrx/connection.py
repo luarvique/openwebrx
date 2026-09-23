@@ -334,12 +334,14 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 elif message["type"] == "setsdr":
                     if "params" in message and "sdr" in message["params"]:
                         self.setSdr(message["params"]["sdr"])
+
                 elif message["type"] == "selectprofile":
                     if "params" in message and "profile" in message["params"]:
                         params  = message["params"]
                         profile = params["profile"].split("|")
                         key     = params["key"] if "key" in params else None
                         self.setProfile(profile[0], profile[1], key)
+
                 elif message["type"] == "setfrequency":
                     # If the magic key is set in the settings, only allow
                     # changes if it matches the received key
@@ -351,17 +353,28 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                             key   = params["key"] if "key" in params else None
                             if magic == "" or key == magic:
                                 self.sdr.setCenterFreq(freq)
+
                 elif message["type"] == "connectionproperties":
                     if "params" in message:
                         self.connectionProperties.update(message["params"])
                         if self.dsp:
                             self.getDsp().setProperties(self.connectionProperties)
+
                 elif message["type"] == "sendmessage":
                     if "text" in message:
                         ClientRegistry.getSharedInstance().broadcastChatMessage(
                             self,
                             message["text"],
                             message["name"] if "name" in message else None
+                        )
+
+                elif message["type"] == "txcontrol":
+                    dsp = self.getDsp()
+                    if dsp is None:
+                        logger.warning("DSP not available; discarding client txcontrol message")
+                    else:
+                        dsp.setProperty("rig_transmit",
+                            "action" in message and message["action"] == "start"
                         )
 
             else:
