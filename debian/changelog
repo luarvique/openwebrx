@@ -1,3 +1,14 @@
+openwebrx (1.2.125) bullseye jammy; urgency=low
+
+  * Enabled ability to press PTT via RigControl.
+  * Added sample Solar Weather plugin.
+  * Added sample magic key entry plugin.
+  * Added sample PTT button plugin.
+  * Made mouse pointer frequency show up in single Hz.
+  * Made Plugins.addSection() return reference to content.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Fri, 25 Sep 2026 16:12:00 +0000
+
 openwebrx (1.2.124) bullseye jammy; urgency=low
 
   * Added plugin APIs for buttons, windows, sections.

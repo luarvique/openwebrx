@@ -1,3 +1,11 @@
+**1.2.125**
+- Enabled ability to press PTT via RigControl.
+- Added sample Solar Weather plugin.
+- Added sample magic key entry plugin.
+- Added sample PTT button plugin.
+- Made mouse pointer frequency show up in single Hz.
+- Made Plugins.addSection() return reference to content.
+
 **1.2.124**
 - Added plugin APIs for buttons, windows, sections.
 - Added optional pointer frequency display.
