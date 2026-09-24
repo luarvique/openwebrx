@@ -26,4 +26,10 @@ Plugins.load(rp_url + '/utils/utils.js').then(async function () {
 	// Load internal sample plugins
 	MapPlugin.init();
 	SunPlugin.init();
+
+        // Uncomment to enable magic key entry in the "Settings" section
+        //KeyPlugin.init();
+
+        // Uncomment to enable RigControl PTT button in the web UI
+        //RigPlugin.init();
 });
