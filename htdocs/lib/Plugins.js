@@ -219,11 +219,10 @@ KeyPlugin.init = function() {
     if (!settings) return;
 
     settings.insertAdjacentHTML('beforeend',
-      '<div class="openwebrx-panel-line" '
-    + 'style="display:flex;gap:10px;padding:5px 0px;'
-    + 'align-items:center;justify-content:center">'
-    + '<label for="magic-key-input">Key</label>'
-    + '<input type="text" id="magic-key-input"></div>'
+      '<div class="openwebrx-panel-line" style="display:flex;gap:10px;padding:5px 0px;align-items:center;">'
+    + '<label for="magic-key-input" style="flex:none;">Key</label>'
+    + '<input type="text" id="magic-key-input" style="flex:1;min-width:0;box-sizing:border-box">'
+    + '</div>'
     );
 
     var input = settings.querySelector('#magic-key-input');
@@ -231,9 +230,10 @@ KeyPlugin.init = function() {
     input.addEventListener('change', () => {
         UI.getDemodulatorPanel().setMagicKey(input.value);
     });
+};
 
 //
-// Add transceiver rig TRANSMIT button.
+// Add TRANSMIT button for connected transceivers.
 //
 
 function RigPlugin() {}
@@ -269,9 +269,8 @@ RigPlugin.init = function() {
     var ptt = Plugins.addSection(this.myname, 'Rig', content).querySelector('input');
     RigPlugin.ptt = ptt;
 
-    ptt.addEventListener('mousedown', this.start, false);
-    ptt.addEventListener('mouseleave', this.stop, false);
-    ptt.addEventListener('mouseup', this.stop, false);
-    ptt.addEventListener('touchstart', this.start, false);
-    ptt.addEventListener('touchend', this.stop, false);
+    ptt.addEventListener('pointerdown', this.start, false);
+    ptt.addEventListener('pointerleave', this.stop, false);
+    ptt.addEventListener('pointerup', this.stop, false);
 };
+
