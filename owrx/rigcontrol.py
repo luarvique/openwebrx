@@ -317,6 +317,7 @@ class RigControl():
         self.mod     = None
         self.fCenter = None
         self.fOffset = None
+        self.tx      = False
         super().__init__()
         # Start RigControl before wiring properties: rigStart() clears
         # fCenter/fOffset, so it must run before wireProperty callbacks
@@ -327,6 +328,8 @@ class RigControl():
             props.wireProperty("offset_freq", self.setFrequencyOffset),
             props.wireProperty("center_freq", self.setCenterFrequency),
             props.wireProperty("rig_enabled", self.setRigEnabled),
+            props.wireProperty("rig_tx_enabled", self.setRigTxEnabled),
+            props.wireProperty("rig_transmit", self.setTransmit),
             props.wireProperty("mod", self.setDemodulator),
         ]
 
@@ -350,6 +353,16 @@ class RigControl():
             self.rigModulation(mod)
             self.mod = mod
 
+    def setTransmit(self, tx: bool) -> None:
+        pm = Config.get()
+        tx = tx and pm["rig_tx_enabled"]
+        if tx != self.tx:
+            self.rigTx(tx)
+            self.tx = tx
+
+    def setRigTxEnabled(self, enabled: bool) -> None:
+        self.setTransmit(self.tx and enabled)
+
     def setRigEnabled(self, enabled: bool) -> None:
         if enabled != self.enabled:
             self.enabled = enabled
@@ -359,7 +372,8 @@ class RigControl():
                 self.rigStop()
 
     # Press or release rig's PTT (i.e. transmit)
-    def rigTX(self, active: bool) -> bool:
+    def rigTx(self, active: bool) -> bool:
+        logger.debug("PTT is now {0}.".format("ON" if active else "OFF"))
         return self.rigCommand("T {0}".format(1 if active else 0))
 
     # Set rig's frequency
@@ -400,7 +414,8 @@ class RigControl():
         # Create and start thread
         self.thread = threading.Thread(target=self._rigThread, name=type(self).__name__)
         self.thread.start()
-        # Clear current frequency and modulation
+        # Clear current frequency, modulation, transmit status
+        self.tx      = False
         self.mod     = None
         self.fCenter = None
         self.fOffset = None

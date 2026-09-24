@@ -444,6 +444,7 @@ defaultConfig = PropertyLayer(
     gps_updates=False,
     bandplan_region=0,
     rig_enabled=False,
+    rig_tx_enabled=False,
     rig_model=2,
     rig_device="127.0.0.1:4533",
     rig_address=0,
