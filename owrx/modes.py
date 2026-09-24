@@ -264,6 +264,15 @@ class Modes(object):
             squelch=True
         ),
         DigitalMode(
+            "modbus",
+            "Modbus",
+            underlying=["nfm"],
+            bandpass=Bandpass(-6000, 6000),
+            service=True,
+            squelch=True,
+            secondaryFft=False
+        ),
+        DigitalMode(
             "eas",
             "EAS",
             underlying=["nfm"],
