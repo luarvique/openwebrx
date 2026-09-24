@@ -202,3 +202,33 @@ SunPlugin.create = function() {
 
     Plugins.toggleWindow(SunPlugin.myname);
 }
+
+//
+// Add magic key entry to the Settings section.
+//
+
+function KeyPlugin() {}
+
+KeyPlugin.myname = 'key';
+
+KeyPlugin.init = function() {
+    var settings = document.querySelector('#openwebrx-section-settings');
+    if (!settings) return;
+
+    settings = settings.nextElementSibling;
+    if (!settings) return;
+
+    settings.insertAdjacentHTML('beforeend',
+      '<div class="openwebrx-panel-line" '
+    + 'style="display:flex;gap:10px;padding:5px 0px;'
+    + 'align-items:center;justify-content:center">'
+    + '<label for="magic-key-input">Key</label>'
+    + '<input type="text" id="magic-key-input"></div>'
+    );
+
+    var input = settings.querySelector('#magic-key-input');
+    input.value = UI.getDemodulatorPanel().getMagicKey() || '';
+    input.addEventListener('change', () => {
+        UI.getDemodulatorPanel().setMagicKey(input.value);
+    });
+};
