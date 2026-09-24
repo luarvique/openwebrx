@@ -5,6 +5,7 @@ from owrx.reporting import ReportingEngine
 from csdr.module import ThreadModule, LineBasedModule
 from pycsdr.types import Format
 from owrx.dsame3.dsame import same_decode_string
+from owrx.modbus import ModbusDecoder, findFrames
 from datetime import datetime, timezone
 
 import json
@@ -372,3 +373,47 @@ class EasParser(TextParser):
 
         # Return received message as text
         return "\n".join(out)
+
+
+class ModbusParser(TextParser):
+    def __init__(self, service: bool = False):
+        self.decoder = ModbusDecoder()
+        self.colors = ColorCache()
+        # Last reported frame, to drop copies from parallel UART deframers
+        self.last = None
+        self.lastTime = 0
+        # Construct parent object
+        super().__init__(filePrefix="MODBUS", service=service)
+
+    def parse(self, msg: bytes):
+        # Expect "<data bits> <hex frame>" from FskUartModule
+        parts = msg.split()
+        if len(parts) != 2:
+            return {}
+        try:
+            data = bytes.fromhex(parts[1].decode("ascii"))
+        except ValueError:
+            return {}
+        out = {}
+        for adu in findFrames(data):
+            now = datetime.now().timestamp()
+            if adu == self.last and now - self.lastTime < 0.5:
+                continue
+            self.last = adu
+            self.lastTime = now
+            out = self.decoder.decode(adu, now)
+            out["mode"] = "Modbus"
+            out["timestamp"] = round(now * 1000)
+            out["format"] = "8N1" if parts[0] == b"8" else "8P1"
+            # Add frequency, if known
+            if self.frequency:
+                out["freq"] = self.frequency
+            # Report frame
+            ReportingEngine.getSharedInstance().spot(out)
+            # In interactive mode, color frames based on server address
+            if not self.service:
+                out["color"] = self.colors.getColor(out["address"])
+        # A single decoded frame is returned; only the last frame of a
+        # run of back-to-back frames is shown, all of them are reported
+        return out
+

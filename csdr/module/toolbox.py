@@ -1,7 +1,9 @@
 from pycsdr.modules import ExecModule
 from pycsdr.types import Format
-from csdr.module import PopenModule
+from csdr.module import PopenModule, ThreadModule
 from owrx.config import Config
+from owrx.fsk import FskUartDecoder
+from array import array
 
 
 class Rtl433Module(ExecModule):
@@ -25,6 +27,35 @@ class MultimonModule(ExecModule):
         for x in decoders:
             cmd += ["-a", x]
         super().__init__(Format.SHORT, Format.CHAR, cmd)
+
+
+class FskUartModule(ThreadModule):
+    """
+    Demodulates 2-FSK audio into asynchronous UART characters and outputs
+    one line per frame (characters separated by an inter-character gap),
+    formatted as "<data bits> <hex characters>".
+    """
+    def __init__(self, sampleRate: int, baudRate: float = 1200, markFreq: float = 1300, spaceFreq: float = 2100):
+        self.decoder = FskUartDecoder(sampleRate, baudRate, markFreq, spaceFreq)
+        super().__init__()
+
+    def getInputFormat(self) -> Format:
+        return Format.FLOAT
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+    def run(self):
+        while self.doRun:
+            data = self.reader.read()
+            if data is None:
+                self.doRun = False
+                break
+            frames = self.decoder.process(array("f", data.tobytes()))
+            if frames:
+                self.writer.write(b"".join(
+                    b"%d %s\n" % (bits, frame.hex().encode()) for bits, frame in frames
+                ))
 
 
 class WavFileModule(PopenModule):
