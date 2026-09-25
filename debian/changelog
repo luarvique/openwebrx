@@ -1,6 +1,6 @@
 openwebrx (1.2.125) bullseye jammy; urgency=low
 
-  * Enabled ability to press PTT via RigControl.
+  * Added optional ability to press RigControl PTT.
   * Added sample Solar Weather plugin.
   * Added sample magic key entry plugin.
   * Added sample PTT button plugin.

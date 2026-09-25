@@ -1,5 +1,5 @@
 **1.2.125**
-- Enabled ability to press PTT via RigControl.
+- Added optional ability to press RigControl PTT.
 - Added sample Solar Weather plugin.
 - Added sample magic key entry plugin.
 - Added sample PTT button plugin.
