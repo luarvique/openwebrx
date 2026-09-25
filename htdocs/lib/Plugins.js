@@ -263,16 +263,45 @@ RigPlugin.stop = function() {
 };
 
 RigPlugin.init = function() {
+    // Do not initialize twice
+    if (RigPlugin.ptt) return;
+
     var content =
       '<div class="openwebrx-panel-line" style="display:grid;justify-items:center;">'
-    + '<input type="button" class="openwebrx-button" value="TRANSMIT" '
+    + '<input type="button" class="openwebrx-button" value="&#9003; TRANSMIT" '
     + 'style="width:95%;font-size:12pt;font-weight:bold;background:white;color:red;">'
     + '</div>';
     var ptt = Plugins.addSection(this.myname, 'Rig', content).querySelector('input');
-    RigPlugin.ptt = ptt;
+    this.ptt = ptt;
 
-    ptt.addEventListener('pointerdown', this.start, false);
-    ptt.addEventListener('pointerleave', this.stop, false);
-    ptt.addEventListener('pointerup', this.stop, false);
+    ptt.addEventListener('pointerdown', this.start);
+    ptt.addEventListener('pointerleave', this.stop);
+    ptt.addEventListener('pointerup', this.stop);
+
+    // When BACKSPACE pressed...
+    document.body.addEventListener('keydown', (e) => {
+        // Do not push twice
+        if (RigPlugin.tx) return;
+        // Do not proceed if focused on an input or list selector
+        var tag = document.activeElement? document.activeElement.tagName : null;
+        if (tag && (tag === 'INPUT' || tag === 'TEXTAREA'))
+            return;
+        // Simulate pointer-down event on BACKSPACE
+        if (e.key.toLowerCase() === 'backspace') {
+            ptt.dispatchEvent(new PointerEvent('pointerdown', {
+                bubbles: true, cancelable: true, view: window
+            }));
+        }
+    });
+
+    // When any key released...
+    document.body.addEventListener('keyup', (e) => {
+        // Do not release twice
+        if (!RigPlugin.tx) return;
+        // Simulate pointer-up event
+        ptt.dispatchEvent(new PointerEvent('pointerup', {
+            bubbles: true, cancelable: true, view: window
+        }));
+    });
 };
 
