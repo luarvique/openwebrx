@@ -6,6 +6,7 @@ openwebrx (1.2.125) bullseye jammy; urgency=low
   * Added sample PTT button plugin.
   * Made mouse pointer frequency show up in single Hz.
   * Made Plugins.addSection() return reference to content.
+  * Narrowed SNR window to 1/256 of total bandwidth.
 
  -- Marat Fayzullin <luarvique@gmail.com>  Fri, 25 Sep 2026 16:12:00 +0000
 

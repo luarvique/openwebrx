@@ -5,6 +5,7 @@
 - Added sample PTT button plugin.
 - Made mouse pointer frequency show up in single Hz.
 - Made Plugins.addSection() return reference to content.
+- Narrowed SNR window to 1/256 of total bandwidth.
 
 **1.2.124**
 - Added plugin APIs for buttons, windows, sections.
