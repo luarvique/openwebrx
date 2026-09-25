@@ -226,9 +226,11 @@ KeyPlugin.init = function() {
     );
 
     var input = settings.querySelector('#magic-key-input');
-    input.value = UI.getDemodulatorPanel().getMagicKey() || '';
+    input.value = UI.getDemodulatorPanel().getMagicKey() || LS.loadStr('magic-key') || '';
+    UI.getDemodulatorPanel().setMagicKey(input.value);
     input.addEventListener('change', () => {
         UI.getDemodulatorPanel().setMagicKey(input.value);
+        LS.save('magic-key', input.value);
     });
 };
 
