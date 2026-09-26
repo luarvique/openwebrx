@@ -23,30 +23,43 @@ BASEMAP_NAMES = (
 WEATHER_LAYERS = (
     dict(id="iem-radar", name="IEM NEXRAD radar (USA)", type="xyz",
          url="https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png",
-         attribution="Iowa Environmental Mesonet / NOAA", refresh=300, max_zoom=12),
+         attribution="Iowa Environmental Mesonet / NOAA", refresh=300, max_zoom=12,
+         legend_url="https://mesonet.agron.iastate.edu/docs/nexrad_mosaic/n0q_ramp.png",
+         legend_caption="Radar reflectivity (dBZ)."),
     dict(id="nws-alerts", name="NOAA watches, warnings and advisories (USA)", type="arcgis-map",
          url="https://mapservices.weather.noaa.gov/eventdriven/rest/services/WWA/watch_warn_adv/MapServer",
          layers="0,1", attribution="NOAA / National Weather Service", refresh=300),
     dict(id="iem-rain", name="IEM MRMS precipitation, past hour (USA)", type="wms",
          url="https://mesonet.agron.iastate.edu/cgi-bin/wms/us/mrms_nn.cgi",
-         layers="mrms_p1h", attribution="Iowa Environmental Mesonet / NOAA", refresh=300),
+         layers="mrms_p1h", attribution="Iowa Environmental Mesonet / NOAA", refresh=300,
+         legend_url="https://mesonet.agron.iastate.edu/images/mrms_q3_p1h.png",
+         legend_caption="Past-hour precipitation (inches)."),
     dict(id="goes-east-ir", name="GOES East infrared (Americas / Atlantic)", type="wms",
          url="https://mesonet.agron.iastate.edu/cgi-bin/wms/goes_east.cgi",
-         layers="fulldisk_ch13", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600),
+         layers="fulldisk_ch13", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600,
+         legend_url="https://mesonet.agron.iastate.edu/images/goes_c13.png",
+         legend_caption="Channel 13 infrared brightness temperature (kelvin)."),
     dict(id="goes-west-ir", name="GOES West infrared (Americas / Pacific)", type="wms",
          url="https://mesonet.agron.iastate.edu/cgi-bin/wms/goes_west.cgi",
-         layers="fulldisk_ch13", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600),
+         layers="fulldisk_ch13", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600,
+         legend_url="https://mesonet.agron.iastate.edu/images/goes_c13.png",
+         legend_caption="Channel 13 infrared brightness temperature (kelvin)."),
     dict(id="goes-east-vis", name="GOES East visible (daylight only)", type="wms",
          url="https://mesonet.agron.iastate.edu/cgi-bin/wms/goes_east.cgi",
-         layers="fulldisk_ch02", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600),
+         layers="fulldisk_ch02", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600,
+         legend_url="https://mesonet.agron.iastate.edu/images/goes_c02.png",
+         legend_caption="Channel 2 visible reflectance; daylight only."),
     dict(id="goes-west-vis", name="GOES West visible (daylight only)", type="wms",
          url="https://mesonet.agron.iastate.edu/cgi-bin/wms/goes_west.cgi",
-         layers="fulldisk_ch02", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600),
+         layers="fulldisk_ch02", attribution="NOAA GOES / Iowa Environmental Mesonet", refresh=600,
+         legend_url="https://mesonet.agron.iastate.edu/images/goes_c02.png",
+         legend_caption="Channel 2 visible reflectance; daylight only."),
 )
 LAYER_TYPES = ("xyz", "arcgis-map", "arcgis-feature", "wms", "wmts", "wfs", "geojson", "wps")
 BOOL_FIELDS = ("enabled", "basemap", "visible", "tms")
 TEXT_LIMITS = {
     "id": 80, "name": 120, "type": 30, "url": 4096, "layers": 512,
+    "legend_url": 4096, "legend_caption": 500,
     "attribution": 1000, "version": 20, "format": 80, "style": 256,
     "matrix_set": 120, "matrix_prefix": 120, "wps_inputs": 2048, "wps_output": 120,
 }
@@ -133,6 +146,10 @@ def validate_layers(layers):
             if not layer["name"] or layer["type"] not in LAYER_TYPES:
                 raise ValueError("Supply a name and a supported layer type.")
             validate_url(layer["url"])
+            if layer["legend_url"]:
+                validate_url(layer["legend_url"])
+                if "{" in layer["legend_url"] or "}" in layer["legend_url"]:
+                    raise ValueError("Legend images require a complete URL, not a tile template.")
             for key in BOOL_FIELDS:
                 flag = raw.get(key, key == "enabled")
                 if type(flag) is not bool:

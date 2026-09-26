@@ -445,16 +445,22 @@
         const refresh = () => { if (!doc.hidden) entries.forEach(e => e.refresh(map)); };
         const timer = setInterval(refresh, 30000);
         doc.addEventListener('visibilitychange', refresh);
+        let legend = null;
+        if (root.OWRXMapLegend) {
+            try { legend = root.OWRXMapLegend.install(L, map, entries); }
+            catch (_) { const warning = doc.createElement('p'); warning.textContent = 'Legend unavailable; map layers are unaffected.'; status.append(warning); }
+        }
         let disposed = false;
         function dispose() {
             if (disposed) return; disposed = true;
+            if (legend) legend.remove();
             clearInterval(timer); doc.removeEventListener('visibilitychange', refresh); select.removeEventListener('change', change);
             entries.forEach(e => e.deactivate(map)); root.removeEventListener('pagehide', pageHide);
         }
         const pageHide = event => { if (!event.persisted) dispose(); };
         root.addEventListener('pagehide', pageHide);
         map.on('unload', dispose);
-        return {dispose, entries, changeBase};
+        return {dispose, entries, changeBase, legend};
     }
     return {readConfig, install, Entry, queryURL, serviceURL, viewport, tileBounds, arcgisParts,
         exportURL, wmtsURL, wfsURL, wpsURL, featureCollection, loadFeatures, getJSON, createLayer, escapeText};

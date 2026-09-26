@@ -1,0 +1,53 @@
+/* Native details/summary keeps the legend usable with keyboard and touch. */
+.owrx-map-legend {
+    color: #222;
+    background: #fff;
+    border: 1px solid #888;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .35);
+    font: 14px/1.45 Arial, sans-serif;
+    max-width: min(330px, calc(100vw - 30px));
+    box-sizing: border-box;
+}
+.owrx-map-legend > summary {
+    cursor: pointer;
+    padding: 9px 12px;
+    font-weight: bold;
+    min-width: 85px;
+}
+.owrx-map-legend summary:focus-visible,
+.owrx-map-legend button:focus-visible {
+    outline: 3px solid #1769aa;
+    outline-offset: 2px;
+}
+.owrx-legend-body {
+    padding: 0 12px 12px;
+    width: 300px;
+    max-width: calc(100vw - 32px);
+    max-height: 50vh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+}
+.owrx-map-legend section {
+    border-top: 1px solid #ccc;
+    margin-top: 10px;
+    padding-top: 6px;
+    overflow-wrap: anywhere;
+}
+.owrx-map-legend h3 { font-size: 15px; margin: 3px 0 7px; }
+.owrx-map-legend h4 { font-size: 14px; margin: 8px 0 4px; }
+.owrx-map-legend p { margin: 6px 0; }
+.owrx-map-legend .owrx-legend-note { font-size: 12px; color: #505050; }
+.owrx-legend-image { display: block; max-width: 100%; height: auto; background: #fff; }
+.owrx-legend-row { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
+.owrx-legend-symbol { width: 32px; max-height: 32px; object-fit: contain; flex-shrink: 0; }
+.owrx-map-legend button {
+    background: #f6f6f6;
+    color: #222;
+    border: 1px solid #888;
+    border-radius: 3px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font: inherit;
+}

@@ -1,11 +1,7 @@
 from owrx.form.input import Input
 from owrx.form.input.validator import Validator
 from owrx.form.error import ValidationError
-from owrx.config import Config
-
-import logging
-
-logger = logging.getLogger(__name__)
+import html
 
 
 class LocationValidator(Validator):
@@ -14,7 +10,6 @@ class LocationValidator(Validator):
             raise ValidationError(key, "Latitude out of range (-90 to 90)")
         if "lon" in value and not -180 < value["lon"] < 180:
             raise ValidationError(key, "Longitude out of range (-180 to 180)")
-        pass
 
 
 class LocationInput(Input):
@@ -30,30 +25,31 @@ class LocationInput(Input):
             </div>
             {errors}
             <div class="row">
-                <div class="col map-input" data-key="{key}" for="{id}"></div>
+                <div class="col map-input" for="{id}"></div>
             </div>
         """.format(
-            id=self.id,
+            id=html.escape(self.id, quote=True),
             rowclass="is-invalid" if errors else "",
             inputs=self.render_input(value, errors),
             errors=self.render_errors(errors),
-            key=Config.get()["google_maps_api_key"],
         )
 
     def render_input(self, value, errors):
         return "".join(self.render_sub_input(value, id, errors) for id in ["lat", "lon"])
 
     def render_sub_input(self, value, id, errors):
+        coordinate = "Latitude" if id == "lat" else "Longitude"
         return """
             <div class="col">
-                <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}"
-                step="any" {disabled}>
+                <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{coordinate}"
+                aria-label="{label}: {coordinate}" value="{value}" step="any" {disabled}>
             </div>
         """.format(
-            id="{0}-{1}".format(self.id, id),
-            label=self.label,
+            id=html.escape("{0}-{1}".format(self.id, id), quote=True),
+            label=html.escape(self.label, quote=True),
+            coordinate=coordinate,
             classes=self.input_classes(errors),
-            value=value[id],
+            value=html.escape(str(value[id]), quote=True),
             disabled="disabled" if self.disabled else "",
         )
 

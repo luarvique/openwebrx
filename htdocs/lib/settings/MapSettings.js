@@ -111,6 +111,8 @@
             field('opacity', 'Opacity (0–1)', 'number', {min: 0, max: 1, step: 0.05, default: 0.7});
             field('refresh', 'Refresh seconds (0 = off; minimum 60)', 'number', {min: 0, max: 86400, step: 1, default: 0});
             field('attribution', 'Attribution (plain text)', 'text', {maxLength: 1000});
+            field('legend_url', 'Legend image URL (optional; overrides automatic raster legend)', 'text', {maxLength: 4096});
+            field('legend_caption', 'Legend description / units (plain text, optional)', 'text', {maxLength: 500});
             field('version', 'Protocol version (blank = default)', 'text', {maxLength: 20});
             field('format', 'Output MIME type (blank = default)', 'text', {maxLength: 80});
             field('style', 'WMS / WMTS style (optional)', 'text', {maxLength: 256});
@@ -123,6 +125,7 @@
             field('wps_output', 'WPS output identifier (default: result)', 'text', {maxLength: 120});
             const kind = layer.type;
             const only = {version: ['wms', 'wmts', 'wfs', 'wps'], format: ['wms', 'wmts', 'wfs', 'wps'],
+                legend_url: ['xyz', 'wms', 'wmts', 'arcgis-map'],
                 style: ['wms', 'wmts'], matrix_set: ['wmts'], matrix_prefix: ['wmts'], tms: ['xyz'],
                 wps_inputs: ['wps'], wps_output: ['wps'], max_features: ['arcgis-feature', 'wfs', 'wps', 'geojson'],
                 max_zoom: ['xyz', 'wmts'], layers: ['arcgis-map', 'arcgis-feature', 'wms', 'wmts', 'wfs', 'wps']};
@@ -132,7 +135,11 @@
                 layer.refresh = 0; controls.refresh.input.value = 0; controls.refresh.input.disabled = true;
             }
             const info = document.createElement('small'); info.className = 'map-layer-help'; info.textContent = help[kind] || '';
-            card.append(legend, fields, info, button('Remove layer', () => { layers.splice(index, 1); render(); }));
+            const legendHelp = document.createElement('small'); legendHelp.className = 'map-layer-help';
+            legendHelp.textContent = ['arcgis-feature', 'wfs', 'geojson', 'wps'].includes(kind)
+                ? 'The map legend shows the actual Leaflet point, line and area styling of loaded features in view.'
+                : 'ArcGIS map legends and WMS GetLegendGraphic are automatic when supported. Supply an anonymous legend image URL for other sources or to override the automatic legend.';
+            card.append(legend, fields, info, legendHelp, button('Remove layer', () => { layers.splice(index, 1); render(); }));
             cards.append(card);
         });
         sync();
