@@ -21,6 +21,11 @@ FORCE="${OWRX_FORCE:-0}"
 PYTHON="${OWRX_PYTHON:-python3}"
 JOBS="${OWRX_JOBS:-$(command -v nproc >/dev/null && nproc || echo 2)}"
 GENERATOR="${OWRX_CMAKE_GENERATOR:-$(command -v ninja >/dev/null && echo Ninja || echo 'Unix Makefiles')}"
+WHISPER_MODEL_NAME="${OWRX_WHISPER_MODEL:-tiny}"
+WHISPER_PORT="${OWRX_WHISPER_PORT:-8074}"
+WHISPER_DIR="$PREFIX/share/whisper"
+WHISPER_MODEL="$WHISPER_DIR/ggml-$WHISPER_MODEL_NAME.bin"
+WHISPER_URL="http://127.0.0.1:$WHISPER_PORT/inference"
 
 info(){ printf '\033[1;34m[INFO]\033[0m %s\n' "$*"; }
 ok(){ printf '\033[1;32m[ OK ]\033[0m %s\n' "$*"; }
@@ -286,7 +291,6 @@ declare -A BUILD_REV=(
   [hamlib]=3
   [libgpiod1]=1
   [uhd]=3
-  [owrx_connector]=3
   [acarsdec]=3
   [codecserver]=3
 )
@@ -447,7 +451,23 @@ b_rade(){ source_prepare rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; loc
 b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
 b_sonde(){ source_prepare sonde-decoders; (cd "$SRC/sonde-decoders/demod/mod"; make clean || true; make -j"$JOBS"; for x in rs41mod dfm09mod m10mod m20mod mts01mod; do install -Dm755 "$x" "$PREFIX/bin/$x"; done); }
 b_satdump(){ cmake_dep satdump -DBUILD_GUI=OFF -DBUILD_TESTING=OFF -DBUILD_TOOLS=OFF -DBUILD_OPENCL=OFF -DBUILD_DOCS=OFF -DENABLE_CRASHDUMP=OFF -DENABLE_INSTALL=ON; }
-b_whisper(){ cmake_dep whisper -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_SERVER=ON -DWHISPER_CURL=OFF; local s; s="$(find "$BLD/whisper" -type f -name 'whisper-server' -perm -111 | head -1 || true)"; [[ -z "$s" ]] || install -Dm755 "$s" "$PREFIX/bin/whisper-server"; }
+b_whisper(){
+  cmake_dep whisper -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_SERVER=ON -DWHISPER_CURL=OFF || return 1
+  local s
+  s="$(find "$BLD/whisper" -type f -name 'whisper-server' -perm -111 | head -1 || true)"
+  [[ -n "$s" ]] || { echo "whisper-server executable not found" >&2; return 1; }
+  install -Dm755 "$s" "$PREFIX/bin/whisper-server"
+
+  # A model is a runtime data dependency rather than compiled source. The
+  # official whisper.cpp downloader is used so model naming/source stays
+  # aligned with the pinned whisper.cpp revision. Set OWRX_WHISPER_MODEL=none
+  # to build the server without downloading a model.
+  if [[ "$WHISPER_MODEL_NAME" != "none" ]]; then
+    mkdir -p "$WHISPER_DIR"
+    (cd "$SRC/whisper" && sh models/download-ggml-model.sh "$WHISPER_MODEL_NAME" "$WHISPER_DIR") || return 1
+    [[ -s "$WHISPER_MODEL" ]] || { echo "Whisper model missing: $WHISPER_MODEL" >&2; return 1; }
+  fi
+}
 b_dxlaprs(){ source_prepare dxlaprs; (cd "$SRC/dxlaprs/src"; make clean || true; make lorarx; local f; f="$(find .. -type f -name lorarx -perm -111 | head -1)"; install -Dm755 "$f" "$PREFIX/bin/lorarx"); }
 b_js8call(){
   source_prepare js8call || return 1
@@ -584,7 +604,7 @@ doctor(){
   check ADSB/dump1090 dump1090; check UAT/dump978 dump978; check HFDL dumphfdl; check VDL2 dumpvdl2; check ACARS acarsdec
   check ISM/rtl_433 rtl_433; check Packet/direwolf direwolf; check FreeDV freedv_rx; check M17 m17-demod; check MSK144 msk144decoder
   check WSJT/jt9 jt9; check WSJT/wsprd wsprd; check JS8 js8; check DRM dream; check RDS redsea; check DAB dablin; check HDRadio nrsc5
-  check multimon multimon-ng; check skimmer csdr-rttyskimmer; check radiosonde/rs41 rs41mod; check LoRa/lorarx lorarx; check wxsat/satdump satdump; check rigctl rigctl
+  check multimon multimon-ng; check skimmer csdr-rttyskimmer; check radiosonde/rs41 rs41mod; check LoRa/lorarx lorarx; check wxsat/satdump satdump; check rigctl rigctl; check speech/whisper-server whisper-server
   echo; echo Receiver helpers:
   check Airspy airspy_rx; check Perseus perseustest; check RunDS runds_connector; check HPSDR hpsdrconnector; check SDDC sddc_connector; check FiFi/rockprog rockprog
   command -v SoapySDRUtil >/dev/null 2>&1 && { echo; SoapySDRUtil --info 2>/dev/null || true; }
@@ -620,6 +640,88 @@ check_patches(){
     (cd "$SRC/$n"; git reset --hard; git clean -fdx)
     ok "$n patches apply"
   done
+}
+
+configure_whisper(){
+  [[ "$WHISPER_MODEL_NAME" != "none" && -s "$WHISPER_MODEL" ]] || return 0
+  python - "$CONF" "$WHISPER_URL" <<'PY'
+from pathlib import Path
+import sys
+from owrx.config.core import CoreConfig
+CoreConfig.load(Path(sys.argv[1]))
+from owrx.config import Config
+cfg = Config.get()
+current = cfg["speech_url"]
+if not current:
+    cfg["speech_url"] = sys.argv[2]
+    cfg.store()
+PY
+}
+
+start_whisper(){
+  WHISPER_PID=""
+  [[ "$WHISPER_MODEL_NAME" != "none" ]] || return 0
+  [[ -x "$PREFIX/bin/whisper-server" && -s "$WHISPER_MODEL" ]] || return 1
+
+  # Do not spawn our local service if the user configured a different server.
+  local configured
+  configured="$(python - "$CONF" <<'PY'
+from pathlib import Path
+import sys
+from owrx.config.core import CoreConfig
+CoreConfig.load(Path(sys.argv[1]))
+from owrx.config import Config
+print(Config.get()["speech_url"] or "")
+PY
+)"
+  [[ "$configured" == "$WHISPER_URL" ]] || return 0
+
+  # If our endpoint is already serving, leave it alone.
+  if python - "$WHISPER_PORT" <<'PY'
+import socket, sys
+s=socket.socket()
+s.settimeout(0.2)
+try:
+    ok=s.connect_ex(("127.0.0.1", int(sys.argv[1]))) == 0
+finally:
+    s.close()
+raise SystemExit(0 if ok else 1)
+PY
+  then
+    return 0
+  fi
+
+  local threads="$JOBS"
+  (( threads > 4 )) && threads=4
+  "$PREFIX/bin/whisper-server"     -m "$WHISPER_MODEL"     -t "$threads"     -l auto     --host 127.0.0.1     --port "$WHISPER_PORT"     >"$LOG/whisper-runtime.log" 2>&1 &
+  WHISPER_PID=$!
+
+  local i
+  for i in {1..100}; do
+    if python - "$WHISPER_PORT" <<'PY'
+import socket, sys
+s=socket.socket()
+s.settimeout(0.2)
+try:
+    ok=s.connect_ex(("127.0.0.1", int(sys.argv[1]))) == 0
+finally:
+    s.close()
+raise SystemExit(0 if ok else 1)
+PY
+    then
+      return 0
+    fi
+    kill -0 "$WHISPER_PID" 2>/dev/null || { WHISPER_PID=""; return 1; }
+    sleep 0.1
+  done
+  return 1
+}
+
+stop_whisper(){
+  [[ -n "${WHISPER_PID:-}" ]] || return 0
+  kill "$WHISPER_PID" 2>/dev/null || true
+  wait "$WHISPER_PID" 2>/dev/null || true
+  WHISPER_PID=""
 }
 
 start_codecserver(){
@@ -672,6 +774,7 @@ feature_report(){
   env_setup >/dev/null 2>&1
   [[ -f "$CONF" ]] || die "config missing: $CONF"
   start_codecserver || warn "private CodecServer did not start; AMBE will remain unavailable"
+  start_whisper || warn "private Whisper server did not start; speech transcription may be unavailable"
   (cd "$ROOT"; python - "$CONF" <<'PY'
 from pathlib import Path
 import sys
@@ -685,6 +788,7 @@ for name, entry in sorted(fd.feature_report().items()):
 PY
   )
   local rc=$?
+  stop_whisper
   stop_codecserver
   return $rc
 }
@@ -698,7 +802,7 @@ build_all(){
     full) core_plan; decoders_plan; receivers_plan ;;
     *) die "profile must be full|core|decoders|receivers" ;;
   esac
-  install_app; doctor; feature_report || true
+  install_app; configure_whisper; doctor; feature_report || true
   if [[ -s "$STATE/optional-failures.txt" ]]; then warn "Optional failures:"; sort -u "$STATE/optional-failures.txt" >&2; warn "Logs: $LOG"; else ok "Requested source build completed."; fi
   info "Run: $0 run"
 }
@@ -707,7 +811,8 @@ run_app(){
   env_setup >/dev/null 2>&1
   [[ -f "$CONF" ]] || die "run build first"
   start_codecserver || warn "private CodecServer failed to start; AMBE voice decoding unavailable"
-  trap stop_codecserver EXIT INT TERM
+  start_whisper || warn "private Whisper server failed to start; speech transcription unavailable"
+  trap 'stop_whisper; stop_codecserver' EXIT INT TERM
   cd "$ROOT"
   openwebrx -c "$CONF" --debug
 }
