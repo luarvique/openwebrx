@@ -1,0 +1,16 @@
+diff --git a/conf/CMakeLists.txt b/conf/CMakeLists.txt
+index 3b6f8f7..8acb735 100644
+--- a/conf/CMakeLists.txt
++++ b/conf/CMakeLists.txt
+@@ -27,7 +27,9 @@ file(WRITE "${CMAKE_BINARY_DIR}/direwolf.conf" "${file_content}")
+ # https://sources.debian.org/src/direwolf/1.7+dfsg-2/debian/patches/lib-udev-rules/
+ # says that we should use the /usr/lib/udev/rules.d location when building a package.
+ # TODO:  I think the proper solution is to select the location based on whether
+ # the application installation location is /usr/local or /usr.
+-if(LINUX)
++option(INSTALL_UDEV_RULES "Install Direwolf CM108 udev rules" ON)
++
++if(LINUX AND INSTALL_UDEV_RULES)
+   if (CMAKE_INSTALL_PREFIX STREQUAL "/usr/local") 
+     install(FILES "${CUSTOM_CONF_DIR}/99-direwolf-cmedia.rules" DESTINATION /etc/udev/rules.d/)
+   else()
