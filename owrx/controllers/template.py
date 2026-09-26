@@ -1,6 +1,7 @@
 from owrx.controllers import Controller
 from owrx.details import ReceiverDetails
 from owrx.config import Config
+from owrx.mapconfig import public_settings, script_json, value
 from string import Template
 import importlib.resources
 
@@ -42,28 +43,38 @@ class IndexController(WebpageController):
 
 class MapController(WebpageController):
     def indexAction(self):
-        # TODO check if we have a google maps api key first?
+        if value(Config.get(), "map_enabled", True) is False:
+            self.send_response("The web map client is disabled by the administrator.", code=403, content_type="text/plain")
+            return
         self.serve_template("map-{}.html".format(self.map_type()), **self.template_variables())
 
+    def template_variables(self):
+        variables = super().template_variables()
+        variables["map_config"] = script_json(public_settings(Config.get()))
+        return variables
+
+    def google_allowed(self):
+        config = Config.get()
+        key = value(config, "google_maps_api_key", "")
+        return bool(key) and value(config, "map_allow_google", bool(key)) is True
+
     def header_variables(self):
-        # Invert map type for the "map" toolbar icon
-        variables = super().header_variables();
-        type = self.map_type()
-        if type == "google":
-            variables.update({ "map_type" : "?type=leaflet" })
-        elif type == "leaflet":
-            variables.update({ "map_type" : "?type=google" })
+        variables = super().header_variables()
+        # Do not advertise an unusable/disabled Google client in the toolbar.
+        if self.map_type() == "google":
+            variables["map_type"] = "?type=leaflet"
+        elif self.google_allowed():
+            variables["map_type"] = "?type=google"
         return variables
 
     def map_type(self):
-        pm = Config.get()
-        if "type" not in self.request.query:
-            type = pm["map_type"]
-        else:
-            type = self.request.query["type"][0]
-            if type not in ["google", "leaflet"]:
-                type = pm["map_type"]
-        return type
+        config = Config.get()
+        default = value(config, "map_type", "leaflet")
+        requested = self.request.query.get("type", [default])
+        requested = requested[0] if requested else default
+        if requested not in ("google", "leaflet"):
+            requested = default
+        return "google" if requested == "google" and self.google_allowed() else "leaflet"
 
 
 class PolicyController(WebpageController):

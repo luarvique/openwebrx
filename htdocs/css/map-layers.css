@@ -1,0 +1,9 @@
+#openwebrx-map-extralayers label { display: block; margin: .35em 0; white-space: normal; }
+.owrx-layer-status { max-width: 360px; font-size: .85em; line-height: 1.4; }
+.owrx-layer-message { padding: .35em 0; border-top: 1px solid #aaa; overflow-wrap: anywhere; }
+.owrx-layer-message[data-level=error], .owrx-layer-message[data-level=warning] { font-weight: bold; }
+.owrx-layer-message button { font: inherit; cursor: pointer; }
+.owrx-map-error { position: absolute; left: 1em; right: 1em; top: 1em; z-index: 1000; padding: 1em; background: white; color: black; border: 2px solid black; }
+
+.leaflet-control-layers-expanded .leaflet-control-layers-list { max-height: 70vh; max-width: min(360px, calc(100vw - 48px)); overflow-y: auto; }
+#openwebrx-map-extralayers label { overflow-wrap: anywhere; }

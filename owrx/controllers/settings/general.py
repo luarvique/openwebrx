@@ -271,66 +271,6 @@ class GeneralSettingsController(SettingsFormController):
                 ),
             ),
             Section(
-                "Map settings",
-                DropdownInput(
-                    "map_type",
-                    "Map type",
-                    options=[
-                        Option("google", "Google Maps"),
-                        Option("leaflet", "OpenStreetMap, etc."),
-                    ],
-                ),
-                TextInput(
-                    "google_maps_api_key",
-                    "Google Maps API key",
-                    infotext="Google Maps requires an API key, check out "
-                    + '<a href="https://developers.google.com/maps/documentation/embed/get-api-key" target="_blank">'
-                    + "their documentation</a> on how to obtain one.",
-                ),
-                TextInput(
-                    "openweathermap_api_key",
-                    "OpenWeatherMap API key",
-                    infotext="OpenWeatherMap requires an API key, check out "
-                    + '<a href="https://openweathermap.org/appid" target="_blank">'
-                    + "their documentation</a> on how to obtain one.",
-                ),
-# Will enable once this works.
-#                TextInput(
-#                    "repeaterbook_api_key",
-#                    "RepeaterBook API key",
-#                    infotext="RepeaterBook requires an API key, check out "
-#                    + '<a href="https://www.repeaterbook.com/api/token_request.php" target="_blank">'
-#                    + "their documentation</a> on how to obtain one.",
-#                ),
-                NumberInput(
-                    "map_position_retention_time",
-                    "Map retention time",
-                    infotext="Specifies how long markers / grids will remain visible on the map.",
-                    append="s",
-                ),
-                NumberInput(
-                    "map_call_retention_time",
-                    "Call retention time",
-                    infotext="Specifies how long calls will remain visible on the map.",
-                    validator=RangeValidator(15, 60*60),
-                    append="s",
-                ),
-                NumberInput(
-                    "map_max_calls",
-                    "Number of calls shown",
-                    infotext="Specifies how many calls between grids are visible on the map.",
-                    validator=RangeValidator(0, 50),
-                ),
-                CheckboxInput(
-                    "map_ignore_indirect_reports",
-                    "Ignore position reports arriving via indirect path.",
-                ),
-                CheckboxInput(
-                    "map_prefer_recent_reports",
-                    "Prefer more recent position reports to shorter path reports.",
-                ),
-            ),
-            Section(
                 "External links",
                 TextInput(
                     "callsign_url",

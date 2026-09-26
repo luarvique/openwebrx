@@ -17,18 +17,10 @@ var updateQueue = [];
 
 // Web socket connection management, message processing
 var mapManager = new MapManager();
-
-var query = window.location.search.replace(/^\?/, '').split('&').map(function(v){
-    var s = v.split('=');
-    var r = {};
-    r[s[0]] = s.slice(1).join('=');
-    return r;
-}).reduce(function(a, b){
-    return a.assign(b);
-});
-
-var expectedCallsign = query.callsign? decodeURIComponent(query.callsign) : null;
-var expectedLocator  = query.locator? query.locator : null;
+var mapClientConfig = OWRXMapLayers.readConfig();
+var query = new URLSearchParams(window.location.search);
+var expectedCallsign = query.get('callsign');
+var expectedLocator = query.get('locator');
 
 // Get information bubble window
 function getInfoWindow(name = null) {
@@ -64,7 +56,7 @@ function showMarkerInfoWindow(name, pos) {
 function showReceiverInfoWindow(marker) {
     var iw = getInfoWindow();
     iw.setContent(
-        '<h3>' + marker.config['receiver_name'] + '</h3>' +
+        '<h3>' + OWRXMapLayers.escapeText(marker.config['receiver_name']) + '</h3>' +
         '<div>Receiver Location</div>'
     );
     iw.open(map, marker);
@@ -83,73 +75,58 @@ MapManager.prototype.removeReceiver = function() {
 }
 
 MapManager.prototype.initializeMap = function(receiver_gps, api_key, weather_key) {
-    var receiverPos = { lat: receiver_gps.lat, lng: receiver_gps.lon };
-
-    if (map) {
-        receiverMarker.setOptions({
-            map      : map,
-            position : receiverPos,
-            config   : this.config
-        });
-    } else {
-        var self = this;
-
-        // After Google Maps API loads...
-        $.getScript("https://maps.googleapis.com/maps/api/js?key=" + api_key).done(function() {
-            // Create a map instance
-            map = new google.maps.Map($('.openwebrx-map')[0], {
-                zoomControl:       true,
-                cameraControl:     false,
-                mapTypeControl:    true,
-                scaleControl:      true,
-                streetViewControl: true,
-                rotateControl:     true,
-                fullscreenControl: true,
-                center : receiverPos,
-                zoom   : 5,
-            });
-
-            // Load and initialize day-and-night overlay
-            $.getScript("static/lib/nite-overlay.js").done(function() {
-                nite.init(map);
-                setInterval(function() { nite.refresh() }, 10000); // every 10s
-            });
-
-            // Load and initialize OWRX-specific map item managers
-            $.getScript('static/lib/GoogleMaps.js').done(function() {
-                // Process any accumulated updates
-                self.processUpdates(updateQueue);
-                updateQueue = [];
-            });
-
-            // Create map legend selectors
-            var $legend = $(".openwebrx-map-legend");
-            self.setupLegendFilters($legend);
-            map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($legend[0]);
-
-            // Create receiver marker
-            if (!receiverMarker) {
-                receiverMarker = new google.maps.Marker();
-                receiverMarker.addListener('click', function() {
-                    showReceiverInfoWindow(receiverMarker);
-                });
-            }
-
-            // Set receiver marker position, name, etc.
-            receiverMarker.setOptions({
-                map      : map,
-                position : receiverPos,
-                title    : self.config['receiver_name'],
-                config   : self.config
-            });
+    var self = this;
+    self._receiverGPS = receiver_gps;
+    function receiverPos() { return {lat: self._receiverGPS.lat, lng: self._receiverGPS.lon}; }
+    function updateReceiver() {
+        if (receiverMarker) receiverMarker.setOptions({
+            map: mapClientConfig.map_show_receiver === false ? null : map,
+            position: receiverPos(), title: self.config['receiver_name'], config: self.config
         });
     }
+    if (map) { updateReceiver(); return; }
+    if (self._googleLoading) return;
+    self._googleLoading = true;
+    // The controller falls back to Leaflet when Google is disabled or its key is absent.
+    $.getScript('https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(api_key)).done(function() {
+        map = new google.maps.Map($('.openwebrx-map')[0], {
+            zoomControl: true, cameraControl: false, mapTypeControl: true,
+            scaleControl: true, streetViewControl: true, rotateControl: true, fullscreenControl: true,
+            center: mapClientConfig.map_use_initial_view
+                ? {lat: mapClientConfig.map_initial_lat, lng: mapClientConfig.map_initial_lon} : receiverPos(),
+            zoom: mapClientConfig.map_use_initial_view ? mapClientConfig.map_initial_zoom : 5
+        });
+        if (mapClientConfig.map_night !== false) {
+            $.getScript('static/lib/nite-overlay.js').done(function() {
+                nite.init(map);
+                var timer = setInterval(function() { if (!document.hidden) nite.refresh(); }, 10000);
+                window.addEventListener('pagehide', function(event) { if (!event.persisted) clearInterval(timer); });
+            });
+        }
+        $.getScript('static/lib/GoogleMaps.js').done(function() {
+            self.processUpdates(updateQueue);
+            updateQueue = [];
+        });
+        var $legend = $('.openwebrx-map-legend');
+        self.setupLegendFilters($legend);
+        map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($legend[0]);
+        if (!receiverMarker) {
+            receiverMarker = new google.maps.Marker();
+            receiverMarker.addListener('click', function() { showReceiverInfoWindow(receiverMarker); });
+        }
+        updateReceiver();
+    }).fail(function() {
+        var notice = document.createElement('div'); notice.className = 'owrx-map-error';
+        notice.setAttribute('role', 'alert');
+        notice.textContent = 'Google Maps could not load. Use the Map toolbar button to switch to Leaflet.';
+        document.getElementById('openwebrx-map').appendChild(notice);
+    }).always(function() { self._googleLoading = false; });
 };
 
 MapManager.prototype.processUpdates = function(updates) {
     var self = this;
 
-    if (typeof(GMarker) === 'undefined') {
+    if (typeof(GMarker) === 'undefined' || !map) {
         updateQueue = updateQueue.concat(updates);
         return;
     }
@@ -251,7 +228,7 @@ MapManager.prototype.processUpdates = function(updates) {
                     expectedLocator = false;
                 }
 
-                if (infoWindow && infoWindow.locator && infoWindow.locator === update.location.locator) {
+                if (infoWindow && infoWindow.name && infoWindow.name === update.location.locator) {
                     showLocatorInfoWindow(update.location.locator, rectangle.center);
                 }
             break;

@@ -10,6 +10,7 @@ from owrx.controllers.clients import ClientController
 from owrx.controllers.services import ServiceController
 from owrx.controllers.settings import SettingsController
 from owrx.controllers.settings.general import GeneralSettingsController
+from owrx.controllers.settings.map import MapSettingsController
 from owrx.controllers.settings.wifi import WifiSettingsController
 from owrx.controllers.settings.sdr import (
     SdrDeviceListController,
@@ -108,6 +109,10 @@ class Router(object):
             StaticRoute("/settings/general", GeneralSettingsController),
             StaticRoute(
                 "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
+            ),
+            StaticRoute("/settings/map", MapSettingsController),
+            StaticRoute(
+                "/settings/map", MapSettingsController, method="POST", options={"action": "processFormData"}
             ),
             StaticRoute("/settings/sdr", SdrDeviceListController),
             StaticRoute("/settings/newsdr", NewSdrDeviceController),

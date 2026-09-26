@@ -1,0 +1,9 @@
+.map-layer-card { border: 1px solid #888; border-radius: .25rem; padding: 1rem; margin-bottom: 1rem; }
+.map-layer-card legend { font-size: 1rem; width: auto; padding: 0 .4rem; }
+.map-layer-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .8rem; }
+.map-layer-fields label { display: block; margin-bottom: 0; }
+.map-layer-fields input:not([type=checkbox]), .map-layer-fields select { width: 100%; }
+.map-layer-card .map-layer-help { display: block; margin: .7rem 0; }
+.map-layer-card button { margin: .5rem .5rem 0 0; }
+.map-setting-inactive { opacity: .65; }
+#map-layer-json { margin-top: 1rem; }
