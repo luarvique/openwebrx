@@ -63,6 +63,19 @@ The following methods of setting up a receiver are currently available:
 Please checkout the [setup guide on the wiki](https://github.com/jketterl/openwebrx/wiki/Setup-Guide) for more details
 on the respective methods.
 
+## Environment variables
+
+The Docker images read the following variables at startup:
+
+- `OPENWEBRX_ADMIN_ENABLED` - set to `false` (or `0`, `no`, `off`) to disable the admin interface
+  completely. The settings, login, and user, client and service management pages are then not
+  served at all, and `OPENWEBRX_ADMIN_USER` / `OPENWEBRX_ADMIN_PASSWORD` do not need to be set.
+  Note that this does not cover `/status.json` and `/metrics`, which are public either way.
+  Defaults to `true`.
+- `OPENWEBRX_ADMIN_USER` and `OPENWEBRX_ADMIN_PASSWORD` - username and password of the admin
+  account to create on first startup. Both have to be set, and are ignored when the admin
+  interface is disabled.
+
 ## Community
 
 If you have trouble setting up or configuring your receiver, you have some great idea you want to see implemented, or

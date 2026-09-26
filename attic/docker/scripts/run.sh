@@ -16,9 +16,16 @@ fi
 if [[ ! -f /etc/openwebrx/openwebrx.conf ]] ; then
   cp openwebrx.conf /etc/openwebrx/
 fi
-if [[ ! -z "${OPENWEBRX_ADMIN_USER:-}" ]] && [[ ! -z "${OPENWEBRX_ADMIN_PASSWORD:-}" ]] ; then
-  if ! python3 openwebrx.py admin --silent hasuser "${OPENWEBRX_ADMIN_USER}" ; then
-    OWRX_PASSWORD="${OPENWEBRX_ADMIN_PASSWORD}" python3 openwebrx.py admin --noninteractive adduser "${OPENWEBRX_ADMIN_USER}"
+# keep the accepted "disabled" values in sync with owrx/adminaccess.py
+case "${OPENWEBRX_ADMIN_ENABLED:-true}" in
+  [Ff][Aa][Ll][Ss][Ee]|0|[Nn][Oo]|[Oo][Ff][Ff]) OWRX_ADMIN_ENABLED="false" ;;
+  *)                                            OWRX_ADMIN_ENABLED="true"  ;;
+esac
+if [[ "${OWRX_ADMIN_ENABLED}" == "true" ]] ; then
+  if [[ ! -z "${OPENWEBRX_ADMIN_USER:-}" ]] && [[ ! -z "${OPENWEBRX_ADMIN_PASSWORD:-}" ]] ; then
+    if ! python3 openwebrx.py admin --silent hasuser "${OPENWEBRX_ADMIN_USER}" ; then
+      OWRX_PASSWORD="${OPENWEBRX_ADMIN_PASSWORD}" python3 openwebrx.py admin --noninteractive adduser "${OPENWEBRX_ADMIN_USER}"
+    fi
   fi
 fi
 

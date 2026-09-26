@@ -1,6 +1,7 @@
 from owrx.controllers.admin import Authentication
 from owrx.controllers.template import WebpageController
 from owrx.controllers.assets import AssetsController
+from owrx.adminaccess import is_admin_enabled
 from owrx.storage import Storage
 
 import json
@@ -25,6 +26,8 @@ class FilesController(WebpageController):
         super().__init__(handler, request, options)
 
     def isAuthorized(self):
+        if not is_admin_enabled():
+            return False
         return self.user is not None and self.user.is_enabled() and not self.user.must_change_password
 
     def template_variables(self):
