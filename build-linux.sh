@@ -37,7 +37,7 @@ dep soapysdr https://github.com/pothosware/SoapySDR.git 1551ea0d39ce546b32a15808
 dep soapyrtlsdr https://github.com/pothosware/SoapyRTLSDR.git 6ca357c15cbf676ff30eb8eb445d1e1eac17c136 master
 dep csdr https://github.com/luarvique/csdr.git f26b52071c4a127fc8193d058c249cac57585de4 master
 dep pycsdr https://github.com/luarvique/pycsdr.git 42a5ab3ca48953e65441c4ed7fbd63f030f5afa8 master
-dep owrx_connector https://github.com/luarvique/owrx_connector.git 5b014234cf0f1f49b01ec85f8b29d04c471d28ac master
+dep owrx_connector https://github.com/luarvique/owrx_connector.git bca362707131289f91441c8080fd368fdc067b6d develop
 dep codecserver https://github.com/jketterl/codecserver.git 8caf36aab936c5587fa404572b2c59c6ab7d4339 master
 dep digiham https://github.com/luarvique/digiham.git beec78229edb8e049f8b82729498def952b79cc1 master
 dep pydigiham https://github.com/luarvique/pydigiham.git 9ab0f239130d3f0aea5ac15d4b209ed7db2b88be master
@@ -131,7 +131,7 @@ install_system_deps(){
         alsa-devel libpulse-devel "pkgconfig(sdl2)" "pkgconfig(libmpg123)" libfaad-devel "pkgconfig(hidapi-libusb)" avahi-devel "pkgconfig(zlib)"
         libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel libpng16-devel armadillo-devel nng-devel libzstd-devel libtiff-devel sqlite3-devel
         libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel libqt5-linguist-devel
-        qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cJSON-devel)
+        qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cJSON-devel "cmake(Qt5LinguistTools)" "pkgconfig(libpng)")
       ;;
     apt)
       sudo_run apt-get update
@@ -181,7 +181,7 @@ env_setup(){
   export LDFLAGS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib -Wl,-rpath,$PREFIX/lib64 ${LDFLAGS:-}"
   export CMAKE_BUILD_PARALLEL_LEVEL="$JOBS"
   python -m pip install -q --upgrade pip setuptools wheel packaging
-  python -m pip install -q --upgrade paho-mqtt meshtastic pycryptodome mako numpy ruamel.yaml
+  python -m pip install -q --upgrade paho-mqtt meshtastic pycryptodome mako numpy ruamel.yaml mako numpy ruamel.yaml
 }
 
 source_prepare(){
@@ -271,7 +271,7 @@ patch_js8py(){
 cmake_build(){
   local n="$1" sd="$2"; shift 2
   rm -rf "$BLD/$n"
-  cmake -S "$sd" -B "$BLD/$n" -G "$GENERATOR" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib \
+  cmake -S "$sd" -B "$BLD/$n" -G "$GENERATOR" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib \
     -DCMAKE_INSTALL_RPATH="$PREFIX/lib;$PREFIX/lib64" -DCMAKE_PREFIX_PATH="$PREFIX" "$@" || return 1
   cmake --build "$BLD/$n" --parallel "$JOBS" || return 1
   cmake --install "$BLD/$n" || return 1
@@ -299,11 +299,20 @@ step(){
 
 # Core
 b_fftw(){
-  local ver="3.3.10"
-  local sha="56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467"
-  local cache="$WORK/cache"
-  local archive="$cache/fftw-$ver.tar.gz"
-  local srcdir="$SRC/fftw-$ver"
+  source_prepare fftw || return 1
+  rm -f "$PREFIX/lib"/libfftw3*.so* "$PREFIX/lib"/libfftw3*.a "$PREFIX/lib/pkgconfig"/fftw3*.pc 2>/dev/null || true
+  (
+    cd "$SRC/fftw"
+    ./bootstrap.sh >/dev/null 2>&1 || autoreconf -fiv
+    ./configure --prefix="$PREFIX" --libdir="$PREFIX/lib" --enable-shared --disable-static --enable-threads --disable-fortran
+    make -j"$JOBS"
+    make install
+    make distclean
+    ./configure --prefix="$PREFIX" --libdir="$PREFIX/lib" --enable-shared --disable-static --enable-threads --enable-float --disable-fortran
+    make -j"$JOBS"
+    make install
+  )
+}
 
   mkdir -p "$cache"
   if [[ ! -f "$archive" ]]; then
@@ -391,15 +400,15 @@ b_dream(){ source_prepare dream; local qmake; qmake="$(command -v qmake-qt5 || c
 # Receiver special cases
 b_hackrf(){ source_prepare hackrf || return 1; cmake_build hackrf "$SRC/hackrf/host" -DINSTALL_UDEV_RULES=OFF; }
 b_perseus(){ source_prepare perseus; (cd "$SRC/perseus"; ./bootstrap.sh; ./configure --prefix="$PREFIX" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
-b_libad9361(){ source_prepare libad9361 || return 1; cmake_build libad9361 "$SRC/libad9361" -DBUILD_TESTS=OFF -DWITH_DOC=OFF -DLIBIIO_INCLUDEDIR="$PREFIX/include/iio" -DLIBIIO_LIBRARIES="$PREFIX/lib/libiio.so"; }
-b_soapypluto(){ source_prepare soapypluto || return 1; cmake_build soapypluto "$SRC/soapypluto" -DLibIIO_INCLUDE_DIR="$PREFIX/include/iio" -DLibIIO_LIBRARY="$PREFIX/lib/libiio.so"; }
+b_libad9361(){ source_prepare libad9361 || return 1; cmake_build libad9361 "$SRC/libad9361" -DBUILD_TESTS=OFF -DWITH_DOC=OFF; }
+b_soapypluto(){ source_prepare soapypluto || return 1; cmake_build soapypluto "$SRC/soapypluto"; }
 b_direwolf(){ source_prepare direwolf || return 1; cmake_build direwolf "$SRC/direwolf" -DINSTALL_UDEV_RULES=OFF; }
 b_soapyafedri(){ source_prepare soapyafedri; cmake_build soapyafedri "$SRC/soapyafedri"; }
 b_runds(){ source_prepare runds_connector; cmake_build runds_connector "$SRC/runds_connector"; }
 b_hydrasdr_host(){ cmake_dep hydrasdr-host -DINSTALL_UDEV_RULES=OFF -DENABLE_SHARED_LIB=ON; }
 b_soapyelad(){ source_prepare soapyelad || return 1; cmake_build soapyelad "$SRC/soapyelad/src"; }
-b_soapysx(){ source_prepare soapysx || return 1; cmake_build soapysx "$SRC/soapysx/SoapySX"; }
-b_bladerf(){ source_prepare bladerf || return 1; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF; }
+b_soapysx(){ source_prepare soapysx || return 1; cmake_build soapysx "$SRC/soapysx/SoapySX" -DINSTALL_PIPEWIRE_CONF=OFF; }
+b_bladerf(){ source_prepare bladerf || return 1; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF -DINSTALL_SHELL_COMPLETIONS=OFF; }
 b_uhd(){ source_prepare uhd || return 1; cmake_build uhd "$SRC/uhd/host" -DPYTHON_EXECUTABLE="$VENV/bin/python" -DPython3_EXECUTABLE="$VENV/bin/python" -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF; }
 b_radioberry(){ case "$(uname -m)" in arm*|aarch64) source_prepare radioberry; cmake_build radioberry "$SRC/radioberry/SBC/rpi-4/SoapyRadioberrySDR";; *) warn "Radioberry skipped on $(uname -m)";; esac; }
 b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then warn "SDRplay vendor API v3 not installed; wrapper skipped"; return 0; fi; cmake_dep soapysdrplay; }
@@ -458,7 +467,7 @@ receivers_plan(){
   step hackrf 0 b_hackrf; step soapyhackrf 0 cmake_dep soapyhackrf
   step airspy 0 cmake_dep airspy; step soapyairspy 0 cmake_dep soapyairspy
   step airspyhf 0 cmake_dep airspyhf; step soapyairspyhf 0 cmake_dep soapyairspyhf
-  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_DOC=OFF -DWITH_MAN=OFF -DINSTALL_UDEV_RULE=OFF -DINSTALL_IIOD_HOTPLUG_RULE=OFF -DWITH_LOCAL_CONFIG=OFF
+  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DWITH_IIOD=OFF -DWITH_LOCAL_CONFIG=OFF
   step libad9361 0 b_libad9361; step soapypluto 0 b_soapypluto
   step limesuite 0 cmake_dep limesuite -DENABLE_EXAMPLES=OFF -DENABLE_DESKTOP=OFF -DENABLE_QUICKTEST=OFF -DENABLE_OCTAVE=OFF -DENABLE_GUI=OFF
   step soapyremote 0 cmake_dep soapyremote; step soapyfcdpp 0 cmake_dep soapyfcdpp
