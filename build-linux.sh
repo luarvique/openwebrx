@@ -66,7 +66,7 @@ dep wsjtx https://github.com/WSJTX/wsjtx.git v3.0.2 master
 dep js8call https://github.com/js8call/js8call.git v2.3.1 main
 dep dream https://github.com/wwek/dream.git v2.2.4 main
 dep rade https://github.com/peterbmarks/radae_decoder.git baff453880f89bbfb7cb28f3caa8cb6b83410ee4 main
-dep hamlib https://github.com/Hamlib/Hamlib.git 50b2a9310edc4a481d8a6ef10e948ea8554f97f9 master
+dep hamlib https://github.com/Hamlib/Hamlib.git 40f63488fe0bd751b147f48d62fd217bf53713a0 master
 dep sonde-decoders https://github.com/projecthorus/radiosonde_auto_rx.git 53d03c72ad18ce4357c0cedd1f4acf2bf1efb36e master
 dep satdump https://github.com/SatDump/SatDump.git f3d82adbfe04e57c596b93479d687f4b830ee26c master
 dep whisper https://github.com/ggml-org/whisper.cpp.git d09f61a708f3487afa956ff578e60eae5e7a233c master
@@ -89,8 +89,8 @@ dep soapyfcdpp https://github.com/pothosware/SoapyFCDPP.git master master
 dep perseus https://github.com/Microtelecom/libperseus-sdr.git master master
 dep bladerf https://github.com/Nuand/bladeRF.git master master
 dep soapybladerf https://github.com/pothosware/SoapyBladeRF.git master master
-dep uhd https://github.com/EttusResearch/uhd.git master master
-dep soapyuhd https://github.com/pothosware/SoapyUHD.git master master
+dep uhd https://github.com/EttusResearch/uhd.git 0d7ed3b1a4e301032b0c6b04799d7631c5098528 master
+dep soapyuhd https://github.com/pothosware/SoapyUHD.git c695089c9d139f90465d2025d8dcb2ef26fa00f0 master
 dep libmirisdr https://github.com/ericek111/libmirisdr-5.git master master
 dep soapymiri https://github.com/ericek111/SoapyMiri.git main main
 dep soapyafedri https://github.com/alexander-sholohov/SoapyAfedri.git 86d152cb87f56a16fb05dda2311de88b3fb06918 master
@@ -129,7 +129,7 @@ install_system_deps(){
         libboost_program_options-devel libboost_filesystem-devel libboost_regex-devel libboost_log-devel libboost_serialization-devel
         libsndfile-devel libao-devel libxml2-devel libconfig-devel libjansson-devel libcurl-devel "pkgconfig(openssl)" ncurses-devel
         alsa-devel libpulse-devel "pkgconfig(sdl2)" "pkgconfig(libmpg123)" libfaad-devel "pkgconfig(hidapi-libusb)" avahi-devel "pkgconfig(zlib)"
-        libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel libpng16-devel armadillo-devel nng-devel libzstd-devel libtiff-devel sqlite3-devel
+        libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel libpng16-devel armadillo-devel nng-devel libzstd-devel libtiff-devel sqlite3-devel gpsd-devel grpc-devel "pkgconfig(jemalloc)" "pkgconfig(hdf5)" "pkgconfig(portaudio-2.0)"
         libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel libqt5-linguist-devel
         qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cJSON-devel "cmake(Qt5LinguistTools)" "pkgconfig(libpng)")
       ;;
@@ -139,19 +139,19 @@ install_system_deps(){
         libusb-1.0-0-dev libfftw3-dev libsamplerate0-dev libudev-dev libprotobuf-dev protobuf-compiler libicu-dev libboost-dev
         libboost-program-options-dev libboost-filesystem-dev libboost-regex-dev libsndfile1-dev libao-dev libxml2-dev libconfig++-dev
         libjansson-dev libcurl4-openssl-dev libssl-dev libncurses-dev libasound2-dev libpulse-dev libsdl2-dev libmpg123-dev libfaad-dev
-        libhidapi-dev libavahi-client-dev zlib1g-dev libpcap-dev libspeexdsp-dev libhamlib-dev imagemagick lame)
+        libhidapi-dev libavahi-client-dev zlib1g-dev libpcap-dev libspeexdsp-dev libhamlib-dev imagemagick lame libgps-dev libgrpc++-dev protobuf-compiler-grpc libjemalloc-dev libhdf5-dev portaudio19-dev)
       ;;
     dnf)
       pkgs=(git cmake make ninja-build meson gcc gcc-c++ gcc-gfortran autoconf automake libtool patch pkgconf-pkg-config python3 python3-devel python3-pip curl wget golang
         libusb1-devel fftw-devel libsamplerate-devel systemd-devel protobuf-devel libicu-devel boost-devel libsndfile-devel libao-devel
         libxml2-devel libconfig-devel jansson-devel libcurl-devel openssl-devel ncurses-devel alsa-lib-devel pulseaudio-libs-devel SDL2-devel
-        mpg123-devel faad2-devel hidapi-devel avahi-devel zlib-devel libpcap-devel speexdsp-devel hamlib-devel ImageMagick lame)
+        mpg123-devel faad2-devel hidapi-devel avahi-devel zlib-devel libpcap-devel speexdsp-devel hamlib-devel ImageMagick lame gpsd-devel grpc-devel grpc-plugins jemalloc-devel hdf5-devel portaudio-devel)
       ;;
     pacman)
       sudo_run pacman -Sy --noconfirm
       pkgs=(git cmake make ninja meson gcc autoconf automake libtool patch pkgconf python python-pip curl wget go libusb fftw libsamplerate
         systemd protobuf icu boost libsndfile libao libxml2 libconfig jansson openssl ncurses alsa-lib libpulse sdl2 mpg123 faad2 hidapi avahi
-        zlib libpcap speexdsp hamlib imagemagick lame)
+        zlib libpcap speexdsp hamlib imagemagick lame gpsd grpc jemalloc hdf5 portaudio)
       ;;
   esac
   local p
@@ -280,7 +280,8 @@ cmake_dep(){ local n="$1"; shift; source_prepare "$n" || return 1; cmake_build "
 pip_dep(){ source_prepare "$1" || return 1; python -m pip install --no-build-isolation --no-cache-dir "$SRC/$1"; }
 
 declare -A BUILD_REV=(
-  [fftw]=4
+  [fftw]=5
+  [libgpiod1]=1
 )
 
 stamp(){
@@ -373,6 +374,37 @@ b_skimmer(){ source_prepare csdr-skimmer; (cd "$SRC/csdr-skimmer"; make clean ||
 b_nrsc5(){ source_prepare nrsc5; cmake_build nrsc5 "$SRC/nrsc5" -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_RTLSDR=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DFAAD2_CMAKE_ARGS=-DCMAKE_INSTALL_LIBDIR=lib -DBUILD_CLI=ON; }
 b_codec2(){ cmake_dep codec2 -DUNITTEST=OFF; local f; f="$(find "$BLD/codec2" -type f -name freedv_rx -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/freedv_rx"; }
 
+b_libgpiod1(){
+  local ver="1.6.5"
+  local sha="ae280f697bf035a1fb780c9972e5c81d0d2712b7ab6124fb3fba24619daa72bc"
+  local cache="$WORK/downloads"
+  local archive="$cache/libgpiod-$ver.tar.xz"
+  local srcdir="$SRC/libgpiod-$ver"
+
+  mkdir -p "$cache"
+  if [[ ! -f "$archive" ]]; then
+    info "Downloading libgpiod $ver compatibility source"
+    if command -v curl >/dev/null; then
+      curl -fL "https://www.kernel.org/pub/software/libs/libgpiod/libgpiod-$ver.tar.xz" -o "$archive.tmp" || return 1
+    elif command -v wget >/dev/null; then
+      wget -O "$archive.tmp" "https://www.kernel.org/pub/software/libs/libgpiod/libgpiod-$ver.tar.xz" || return 1
+    else
+      return 1
+    fi
+    mv "$archive.tmp" "$archive"
+  fi
+  printf '%s  %s\n' "$sha" "$archive" | sha256sum -c - || { rm -f "$archive"; return 1; }
+
+  rm -rf "$srcdir"
+  tar -xJf "$archive" -C "$SRC" || return 1
+  (
+    cd "$srcdir"
+    ./configure --prefix="$PREFIX" --libdir="$PREFIX/lib" --enable-shared --disable-static
+    make -j"$JOBS"
+    make install
+  )
+}
+
 b_msk144(){
   source_prepare msk144 || return 1
   rm -rf "$BLD/msk144"
@@ -438,18 +470,18 @@ decoders_plan(){
   step multimon-ng 0 cmake_dep multimon-ng -DX11_SUPPORT=OFF -DPULSE_AUDIO_SUPPORT=OFF -DSDL3_SCOPE=OFF -DBUILD_GEN_NG=OFF
   step csdr-skimmer 0 b_skimmer
   step rtl_433 0 cmake_dep rtl_433 -DENABLE_SOAPYSDR=AUTO -DENABLE_RTLSDR=AUTO
+  step hamlib 0 b_hamlib
   step direwolf 0 b_direwolf
   step codec2 0 b_codec2
   step m17 0 cmake_dep m17
   step msk144 0 b_msk144
   step dablin 0 cmake_dep dablin
   step aprs-symbols 0 b_aprs
-  step hamlib 0 b_hamlib
   step sonde-decoders 0 b_sonde
   step satdump 0 b_satdump
   step whisper 0 b_whisper
   step dxlaprs 0 b_dxlaprs
-  step wsjtx 0 cmake_dep wsjtx -DWSJT_SKIP_MAP65=ON -DWSJT_BUILD_UTILS=OFF -DWSJT_SKIP_MANPAGES=ON
+  step wsjtx 0 cmake_dep wsjtx -DWSJT_GENERATE_DOCS=OFF -DWSJT_SKIP_MAP65=ON -DWSJT_BUILD_UTILS=OFF -DWSJT_SKIP_MANPAGES=ON
   step js8call 0 cmake_dep js8call
   step fdkaac 0 b_fdkaac
   step dream 0 b_dream
@@ -460,7 +492,7 @@ receivers_plan(){
   step hackrf 0 b_hackrf; step soapyhackrf 0 cmake_dep soapyhackrf
   step airspy 0 cmake_dep airspy; step soapyairspy 0 cmake_dep soapyairspy
   step airspyhf 0 cmake_dep airspyhf; step soapyairspyhf 0 cmake_dep soapyairspyhf
-  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DWITH_IIOD=OFF -DWITH_LOCAL_CONFIG=OFF
+  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DWITH_IIOD=OFF -DWITH_LOCAL_CONFIG=OFF -DINSTALL_UDEV_RULE=OFF
   step libad9361 0 b_libad9361; step soapypluto 0 b_soapypluto
   step limesuite 0 cmake_dep limesuite -DENABLE_EXAMPLES=OFF -DENABLE_DESKTOP=OFF -DENABLE_QUICKTEST=OFF -DENABLE_OCTAVE=OFF -DENABLE_GUI=OFF
   step soapyremote 0 cmake_dep soapyremote; step soapyfcdpp 0 cmake_dep soapyfcdpp
@@ -469,7 +501,7 @@ receivers_plan(){
   step uhd 0 b_uhd; step soapyuhd 0 cmake_dep soapyuhd
   step libmirisdr 0 cmake_dep libmirisdr; step soapymiri 0 cmake_dep soapymiri
   step soapyafedri 0 b_soapyafedri; step soapyiqfile 0 cmake_dep soapyiqfile
-  step soapymalahit 0 cmake_dep soapymalahit; step hydrasdr-host 0 b_hydrasdr_host; step soapyhydra 0 cmake_dep soapyhydra
+  step libgpiod1 0 b_libgpiod1; step soapymalahit 0 cmake_dep soapymalahit; step hydrasdr-host 0 b_hydrasdr_host; step soapyhydra 0 cmake_dep soapyhydra
   step soapyelad 0 b_soapyelad; step soapysx 0 b_soapysx
   step radioberry 0 b_radioberry; step soapysdrplay 0 b_sdrplay
   step extio_sddc 0 cmake_dep extio_sddc; step sddc_connector 0 b_sddc
