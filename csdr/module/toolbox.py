@@ -33,10 +33,10 @@ class FskUartModule(ThreadModule):
     """
     Demodulates 2-FSK audio into asynchronous UART characters and outputs
     one line per frame (characters separated by an inter-character gap),
-    formatted as "<data bits> <hex characters>".
+    formatted as "<data bits> <comma-separated character start samples> <hex characters>".
     """
     def __init__(self, sampleRate: int, baudRate: float = 1200, markFreq: float = 1300, spaceFreq: float = 2100):
-        self.decoder = FskUartDecoder(sampleRate, baudRate, markFreq, spaceFreq)
+        self.decoder = FskUartDecoder(sampleRate, baudRate, markFreq, spaceFreq, withTiming=True)
         super().__init__()
 
     def getInputFormat(self) -> Format:
@@ -54,7 +54,8 @@ class FskUartModule(ThreadModule):
             frames = self.decoder.process(array("f", data.tobytes()))
             if frames:
                 self.writer.write(b"".join(
-                    b"%d %s\n" % (bits, frame.hex().encode()) for bits, frame in frames
+                    b"%d %s %s\n" % (bits, ",".join(map(str, starts)).encode(), frame.hex().encode())
+                    for bits, frame, starts in frames
                 ))
 
 
