@@ -960,7 +960,7 @@ class FeatureDetector(object):
         traffic at the map. You can install the `aprs-symbols` package
         from the OpenWebRX repositories.
         """
-        return os.path.isdir("/usr/share/aprs-symbols")
+        return os.path.isdir(CoreConfig().get_aprs_symbols_path())
 
     def has_tetrarx(self):
         """
