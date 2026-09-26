@@ -61,10 +61,14 @@ dep m17 https://github.com/mobilinkd/m17-cxx-demod.git 9b8cec24d3f8d5e9f7f6e9c23
 dep msk144 https://github.com/alexander-sholohov/msk144decoder.git 761d0b3a61cde664d4c25b1c6ff1d9c0e395af23 main
 dep dablin https://github.com/Opendigitalradio/dablin.git 96ae480f7ff6c20c9c3cdbcc35c80cf88f5ab750 master
 dep aprs-symbols https://github.com/hessu/aprs-symbols.git master master
-dep wsjtx https://github.com/WSJTX/wsjtx.git master master
-dep js8call https://github.com/JS8Call-improved/JS8Call-improved.git master master
-dep dream https://github.com/wwek/dream.git main main
+dep wsjtx https://github.com/WSJTX/wsjtx.git v3.0.2 master
+dep js8call https://github.com/js8call/js8call.git v2.3.1 main
+dep dream https://github.com/wwek/dream.git v2.2.4 main
 dep rade https://github.com/peterbmarks/radae_decoder.git main main
+dep hamlib https://github.com/Hamlib/Hamlib.git 50b2a9310edc4a481d8a6ef10e948ea8554f97f9 master
+dep sonde-decoders https://github.com/projecthorus/radiosonde_auto_rx.git 53d03c72ad18ce4357c0cedd1f4acf2bf1efb36e master
+dep satdump https://github.com/SatDump/SatDump.git f3d82adbfe04e57c596b93479d687f4b830ee26c master
+dep whisper https://github.com/ggml-org/whisper.cpp.git d09f61a708f3487afa956ff578e60eae5e7a233c master
 
 # Receiver backends supported by current OpenWebRX+.
 dep hackrf https://github.com/greatscottgadgets/hackrf.git master master
