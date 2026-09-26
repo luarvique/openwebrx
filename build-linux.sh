@@ -31,6 +31,7 @@ declare -A URL REF BRANCH
 dep(){ URL["$1"]="$2"; REF["$1"]="$3"; BRANCH["$1"]="${4:-}"; }
 
 # Locked integration revisions. OWRX_LATEST=1 switches to the named branch.
+dep fftw https://github.com/FFTW/fftw3.git 7184fc796279cfa70e4ba62519ac2938054584e6 master
 dep rtl-sdr https://github.com/osmocom/rtl-sdr.git 797f8143266d983c56d8f35d2d442527529dd8a5 master
 dep soapysdr https://github.com/pothosware/SoapySDR.git 1551ea0d39ce546b32a15808b9b1241018a89fc8 master
 dep soapyrtlsdr https://github.com/pothosware/SoapyRTLSDR.git 6ca357c15cbf676ff30eb8eb445d1e1eac17c136 master
@@ -290,6 +291,17 @@ step(){
 }
 
 # Core
+b_fftw(){
+  source_prepare fftw || return 1
+  rm -rf "$BLD/fftw-double" "$BLD/fftw-float"
+  cmake -S "$SRC/fftw" -B "$BLD/fftw-double" -G "$GENERATOR"     -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib     -DBUILD_SHARED_LIBS=ON -DBUILD_TESTS=OFF -DENABLE_THREADS=ON     -DENABLE_FLOAT=OFF -DDISABLE_FORTRAN=ON || return 1
+  cmake --build "$BLD/fftw-double" --parallel "$JOBS" || return 1
+  cmake --install "$BLD/fftw-double" || return 1
+  cmake -S "$SRC/fftw" -B "$BLD/fftw-float" -G "$GENERATOR"     -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib     -DBUILD_SHARED_LIBS=ON -DBUILD_TESTS=OFF -DENABLE_THREADS=ON     -DENABLE_FLOAT=ON -DDISABLE_FORTRAN=ON || return 1
+  cmake --build "$BLD/fftw-float" --parallel "$JOBS" || return 1
+  cmake --install "$BLD/fftw-float" || return 1
+}
+
 b_rtlsdr(){ cmake_dep rtl-sdr -DDETACH_KERNEL_DRIVER=ON -DINSTALL_UDEV_RULES=OFF; }
 b_soapy(){ cmake_dep soapysdr -DENABLE_PYTHON=OFF -DENABLE_TESTS=OFF; }
 b_pycsdr(){ pip_dep pycsdr; install -d "$PREFIX/include/pycsdr"; for h in pycsdr.hpp reader.hpp writer.hpp source.hpp sink.hpp module.hpp buffer.hpp bufferreader.hpp; do install -m0644 "$SRC/pycsdr/src/$h" "$PREFIX/include/pycsdr/$h"; done; }
@@ -334,6 +346,7 @@ b_hpsdr(){ source_prepare hpsdrconnector; command -v go >/dev/null || return 1; 
 b_rockprog(){ source_prepare rockprog || return 1; (cd "$SRC/rockprog"; make clean || true; make -j"$JOBS"; install -Dm755 rockprog "$PREFIX/bin/rockprog"); }
 
 core_plan(){
+  step fftw 1 b_fftw
   step rtl-sdr 1 b_rtlsdr
   step soapysdr 1 b_soapy
   step soapyrtlsdr 0 cmake_dep soapyrtlsdr
