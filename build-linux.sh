@@ -80,7 +80,7 @@ dep airspy https://github.com/airspy/airspyone_host.git fc61ab6be57ed61f0e2bdd9c
 dep soapyairspy https://github.com/pothosware/SoapyAirspy.git master master
 dep airspyhf https://github.com/airspy/airspyhf.git 24fe8ffcb00b14f827268bbad89ae1392de055e5 master
 dep soapyairspyhf https://github.com/pothosware/SoapyAirspyHF.git master master
-dep libiio https://github.com/analogdevicesinc/libiio.git 9a929664fd3effa500430626803ac59ecf2f4ed3 main
+dep libiio https://github.com/analogdevicesinc/libiio.git b6028fdeef888ab45f7c1dd6e4ed9480ae4b55e3 main
 dep libad9361 https://github.com/analogdevicesinc/libad9361-iio.git 486e0ad4da422760a8338a8582caf5783691c808 main
 dep soapypluto https://github.com/pothosware/SoapyPlutoSDR.git 6d93ba806e4b2d2e1c5c70c9ba82027b37bdb257 master
 dep limesuite https://github.com/myriadrf/LimeSuite.git 699d05b7212aa612a9802c219dd6621be88c77db master
@@ -95,7 +95,7 @@ dep libmirisdr https://github.com/ericek111/libmirisdr-5.git master master
 dep soapymiri https://github.com/ericek111/SoapyMiri.git main main
 dep soapyafedri https://github.com/alexander-sholohov/SoapyAfedri.git 86d152cb87f56a16fb05dda2311de88b3fb06918 master
 dep soapyiqfile https://github.com/utn-ba-rf-lab/SoapyIQFile.git main main
-dep soapymalahit https://github.com/luarvique/SoapyMalahitR1.git master master
+dep soapymalahit https://github.com/luarvique/SoapyMalahitRR.git 21dd5b2a539b726388b5127150f8b92b3e775d64 main
 dep hydrasdr-host https://github.com/hydrasdr/hydrasdr-host.git 16942cbcbde47198abc6b7968c700ed0cbb8cc87 master
 dep soapyhydra https://github.com/hydrasdr/SoapyHydraSDR.git 77b6ae2929830e8a01a0e8efa69e44d6ac438cde main
 dep soapyelad https://github.com/DisagioDigitale/SoapyELAD.git 52dcf720a3d0a585bfe613a4e7b825dd07008a19 main
@@ -104,7 +104,7 @@ dep radioberry https://github.com/pa3gsb/Radioberry-2.x.git master master
 dep soapysdrplay https://github.com/luarvique/SoapySDRPlay3.git master master
 dep extio_sddc https://github.com/ik1xpv/ExtIO_sddc.git master master
 dep sddc_connector https://github.com/jketterl/sddc_connector.git master master
-dep runds_connector https://github.com/jketterl/runds_connector.git 431533f0c40bbfadd33eda35641f111c5d838854 develop
+dep runds_connector https://github.com/jketterl/runds_connector.git 06ca993a3c81ddb0a2581b1474895da07752a9e1 develop
 dep hpsdrconnector https://github.com/jancona/hpsdrconnector.git master master
 dep rockprog https://github.com/0xAF/rockprog-linux.git abe1440cff90a69e297fe7f3f16866d6555a2058 master
 
@@ -129,8 +129,8 @@ install_system_deps(){
         libboost_program_options-devel libboost_filesystem-devel libboost_regex-devel libboost_log-devel libboost_serialization-devel
         libsndfile-devel libao-devel libxml2-devel libconfig-devel libjansson-devel libcurl-devel "pkgconfig(openssl)" ncurses-devel
         alsa-devel libpulse-devel "pkgconfig(sdl2)" "pkgconfig(libmpg123)" libfaad-devel "pkgconfig(hidapi-libusb)" avahi-devel "pkgconfig(zlib)"
-        libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel
-        libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel
+        libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel libpng16-devel armadillo-devel
+        libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel libqt5-linguist-devel
         qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cJSON-devel)
       ;;
     apt)
@@ -181,7 +181,7 @@ env_setup(){
   export LDFLAGS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib -Wl,-rpath,$PREFIX/lib64 ${LDFLAGS:-}"
   export CMAKE_BUILD_PARALLEL_LEVEL="$JOBS"
   python -m pip install -q --upgrade pip setuptools wheel packaging
-  python -m pip install -q --upgrade paho-mqtt meshtastic pycryptodome
+  python -m pip install -q --upgrade paho-mqtt meshtastic pycryptodome mako numpy ruamel.yaml
 }
 
 source_prepare(){
@@ -370,6 +370,14 @@ b_dump978(){ source_prepare dump978; (cd "$SRC/dump978"; make clean; make -j"$JO
 b_skimmer(){ source_prepare csdr-skimmer; (cd "$SRC/csdr-skimmer"; make clean || true; make -j"$JOBS" INCDIRS="-I$PREFIX/include" LIBDIRS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib"; install -Dm755 csdr-cwskimmer "$PREFIX/bin/csdr-cwskimmer"; install -Dm755 csdr-rttyskimmer "$PREFIX/bin/csdr-rttyskimmer"); }
 b_nrsc5(){ source_prepare nrsc5; cmake_build nrsc5 "$SRC/nrsc5" -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_RTLSDR=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DFAAD2_CMAKE_ARGS=-DCMAKE_INSTALL_LIBDIR=lib -DBUILD_CLI=ON; }
 b_codec2(){ cmake_dep codec2 -DUNITTEST=OFF; local f; f="$(find "$BLD/codec2" -type f -name freedv_rx -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/freedv_rx"; }
+
+b_msk144(){
+  source_prepare msk144 || return 1
+  rm -rf "$BLD/msk144"
+  cmake -S "$SRC/msk144" -B "$BLD/msk144" -G "Unix Makefiles"     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_INSTALL_PREFIX="$PREFIX"     -DCMAKE_INSTALL_LIBDIR=lib     -DCMAKE_INSTALL_RPATH="$PREFIX/lib;$PREFIX/lib64"     -DCMAKE_PREFIX_PATH="$PREFIX" || return 1
+  cmake --build "$BLD/msk144" --parallel "$JOBS" || return 1
+  cmake --install "$BLD/msk144" || return 1
+}
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
 b_rade(){ source_prepare rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
 b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" --disable-static CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
@@ -431,7 +439,7 @@ decoders_plan(){
   step direwolf 0 b_direwolf
   step codec2 0 b_codec2
   step m17 0 cmake_dep m17
-  step msk144 0 cmake_dep msk144
+  step msk144 0 b_msk144
   step dablin 0 cmake_dep dablin
   step aprs-symbols 0 b_aprs
   step hamlib 0 b_hamlib
