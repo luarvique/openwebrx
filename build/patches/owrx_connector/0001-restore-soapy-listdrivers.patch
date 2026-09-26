@@ -57,7 +57,7 @@ diff --git a/src/app/soapy_connector.cpp b/src/app/soapy_connector.cpp
 diff --git a/src/app/soapy_connector.hpp b/src/app/soapy_connector.hpp
 --- a/src/app/soapy_connector.hpp
 +++ b/src/app/soapy_connector.hpp
-@@ -35,5 +35,6 @@ class SoapyConnector: public Connector {
+@@ -36,4 +36,5 @@ class SoapyConnector: public Connector {
          int receive_option(int c, char* optarg) override;
          int setAntenna(std::string antenna);
          int setSettings(std::string settings);
