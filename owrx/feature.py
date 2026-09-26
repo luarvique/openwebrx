@@ -8,6 +8,7 @@ from owrx.config.core import CoreConfig
 from owrx.config import Config
 import shlex
 import os
+import shutil
 from datetime import datetime, timedelta
 
 import logging
@@ -329,42 +330,106 @@ class FeatureDetector(object):
         return self._check_owrx_connector("soapy_connector")
 
     def _has_soapy_driver(self, driver):
-        # Preferred path: connector revisions that expose their Soapy registry.
+        """
+        Check whether a SoapySDR factory/module is installed.
+
+        OpenWebRX only needs to know whether the driver plugin is present; it
+        must not require the corresponding hardware to be attached during
+        feature detection. Different SoapySDR/owrx_connector versions expose
+        their registry in slightly different ways, so use three independent
+        discovery paths.
+        """
+        wanted = driver.lower()
+
+        # Preferred path when supported by owrx_connector.
         try:
             process = subprocess.run(
                 ["soapy_connector", "--listdrivers"],
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                timeout=5,
+                stderr=subprocess.STDOUT,
+                timeout=15,
                 check=False,
                 text=True,
             )
-            drivers = [line.strip() for line in process.stdout.splitlines()]
-            if driver in drivers:
+            drivers = set()
+            for line in process.stdout.splitlines():
+                for item in re.split(r"[,\\s]+", line.strip()):
+                    if item:
+                        drivers.add(item.lower())
+            if wanted in drivers:
                 return True
         except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
             pass
 
-        # Some newer owrx_connector development revisions do not implement
-        # --listdrivers. SoapySDR itself can still report the plugin factories,
-        # which is the capability this check is intended to test.
+        # SoapySDRUtil reports both loaded modules and registered factories.
+        # Parse the complete output instead of depending on exact line starts
+        # because some builds prepend whitespace/logging text.
+        util_output = ""
         try:
             process = subprocess.run(
                 ["SoapySDRUtil", "--info"],
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                timeout=5,
+                timeout=15,
                 check=False,
                 text=True,
             )
-            for line in process.stdout.splitlines():
-                if line.startswith("Available factories..."):
-                    factories = [item.strip() for item in line.split("...", 1)[1].split(",")]
-                    return driver in factories
+            util_output = re.sub(r"\\x1b\\[[0-9;]*m", "", process.stdout)
+            match = re.search(
+                r"Available factories\\.\\.\\.\\s*([^\\r\\n]+)",
+                util_output,
+                re.IGNORECASE,
+            )
+            if match is not None:
+                factories = {
+                    item.strip().lower()
+                    for item in match.group(1).split(",")
+                    if item.strip()
+                }
+                if wanted in factories:
+                    return True
         except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
             pass
+
+        # Final fallback: source builds install plugins below the same private
+        # prefix as SoapySDRUtil. This verifies module installation without
+        # probing for hardware and also works when a plugin fails to enumerate.
+        module_aliases = {
+            "rtlsdr": ("rtlsdrsupport",),
+            "sdrplay": ("sdrplaysupport",),
+            "sx": ("soapysx", "sxsupport"),
+            "elad": ("eladsupport",),
+            "soapymiri": ("soapymirisupport",),
+            "malahitrr": ("malahitrr", "malahitsupport"),
+            "hackrf": ("hackrfsupport",),
+            "airspy": ("airspysupport",),
+            "airspyhf": ("airspyhfsupport",),
+            "hydrasdr": ("hydrasdrsupport",),
+            "afedri": ("afedrisupport",),
+            "lime": ("lms7support", "limesupport"),
+            "plutosdr": ("plutosdrsupport", "plutosupport"),
+            "remote": ("remotesupport",),
+            "uhd": ("uhdsupport",),
+            "radioberry": ("radioberrysupport",),
+            "fcdpp": ("fcdppsupport",),
+            "bladerf": ("bladerfsupport",),
+            "iqfile": ("iqfile",),
+            "sddc": ("sddcsupport",),
+        }
+
+        util = shutil.which("SoapySDRUtil")
+        if util is not None:
+            prefix = os.path.dirname(os.path.dirname(os.path.realpath(util)))
+            module_root = os.path.join(prefix, "lib", "SoapySDR")
+            aliases = module_aliases.get(wanted, ())
+            if os.path.isdir(module_root):
+                for root, _, files in os.walk(module_root):
+                    for filename in files:
+                        normalized = re.sub(r"[^a-z0-9]", "", filename.lower())
+                        if any(alias in normalized for alias in aliases):
+                            return True
 
         return False
 
@@ -881,7 +946,7 @@ class FeatureDetector(object):
         )
         try:
             process = subprocess.run(
-                ["acarsdec"],
+                ["acarsdec", "-h"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 timeout=5,
