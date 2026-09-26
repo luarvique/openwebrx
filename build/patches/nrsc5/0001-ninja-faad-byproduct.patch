@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 295df75..0000000 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -191,6 +191,7 @@ if (USE_FAAD2)
+             GIT_REPOSITORY "https://github.com/knik0/faad2.git"
+             GIT_TAG 2.11.2
+             PREFIX ${FAAD2_PREFIX}
++            BUILD_BYPRODUCTS ${FAAD2_PREFIX}/lib/libfaad_hdc.a
+ 
+             UPDATE_COMMAND ""
+             PATCH_COMMAND patch -p1 -Ni "${CMAKE_SOURCE_DIR}/support/faad2-hdc-support.patch" || exit 0
