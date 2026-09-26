@@ -64,7 +64,7 @@ dep aprs-symbols https://github.com/hessu/aprs-symbols.git master master
 dep wsjtx https://github.com/WSJTX/wsjtx.git v3.0.2 master
 dep js8call https://github.com/js8call/js8call.git v2.3.1 main
 dep dream https://github.com/wwek/dream.git v2.2.4 main
-dep rade https://github.com/peterbmarks/radae_decoder.git main main
+dep rade https://github.com/peterbmarks/radae_decoder.git baff453880f89bbfb7cb28f3caa8cb6b83410ee4 main
 dep hamlib https://github.com/Hamlib/Hamlib.git 50b2a9310edc4a481d8a6ef10e948ea8554f97f9 master
 dep sonde-decoders https://github.com/projecthorus/radiosonde_auto_rx.git 53d03c72ad18ce4357c0cedd1f4acf2bf1efb36e master
 dep satdump https://github.com/SatDump/SatDump.git f3d82adbfe04e57c596b93479d687f4b830ee26c master
@@ -81,7 +81,7 @@ dep airspyhf https://github.com/airspy/airspyhf.git 24fe8ffcb00b14f827268bbad89a
 dep soapyairspyhf https://github.com/pothosware/SoapyAirspyHF.git master master
 dep libiio https://github.com/analogdevicesinc/libiio.git 9a929664fd3effa500430626803ac59ecf2f4ed3 main
 dep libad9361 https://github.com/analogdevicesinc/libad9361-iio.git 486e0ad4da422760a8338a8582caf5783691c808 main
-dep soapypluto https://github.com/pothosware/SoapyPlutoSDR.git master master
+dep soapypluto https://github.com/pothosware/SoapyPlutoSDR.git 6d93ba806e4b2d2e1c5c70c9ba82027b37bdb257 master
 dep limesuite https://github.com/myriadrf/LimeSuite.git 699d05b7212aa612a9802c219dd6621be88c77db master
 dep soapyremote https://github.com/pothosware/SoapyRemote.git master master
 dep soapyfcdpp https://github.com/pothosware/SoapyFCDPP.git master master
@@ -92,7 +92,7 @@ dep uhd https://github.com/EttusResearch/uhd.git master master
 dep soapyuhd https://github.com/pothosware/SoapyUHD.git master master
 dep libmirisdr https://github.com/ericek111/libmirisdr-5.git master master
 dep soapymiri https://github.com/ericek111/SoapyMiri.git main main
-dep soapyafedri https://github.com/alexander-sholohov/SoapyAfedri.git master master
+dep soapyafedri https://github.com/alexander-sholohov/SoapyAfedri.git 86d152cb87f56a16fb05dda2311de88b3fb06918 master
 dep soapyiqfile https://github.com/utn-ba-rf-lab/SoapyIQFile.git main main
 dep soapymalahit https://github.com/luarvique/SoapyMalahitR1.git master master
 dep hydrasdr-host https://github.com/hydrasdr/hydrasdr-host.git 16942cbcbde47198abc6b7968c700ed0cbb8cc87 master
@@ -103,7 +103,7 @@ dep radioberry https://github.com/pa3gsb/Radioberry-2.x.git master master
 dep soapysdrplay https://github.com/luarvique/SoapySDRPlay3.git master master
 dep extio_sddc https://github.com/ik1xpv/ExtIO_sddc.git master master
 dep sddc_connector https://github.com/jketterl/sddc_connector.git master master
-dep runds_connector https://github.com/jketterl/runds_connector.git develop develop
+dep runds_connector https://github.com/jketterl/runds_connector.git 431533f0c40bbfadd33eda35641f111c5d838854 develop
 dep hpsdrconnector https://github.com/jancona/hpsdrconnector.git master master
 dep rockprog https://github.com/0xAF/rockprog-linux.git master master
 
