@@ -68,7 +68,11 @@ class SessionController(WebpageController):
                     cookie["owrx-session"] = key
                     target = self.request.query["ref"][0] if "ref" in self.request.query else "/settings"
                     if user.must_change_password:
+                        # force password change
                         target = "/pwchange?{0}".format(urlencode({"ref": target}))
+                    elif not target.startswith("/"):
+                        # prevent redirecting to external URL
+                        target = "/settings"
                     self.set_response_cookies(cookie)
                     self.send_redirect(target)
                     return
