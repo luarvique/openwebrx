@@ -43,7 +43,7 @@ def parse_soapy_factories(output):
     match = _FACTORIES.search(_ANSI.sub("", output))
     if match is None:
         return None
-    return frozenset(item.strip().casefold() for item in match.group(1).split(",") if item.strip())
+    return frozenset(item.strip().casefold() for item in match.group(1).split(",") if re.fullmatch(r"[A-Za-z0-9_-]+", item.strip()))
 
 
 def soapy_registry():

@@ -57,7 +57,8 @@ def whisper_health(inference_url):
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({})) if url.hostname in ("127.0.0.1", "::1", "localhost") else urllib.request.build_opener()
     try:
         with opener.open(health_url, timeout=1) as response:
-            return response.status == 200 and json.load(response).get("status") == "ok"
+            payload = json.loads(response.read(4096))
+            return response.status == 200 and isinstance(payload, dict) and payload.get("status") == "ok"
     except (OSError, ValueError, urllib.error.URLError):
         return False
 
@@ -165,7 +166,10 @@ class Services:
             return
         model = Path(self.args.model)
         binary = self.prefix / "bin/whisper-server"
-        if not os.access(binary, os.X_OK) or not model.is_file():
+        if self.args.model_name == "none":
+            self.warn("Managed Whisper is disabled by OWRX_WHISPER_MODEL=none")
+            return
+        if not os.access(binary, os.X_OK) or not model.is_file() or not model.stat().st_size:
             self.warn("Local Whisper needs both whisper-server and its model file")
             return
         address = urlsplit(configured)

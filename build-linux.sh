@@ -309,10 +309,38 @@ declare -A BUILD_REV=(
 )
 
 stamp(){
-  local rev="${BUILD_REV[$1]:-2}"
-  printf '%s|latest=%s|v=%s\n' "${REF[$1]:-repo}" "$LATEST" "$rev"
+  local n="$1" rev="${BUILD_REV[$1]:-2}" p
+  printf '%s|latest=%s|v=%s' "${REF[$1]:-repo}" "$LATEST" "$rev"
+  # A patch edit must invalidate the old binary, even at the same upstream ref.
+  for p in "$ROOT/build/patches/$n"/*.patch; do
+    [[ -f "$p" ]] || continue
+    printf '|patch=%s' "$(sha256sum "$p" | cut -d ' ' -f1)"
+  done
+  if [[ "$n" == tetrarx ]]; then
+    for p in "$ROOT/build/non-git-patches"/tetra-*.patch; do
+      [[ -f "$p" ]] || continue
+      printf '|patch=%s' "$(sha256sum "$p" | cut -d ' ' -f1)"
+    done
+  fi
+  [[ "$n" != whisper ]] || printf '|model=%s' "$WHISPER_MODEL_NAME"
+  printf '\n'
 }
-donep(){ [[ "$FORCE" != 1 && -f "$STATE/$1.ok" && "$(cat "$STATE/$1.ok")" == "$(stamp "$1")" ]]; }
+validate_component(){
+  "$VENV/bin/python" "$ROOT/build/check-component.py" "$1" "$PREFIX" "$WHISPER_MODEL_NAME"
+}
+donep(){
+  [[ "$FORCE" != 1 && -f "$STATE/$1.ok" && "$(cat "$STATE/$1.ok")" == "$(stamp "$1")" ]] || return 1
+  validate_component "$1" >/dev/null 2>&1
+}
+clear_component_status(){
+  local n="$1" f
+  for f in "$STATE/optional-failures.txt" "$STATE/optional-skips.txt"; do
+    [[ -f "$f" ]] || continue
+    awk -v component="$n" '$0 != component' "$f" >"$f.tmp"
+    mv "$f.tmp" "$f"
+  done
+  rm -f "$STATE/$n.skip"
+}
 
 skip_component(){
   local n="$1"; shift
@@ -324,22 +352,30 @@ skip_component(){
 
 step(){
   local n="$1" required="$2"; shift 2
-  donep "$n" && { ok "$n already built"; return; }
-  info "Building $n"; rm -f "$STATE/$n.ok" "$LOG/$n.log"; set +e; ( set -Eeuo pipefail; "$@" ) 2>&1 | tee "$LOG/$n.log"; local rc=${PIPESTATUS[0]}; set -e
+  if donep "$n"; then clear_component_status "$n"; ok "$n already built (verified)"; return 0; fi
+  clear_component_status "$n"
+  # Never leave a stale success marker after a failed forced/repaired build.
+  rm -f "$STATE/$n.ok" "$LOG/$n.log"
+  info "Building $n"
+  set +e
+  ( set -Eeuo pipefail; "$@"; validate_component "$n" ) 2>&1 | tee "$LOG/$n.log"
+  local statuses=("${PIPESTATUS[@]}") rc
+  rc="${statuses[0]}"
+  [[ "${statuses[1]}" == 0 ]] || rc=1
+  set -e
   if [[ $rc -eq 0 ]]; then
-    rm -f "$STATE/$n.skip"
     stamp "$n" >"$STATE/$n.ok"
     ok "$n"
-    return
-  fi
-  if [[ $rc -eq 75 ]]; then
-    rm -f "$STATE/$n.ok"
-    echo "$n" >>"$STATE/optional-skips.txt"
     return 0
   fi
+  if [[ $rc -eq 75 ]]; then
+    echo "$n" >>"$STATE/optional-skips.txt"
+    if [[ "$required" == 1 ]]; then die "$n is required but was skipped"; fi
+    return 0
+  fi
+  echo "$n" >>"$STATE/optional-failures.txt"
   if [[ "$required" == 1 || "$STRICT" == 1 ]]; then die "$n failed; see $LOG/$n.log"; fi
   warn "$n failed; see $LOG/$n.log"
-  echo "$n" >>"$STATE/optional-failures.txt"
 }
 
 # Core
@@ -505,8 +541,8 @@ b_tetrarx(){
   mkdir -p "$d/tetra"
   (
     cd "$d"
-    wget -nv --no-proxy -r -np -nd -l1 "$src_url" || return 1
-    wget -nv --no-proxy -r -np -nd -l1 -P tetra "${src_url}tetra/" || return 1
+    wget -nv --timeout=30 --tries=2 -r -np -nd -l1 "$src_url" || return 1
+    wget -nv --timeout=30 --tries=2 -r -np -nd -l1 -P tetra "${src_url}tetra/" || return 1
 
     # Current GCC rejects the original implicit pointer/integer conversion.
     # Keep this source compatibility adjustment local to the disposable tree.
@@ -514,6 +550,9 @@ b_tetrarx(){
       sed -i 's/return ctime(time0);/return (int32_t)ctime((time_t*)time0);/' osic.c
     fi
 
+    for required in Makefile tetrarx.c viterbi_cch.c conv.c tetra/cdec_tet.c; do
+      [[ -s "$required" ]] || { echo "TETRA source missing after download: $required" >&2; return 1; }
+    done
     cp Makefile Makefile.org
     patch -p0 < "$p" || return 1
     make tetrarx || return 1
@@ -764,7 +803,7 @@ diagnostics(){
 }
 
 build_all(){
-  layout; install_system_deps; env_setup; : >"$STATE/optional-failures.txt"; : >"$STATE/optional-skips.txt"
+  layout; install_system_deps; env_setup; touch "$STATE/optional-failures.txt" "$STATE/optional-skips.txt"
   case "$PROFILE" in
     core) core_plan ;;
     decoders) core_plan; decoders_plan ;;
@@ -794,6 +833,9 @@ Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|diagnostics|f
 Default: full source build into ~/.local/openwebrx-source.
 EOF
 }
+
+# Source only the functions when running offline regression tests.
+[[ "${BASH_SOURCE[0]}" == "$0" ]] || return 0
 
 CMD=build
 while [[ $# -gt 0 ]]; do

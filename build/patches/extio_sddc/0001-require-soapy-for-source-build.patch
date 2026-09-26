@@ -1,0 +1,13 @@
+Subject: Do not silently omit the SDDC Soapy plugin when its SDK is missing
+This source-build integration requests both the native library and Soapy plugin.
+
+--- a/SoapySDDC/CMakeLists.txt
++++ b/SoapySDDC/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ # SoapySDR Lib
+ 
+-find_package(SoapySDR CONFIG)
++find_package(SoapySDR CONFIG REQUIRED)
+ 
+ if (SoapySDR_FOUND)
+ 
