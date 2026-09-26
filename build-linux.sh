@@ -291,6 +291,7 @@ declare -A BUILD_REV=(
   [hamlib]=3
   [libgpiod1]=1
   [uhd]=3
+  [whisper]=3
   [acarsdec]=3
   [codecserver]=3
 )
@@ -834,7 +835,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     build|run|doctor|feature-report|failures|check-refs|check-patches|env|clean|uninstall|help) CMD="$1"; shift ;;
     --profile) PROFILE="$2"; shift 2 ;;
-    --prefix) PREFIX="$2"; VENV="$PREFIX/venv"; CONF="$PREFIX/etc/openwebrx/openwebrx.conf"; DATA="$PREFIX/var/lib/openwebrx"; TMP="$PREFIX/var/tmp"; shift 2 ;;
+    --prefix) PREFIX="$2"; VENV="$PREFIX/venv"; CONF="$PREFIX/etc/openwebrx/openwebrx.conf"; DATA="$PREFIX/var/lib/openwebrx"; TMP="$PREFIX/var/tmp"; WHISPER_DIR="$PREFIX/share/whisper"; WHISPER_MODEL="$WHISPER_DIR/ggml-$WHISPER_MODEL_NAME.bin"; shift 2 ;;
     --latest) LATEST=1; shift ;;
     --force) FORCE=1; shift ;;
     --strict) STRICT=1; shift ;;
