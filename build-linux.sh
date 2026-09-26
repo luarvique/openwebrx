@@ -468,7 +468,7 @@ b_whisper(){
     (cd "$SRC/whisper" && sh models/download-ggml-model.sh "$WHISPER_MODEL_NAME" "$WHISPER_DIR") || return 1
     [[ -s "$WHISPER_MODEL" ]] || { echo "Whisper model missing: $WHISPER_MODEL" >&2; return 1; }
     if [[ "$WHISPER_MODEL_NAME" == "tiny" ]]; then
-      printf '%s  %s\n' "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21" "$WHISPER_MODEL" | sha256sum -c - || return 1
+      printf '%s  %s\n' "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21" "$WHISPER_MODEL" | sha256sum -c - || { rm -f "$WHISPER_MODEL"; return 1; }
     fi
   fi
 }
