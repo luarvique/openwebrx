@@ -129,7 +129,7 @@ install_system_deps(){
         libboost_program_options-devel libboost_filesystem-devel libboost_regex-devel libboost_log-devel libboost_serialization-devel
         libsndfile-devel libao-devel libxml2-devel libconfig-devel libjansson-devel libcurl-devel "pkgconfig(openssl)" ncurses-devel
         alsa-devel libpulse-devel "pkgconfig(sdl2)" "pkgconfig(libmpg123)" libfaad-devel "pkgconfig(hidapi-libusb)" avahi-devel "pkgconfig(zlib)"
-        libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel libpng16-devel armadillo-devel
+        libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel libpng16-devel armadillo-devel nng-devel libzstd-devel libtiff-devel sqlite3-devel
         libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel libqt5-linguist-devel
         qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cJSON-devel)
       ;;
@@ -400,7 +400,7 @@ b_hydrasdr_host(){ cmake_dep hydrasdr-host -DINSTALL_UDEV_RULES=OFF -DENABLE_SHA
 b_soapyelad(){ source_prepare soapyelad || return 1; cmake_build soapyelad "$SRC/soapyelad/src"; }
 b_soapysx(){ source_prepare soapysx || return 1; cmake_build soapysx "$SRC/soapysx/SoapySX"; }
 b_bladerf(){ source_prepare bladerf || return 1; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF; }
-b_uhd(){ source_prepare uhd; cmake_build uhd "$SRC/uhd/host" -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF; }
+b_uhd(){ source_prepare uhd || return 1; cmake_build uhd "$SRC/uhd/host" -DPYTHON_EXECUTABLE="$VENV/bin/python" -DPython3_EXECUTABLE="$VENV/bin/python" -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF; }
 b_radioberry(){ case "$(uname -m)" in arm*|aarch64) source_prepare radioberry; cmake_build radioberry "$SRC/radioberry/SBC/rpi-4/SoapyRadioberrySDR";; *) warn "Radioberry skipped on $(uname -m)";; esac; }
 b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then warn "SDRplay vendor API v3 not installed; wrapper skipped"; return 0; fi; cmake_dep soapysdrplay; }
 b_sddc(){ command -v nvcc >/dev/null || { warn "CUDA/nvcc unavailable; sddc_connector skipped"; return 0; }; cmake_dep sddc_connector; }
@@ -540,7 +540,10 @@ failure_report(){
     echo
     echo "===== $n ====="
     if [[ -f "$LOG/$n.log" ]]; then
-      tail -n 35 "$LOG/$n.log"
+      echo "-- error excerpts --"
+      grep -nE 'FAILED:|CMake Error|(^|[^[:alpha:]])error:|fatal:|undefined reference|multiple rules generate|Permission denied|Unable to resolve|Could NOT find|required packages were not found|Package .* not found' "$LOG/$n.log" | head -n 40 || true
+      echo "-- final 60 lines --"
+      tail -n 60 "$LOG/$n.log"
     else
       echo "No log file: $LOG/$n.log"
     fi
