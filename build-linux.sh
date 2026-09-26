@@ -280,7 +280,7 @@ cmake_dep(){ local n="$1"; shift; source_prepare "$n" || return 1; cmake_build "
 pip_dep(){ source_prepare "$1" || return 1; python -m pip install --no-build-isolation --no-cache-dir "$SRC/$1"; }
 
 declare -A BUILD_REV=(
-  [fftw]=3
+  [fftw]=4
 )
 
 stamp(){
@@ -299,16 +299,51 @@ step(){
 
 # Core
 b_fftw(){
-  source_prepare fftw || return 1
-  rm -f "$PREFIX/lib"/libfftw3*.so* "$PREFIX/lib"/libfftw3*.a "$PREFIX/lib/pkgconfig"/fftw3*.pc 2>/dev/null || true
+  local ver="3.3.10"
+  local sha="56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467"
+  local cache="$WORK/downloads"
+  local archive="$cache/fftw-$ver.tar.gz"
+  local srcdir="$SRC/fftw-$ver"
+
+  mkdir -p "$cache"
+
+  if [[ ! -f "$archive" ]]; then
+    info "Downloading FFTW $ver release tarball"
+    if command -v curl >/dev/null; then
+      curl -fL "https://www.fftw.org/fftw-$ver.tar.gz" -o "$archive.tmp" || return 1
+    elif command -v wget >/dev/null; then
+      wget -O "$archive.tmp" "https://www.fftw.org/fftw-$ver.tar.gz" || return 1
+    else
+      echo "curl or wget is required to fetch FFTW" >&2
+      return 1
+    fi
+    mv "$archive.tmp" "$archive"
+  fi
+
+  printf '%s  %s\n' "$sha" "$archive" | sha256sum -c - || {
+    rm -f "$archive"
+    return 1
+  }
+
+  rm -rf "$srcdir" "$BLD/fftw-double" "$BLD/fftw-float"
+  tar -xzf "$archive" -C "$SRC" || return 1
+
+  # Remove any previously broken FFTW libraries before installing the
+  # validated release builds into the private prefix.
+  rm -f "$PREFIX/lib"/libfftw3*.so* "$PREFIX/lib"/libfftw3*.a         "$PREFIX/lib/pkgconfig"/fftw3*.pc 2>/dev/null || true
+
+  mkdir -p "$BLD/fftw-double"
   (
-    cd "$SRC/fftw"
-    ./bootstrap.sh >/dev/null 2>&1 || autoreconf -fiv
-    ./configure --prefix="$PREFIX" --libdir="$PREFIX/lib" --enable-shared --disable-static --enable-threads --disable-fortran
+    cd "$BLD/fftw-double"
+    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --disable-fortran
     make -j"$JOBS"
     make install
-    make distclean
-    ./configure --prefix="$PREFIX" --libdir="$PREFIX/lib" --enable-shared --disable-static --enable-threads --enable-float --disable-fortran
+  ) || return 1
+
+  mkdir -p "$BLD/fftw-float"
+  (
+    cd "$BLD/fftw-float"
+    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --enable-float       --disable-fortran
     make -j"$JOBS"
     make install
   ) || return 1
