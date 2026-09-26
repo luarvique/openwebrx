@@ -73,7 +73,7 @@ dep dxlaprs https://github.com/oe5hpm/dxlAPRS.git 10bec72314d8fbefc3316054bf737e
 dep fdkaac https://github.com/mstorsjo/fdk-aac.git 7c83d08002332b2730c845eec3497e6bf585dd28 master
 
 # Receiver backends supported by current OpenWebRX+.
-dep hackrf https://github.com/greatscottgadgets/hackrf.git master master
+dep hackrf https://github.com/greatscottgadgets/hackrf.git 7f96cc8e3fa625c4263a71ba8dd44d1f6110e4fa master
 dep soapyhackrf https://github.com/pothosware/SoapyHackRF.git master master
 dep airspy https://github.com/airspy/airspyone_host.git fc61ab6be57ed61f0e2bdd9c6dfae74cacef57d0 master
 dep soapyairspy https://github.com/pothosware/SoapyAirspy.git master master
@@ -96,16 +96,16 @@ dep soapyafedri https://github.com/alexander-sholohov/SoapyAfedri.git 86d152cb87
 dep soapyiqfile https://github.com/utn-ba-rf-lab/SoapyIQFile.git main main
 dep soapymalahit https://github.com/luarvique/SoapyMalahitR1.git master master
 dep hydrasdr-host https://github.com/hydrasdr/hydrasdr-host.git 16942cbcbde47198abc6b7968c700ed0cbb8cc87 master
-dep soapyhydra https://github.com/hydrasdr/SoapyHydraSDR.git main main
-dep soapyelad https://github.com/DisagioDigitale/SoapyELAD.git master master
-dep soapysx https://github.com/tejeez/sxxcvr.git master master
+dep soapyhydra https://github.com/hydrasdr/SoapyHydraSDR.git 77b6ae2929830e8a01a0e8efa69e44d6ac438cde main
+dep soapyelad https://github.com/DisagioDigitale/SoapyELAD.git 52dcf720a3d0a585bfe613a4e7b825dd07008a19 main
+dep soapysx https://github.com/tejeez/sxxcvr.git 9705147dd8c189625071f3f163ea56119bda4a05 main
 dep radioberry https://github.com/pa3gsb/Radioberry-2.x.git master master
 dep soapysdrplay https://github.com/luarvique/SoapySDRPlay3.git master master
 dep extio_sddc https://github.com/ik1xpv/ExtIO_sddc.git master master
 dep sddc_connector https://github.com/jketterl/sddc_connector.git master master
 dep runds_connector https://github.com/jketterl/runds_connector.git 431533f0c40bbfadd33eda35641f111c5d838854 develop
 dep hpsdrconnector https://github.com/jancona/hpsdrconnector.git master master
-dep rockprog https://github.com/0xAF/rockprog-linux.git master master
+dep rockprog https://github.com/0xAF/rockprog-linux.git abe1440cff90a69e297fe7f3f16866d6555a2058 master
 
 layout(){ mkdir -p "$SRC" "$BLD" "$STATE" "$LOG" "$PREFIX"/{bin,lib,include,share,etc,var} "$(dirname "$CONF")" "$DATA" "$TMP"; }
 
@@ -124,13 +124,13 @@ install_system_deps(){
     zypper)
       sudo_run zypper --non-interactive refresh
       pkgs=(git cmake make ninja meson gcc gcc-c++ gcc-fortran autoconf automake libtool patch pkgconf python3 python3-devel python3-pip curl wget go
-        libusb-1_0-devel fftw3-devel fftw3-threads-devel libsamplerate-devel systemd-devel protobuf-devel libicu-devel boost-devel
+        libusb-1_0-devel fftw3-devel libfftw3_threads3 libsamplerate-devel systemd-devel protobuf-devel libicu-devel boost-devel
         libboost_program_options-devel libboost_filesystem-devel libboost_regex-devel libboost_log-devel libboost_serialization-devel
-        libsndfile-devel libao-devel libxml2-devel libconfig-devel libjansson-devel libcurl-devel libopenssl-3-devel ncurses-devel
-        alsa-devel libpulse-devel sdl2-compat-devel mpg123-devel libfaad-devel libhidapi-devel avahi-devel zlib-ng-compat-devel
+        libsndfile-devel libao-devel libxml2-devel libconfig-devel libjansson-devel libcurl-devel "pkgconfig(openssl)" ncurses-devel
+        alsa-devel libpulse-devel "pkgconfig(sdl2)" "pkgconfig(libmpg123)" libfaad-devel "pkgconfig(hidapi-libusb)" avahi-devel "pkgconfig(zlib)"
         libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel
         libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel
-        qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cjson-devel)
+        qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cJSON-devel)
       ;;
     apt)
       sudo_run apt-get update
@@ -202,13 +202,14 @@ source_prepare(){
       echo "Unable to resolve dependency ref '$target' for $n" >&2
       return 1
     fi
-    git checkout --detach "$resolved"
-    [[ ! -f .gitmodules ]] || { git submodule sync --recursive; git submodule update --init --recursive; }
+    git checkout --detach "$resolved" || return 1
+    [[ ! -f .gitmodules ]] || { git submodule sync --recursive && git submodule update --init --recursive; } || return 1
+    apply_patches "$n"
   )
 }
 
 apply_patches(){
-  local n="$1" d="$SRC/$1" patchdir="$ROOT/source-build/patches/$1" p
+  local n="$1" d="$SRC/$1" patchdir="$ROOT/build/patches/$1" p
   [[ -d "$patchdir" ]] || return 0
   for p in "$patchdir"/*.patch; do
     [[ -f "$p" ]] || continue
@@ -274,8 +275,8 @@ cmake_build(){
   cmake --build "$BLD/$n" --parallel "$JOBS" || return 1
   cmake --install "$BLD/$n" || return 1
 }
-cmake_dep(){ local n="$1"; shift; source_prepare "$n"; cmake_build "$n" "$SRC/$n" "$@"; }
-pip_dep(){ source_prepare "$1"; python -m pip install --no-build-isolation --no-cache-dir "$SRC/$1"; }
+cmake_dep(){ local n="$1"; shift; source_prepare "$n" || return 1; cmake_build "$n" "$SRC/$n" "$@"; }
+pip_dep(){ source_prepare "$1" || return 1; python -m pip install --no-build-isolation --no-cache-dir "$SRC/$1"; }
 
 stamp(){ printf '%s|latest=%s|v=2\n' "${REF[$1]:-repo}" "$LATEST"; }
 donep(){ [[ "$FORCE" != 1 && -f "$STATE/$1.ok" && "$(cat "$STATE/$1.ok")" == "$(stamp "$1")" ]]; }
@@ -294,17 +295,17 @@ b_soapy(){ cmake_dep soapysdr -DENABLE_PYTHON=OFF -DENABLE_TESTS=OFF; }
 b_pycsdr(){ pip_dep pycsdr; install -d "$PREFIX/include/pycsdr"; for h in pycsdr.hpp reader.hpp writer.hpp source.hpp sink.hpp module.hpp buffer.hpp bufferreader.hpp; do install -m0644 "$SRC/pycsdr/src/$h" "$PREFIX/include/pycsdr/$h"; done; }
 b_codecserver(){ source_prepare codecserver; patch_codecserver; cmake_build codecserver "$SRC/codecserver"; install -d "$PREFIX/etc/codecserver"; install -m0644 "$SRC/codecserver/conf/codecserver.conf" "$PREFIX/etc/codecserver/codecserver.conf"; }
 b_js8py(){ source_prepare js8py; patch_js8py; python -m pip install --no-build-isolation --no-cache-dir "$SRC/js8py"; }
-b_pydigiham(){ source_prepare pydigiham; apply_patches pydigiham; python -m pip install --no-build-isolation --no-cache-dir "$SRC/pydigiham"; }
+b_pydigiham(){ source_prepare pydigiham; python -m pip install --no-build-isolation --no-cache-dir "$SRC/pydigiham"; }
 
 # Decoder special cases
 b_redsea(){ source_prepare redsea; rm -rf "$BLD/redsea"; meson setup "$BLD/redsea" "$SRC/redsea" --prefix="$PREFIX" --libdir=lib --buildtype=release -Dbuild_tests=false; meson compile -C "$BLD/redsea" -j "$JOBS"; meson install -C "$BLD/redsea"; }
 b_dump1090(){ source_prepare dump1090; (cd "$SRC/dump1090"; make clean; make -j"$JOBS" dump1090 RTLSDR=no BLADERF=no HACKRF=no LIMESDR=no SOAPYSDR=no DUMP1090_VERSION="$(git describe --tags --always --dirty)"; install -Dm755 dump1090 "$PREFIX/bin/dump1090"); }
 b_dump978(){ source_prepare dump978; (cd "$SRC/dump978"; make clean; make -j"$JOBS" dump978-fa; install -Dm755 dump978-fa "$PREFIX/bin/dump978"); }
 b_skimmer(){ source_prepare csdr-skimmer; (cd "$SRC/csdr-skimmer"; make clean || true; make -j"$JOBS" INCDIRS="-I$PREFIX/include" LIBDIRS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib"; install -Dm755 csdr-cwskimmer "$PREFIX/bin/csdr-cwskimmer"; install -Dm755 csdr-rttyskimmer "$PREFIX/bin/csdr-rttyskimmer"); }
-b_nrsc5(){ source_prepare nrsc5; apply_patches nrsc5; cmake_build nrsc5 "$SRC/nrsc5" -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_RTLSDR=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DFAAD2_CMAKE_ARGS=-DCMAKE_INSTALL_LIBDIR=lib -DBUILD_CLI=ON; }
+b_nrsc5(){ source_prepare nrsc5; cmake_build nrsc5 "$SRC/nrsc5" -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_RTLSDR=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DFAAD2_CMAKE_ARGS=-DCMAKE_INSTALL_LIBDIR=lib -DBUILD_CLI=ON; }
 b_codec2(){ cmake_dep codec2 -DUNITTEST=OFF; local f; f="$(find "$BLD/codec2" -type f -name freedv_rx -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/freedv_rx"; }
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
-b_rade(){ source_prepare rade; apply_patches rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
+b_rade(){ source_prepare rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
 b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" --disable-static CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
 b_sonde(){ source_prepare sonde-decoders; (cd "$SRC/sonde-decoders/demod/mod"; make clean || true; make -j"$JOBS"; for x in rs41mod dfm09mod m10mod m20mod mts01mod; do install -Dm755 "$x" "$PREFIX/bin/$x"; done); }
 b_satdump(){ cmake_dep satdump -DBUILD_GUI=OFF -DBUILD_TESTING=OFF -DBUILD_TOOLS=OFF -DBUILD_OPENCL=OFF -DBUILD_DOCS=OFF -DENABLE_CRASHDUMP=OFF -DENABLE_INSTALL=ON; }
@@ -314,23 +315,23 @@ b_fdkaac(){ source_prepare fdkaac; (cd "$SRC/fdkaac"; autoreconf -fiv; ./configu
 b_dream(){ source_prepare dream; local qmake; qmake="$(command -v qmake-qt5 || command -v qmake || true)"; [[ -n "$qmake" ]] || return 1; (cd "$SRC/dream"; make distclean >/dev/null 2>&1 || true; "$qmake" CONFIG+=console CONFIG+=fdk-aac dream.pro; make -j"$JOBS"; install -Dm755 dream "$PREFIX/bin/dream"); }
 
 # Receiver special cases
-b_hackrf(){ source_prepare hackrf; cmake_build hackrf "$SRC/hackrf/host" -DINSTALL_UDEV_RULES=OFF; }
+b_hackrf(){ source_prepare hackrf || return 1; cmake_build hackrf "$SRC/hackrf/host" -DINSTALL_UDEV_RULES=OFF; }
 b_perseus(){ source_prepare perseus; (cd "$SRC/perseus"; ./bootstrap.sh; ./configure --prefix="$PREFIX" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
-b_libad9361(){ source_prepare libad9361; apply_patches libad9361; cmake_build libad9361 "$SRC/libad9361" -DBUILD_TESTS=OFF -DWITH_DOC=OFF; }
-b_soapypluto(){ source_prepare soapypluto; apply_patches soapypluto; cmake_build soapypluto "$SRC/soapypluto"; }
-b_direwolf(){ source_prepare direwolf; apply_patches direwolf; cmake_build direwolf "$SRC/direwolf" -DINSTALL_UDEV_RULES=OFF; }
-b_soapyafedri(){ source_prepare soapyafedri; apply_patches soapyafedri; cmake_build soapyafedri "$SRC/soapyafedri"; }
-b_runds(){ source_prepare runds_connector; apply_patches runds_connector; cmake_build runds_connector "$SRC/runds_connector"; }
+b_libad9361(){ source_prepare libad9361 || return 1; cmake_build libad9361 "$SRC/libad9361" -DBUILD_TESTS=OFF -DWITH_DOC=OFF -DLIBIIO_INCLUDEDIR="$PREFIX/include/iio" -DLIBIIO_LIBRARIES="$PREFIX/lib/libiio.so"; }
+b_soapypluto(){ source_prepare soapypluto || return 1; cmake_build soapypluto "$SRC/soapypluto" -DLibIIO_INCLUDE_DIR="$PREFIX/include/iio" -DLibIIO_LIBRARY="$PREFIX/lib/libiio.so"; }
+b_direwolf(){ source_prepare direwolf || return 1; cmake_build direwolf "$SRC/direwolf" -DINSTALL_UDEV_RULES=OFF; }
+b_soapyafedri(){ source_prepare soapyafedri; cmake_build soapyafedri "$SRC/soapyafedri"; }
+b_runds(){ source_prepare runds_connector; cmake_build runds_connector "$SRC/runds_connector"; }
 b_hydrasdr_host(){ cmake_dep hydrasdr-host -DINSTALL_UDEV_RULES=OFF -DENABLE_SHARED_LIB=ON; }
-b_soapyelad(){ source_prepare soapyelad; cmake_build soapyelad "$SRC/soapyelad/src"; }
-b_soapysx(){ source_prepare soapysx; cmake_build soapysx "$SRC/soapysx/SoapySX" -DINSTALL_PIPEWIRE_CONF=OFF; }
-b_bladerf(){ source_prepare bladerf; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF; }
+b_soapyelad(){ source_prepare soapyelad || return 1; cmake_build soapyelad "$SRC/soapyelad/src"; }
+b_soapysx(){ source_prepare soapysx || return 1; cmake_build soapysx "$SRC/soapysx/SoapySX"; }
+b_bladerf(){ source_prepare bladerf || return 1; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF; }
 b_uhd(){ source_prepare uhd; cmake_build uhd "$SRC/uhd/host" -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF; }
 b_radioberry(){ case "$(uname -m)" in arm*|aarch64) source_prepare radioberry; cmake_build radioberry "$SRC/radioberry/SBC/rpi-4/SoapyRadioberrySDR";; *) warn "Radioberry skipped on $(uname -m)";; esac; }
 b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then warn "SDRplay vendor API v3 not installed; wrapper skipped"; return 0; fi; cmake_dep soapysdrplay; }
 b_sddc(){ command -v nvcc >/dev/null || { warn "CUDA/nvcc unavailable; sddc_connector skipped"; return 0; }; cmake_dep sddc_connector; }
 b_hpsdr(){ source_prepare hpsdrconnector; command -v go >/dev/null || return 1; (cd "$SRC/hpsdrconnector"; go build -o "$PREFIX/bin/hpsdrconnector" .); }
-b_rockprog(){ source_prepare rockprog; (cd "$SRC/rockprog"; make -j"$JOBS"; install -Dm755 rockprog "$PREFIX/bin/rockprog"); }
+b_rockprog(){ source_prepare rockprog || return 1; (cd "$SRC/rockprog"; make clean || true; make -j"$JOBS"; install -Dm755 rockprog "$PREFIX/bin/rockprog"); }
 
 core_plan(){
   step rtl-sdr 1 b_rtlsdr
@@ -382,7 +383,7 @@ receivers_plan(){
   step hackrf 0 b_hackrf; step soapyhackrf 0 cmake_dep soapyhackrf
   step airspy 0 cmake_dep airspy; step soapyairspy 0 cmake_dep soapyairspy
   step airspyhf 0 cmake_dep airspyhf; step soapyairspyhf 0 cmake_dep soapyairspyhf
-  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_DOC=OFF -DWITH_MAN=OFF -DINSTALL_UDEV_RULE=OFF -DINSTALL_IIOD_HOTPLUG_RULE=OFF
+  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_DOC=OFF -DWITH_MAN=OFF -DINSTALL_UDEV_RULE=OFF -DINSTALL_IIOD_HOTPLUG_RULE=OFF -DWITH_LOCAL_CONFIG=OFF
   step libad9361 0 b_libad9361; step soapypluto 0 b_soapypluto
   step limesuite 0 cmake_dep limesuite -DENABLE_EXAMPLES=OFF -DENABLE_DESKTOP=OFF -DENABLE_QUICKTEST=OFF -DENABLE_OCTAVE=OFF -DENABLE_GUI=OFF
   step soapyremote 0 cmake_dep soapyremote; step soapyfcdpp 0 cmake_dep soapyfcdpp
@@ -435,7 +436,7 @@ doctor(){
   check ADSB/dump1090 dump1090; check UAT/dump978 dump978; check HFDL dumphfdl; check VDL2 dumpvdl2; check ACARS acarsdec
   check ISM/rtl_433 rtl_433; check Packet/direwolf direwolf; check FreeDV freedv_rx; check M17 m17-demod; check MSK144 msk144decoder
   check WSJT/jt9 jt9; check WSJT/wsprd wsprd; check JS8 js8; check DRM dream; check RDS redsea; check DAB dablin; check HDRadio nrsc5
-  check multimon multimon-ng; check skimmer csdr-rttyskimmer
+  check multimon multimon-ng; check skimmer csdr-rttyskimmer; check radiosonde/rs41 rs41mod; check LoRa/lorarx lorarx; check wxsat/satdump satdump; check rigctl rigctl
   echo; echo Receiver helpers:
   check Airspy airspy_rx; check Perseus perseustest; check RunDS runds_connector; check HPSDR hpsdrconnector; check SDDC sddc_connector; check FiFi/rockprog rockprog
   command -v SoapySDRUtil >/dev/null 2>&1 && { echo; SoapySDRUtil --info 2>/dev/null || true; }
