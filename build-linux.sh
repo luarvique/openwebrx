@@ -290,6 +290,7 @@ declare -A BUILD_REV=(
   [fftw]=5
   [hamlib]=3
   [libgpiod1]=1
+  [tetrarx]=1
   [uhd]=3
   [whisper]=3
   [acarsdec]=3
@@ -490,6 +491,34 @@ b_whisper(){
     fi
   fi
 }
+b_tetrarx(){
+  local src_url="http://oe5dxl.hamspirit.at:8025/aprs/c/"
+  local d="$SRC/tetra-dxlaprs"
+  local p="$ROOT/build/non-git-patches/tetra-dxlaprs.patch"
+
+  command -v wget >/dev/null || { echo "wget is required for dxlAPRS TETRA source retrieval" >&2; return 1; }
+  [[ -f "$p" ]] || { echo "missing TETRA build patch: $p" >&2; return 1; }
+
+  rm -rf "$d"
+  mkdir -p "$d/tetra"
+  (
+    cd "$d"
+    wget -nv --no-proxy -r -np -nd -l1 "$src_url" || return 1
+    wget -nv --no-proxy -r -np -nd -l1 -P tetra "${src_url}tetra/" || return 1
+
+    # Current GCC rejects the original implicit pointer/integer conversion.
+    # Keep this source compatibility adjustment local to the disposable tree.
+    if [[ -f osic.c ]]; then
+      sed -i 's/return ctime(time0);/return (int32_t)ctime((time_t*)time0);/' osic.c
+    fi
+
+    cp Makefile Makefile.org
+    patch -p0 < "$p" || return 1
+    make tetrarx || return 1
+    install -Dm755 tetrarx "$PREFIX/bin/tetrarx"
+  )
+}
+
 b_dxlaprs(){ source_prepare dxlaprs; (cd "$SRC/dxlaprs/src"; make clean || true; make lorarx; local f; f="$(find .. -type f -name lorarx -perm -111 | head -1)"; install -Dm755 "$f" "$PREFIX/bin/lorarx"); }
 b_js8call(){
   source_prepare js8call || return 1
@@ -562,6 +591,7 @@ decoders_plan(){
   step satdump 0 b_satdump
   step whisper 0 b_whisper
   step dxlaprs 0 b_dxlaprs
+  step tetrarx 0 b_tetrarx
   step wsjtx 0 cmake_dep wsjtx -DWSJT_GENERATE_DOCS=OFF -DWSJT_SKIP_MAP65=ON -DWSJT_BUILD_UTILS=OFF -DWSJT_SKIP_MANPAGES=ON
   step js8call 0 b_js8call
   step fdkaac 0 b_fdkaac
@@ -626,7 +656,7 @@ doctor(){
   check ADSB/dump1090 dump1090; check UAT/dump978 dump978; check HFDL dumphfdl; check VDL2 dumpvdl2; check ACARS acarsdec
   check ISM/rtl_433 rtl_433; check Packet/direwolf direwolf; check FreeDV freedv_rx; check M17 m17-demod; check MSK144 msk144decoder
   check WSJT/jt9 jt9; check WSJT/wsprd wsprd; check JS8 js8; check DRM dream; check RDS redsea; check DAB dablin; check HDRadio nrsc5
-  check multimon multimon-ng; check skimmer csdr-rttyskimmer; check radiosonde/rs41 rs41mod; check LoRa/lorarx lorarx; check wxsat/satdump satdump; check rigctl rigctl; check speech/whisper-server whisper-server
+  check multimon multimon-ng; check skimmer csdr-rttyskimmer; check radiosonde/rs41 rs41mod; check LoRa/lorarx lorarx; check TETRA/tetrarx tetrarx; check wxsat/satdump satdump; check rigctl rigctl; check speech/whisper-server whisper-server
   echo; echo Receiver helpers:
   check Airspy airspy_rx; check Perseus perseustest; check RunDS runds_connector; check HPSDR hpsdrconnector; check SDDC sddc_connector; check FiFi/rockprog rockprog
   command -v SoapySDRUtil >/dev/null 2>&1 && { echo; SoapySDRUtil --info 2>/dev/null || true; }
