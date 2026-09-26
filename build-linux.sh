@@ -440,6 +440,18 @@ doctor(){
   command -v SoapySDRUtil >/dev/null 2>&1 && { echo; SoapySDRUtil --info 2>/dev/null || true; }
 }
 
+check_patches(){
+  layout
+  local n
+  for n in pydigiham direwolf libad9361 rade runds_connector soapyafedri soapypluto; do
+    info "Checking patches for $n"
+    source_prepare "$n"
+    apply_patches "$n"
+    (cd "$SRC/$n"; git reset --hard; git clean -fdx)
+    ok "$n patches apply"
+  done
+}
+
 failure_report(){
   echo "Source-build optional failures"
   if [[ ! -s "$STATE/optional-failures.txt" ]]; then
@@ -491,7 +503,7 @@ build_all(){
 
 run_app(){ env_setup >/dev/null 2>&1; [[ -f "$CONF" ]] || die "run build first"; cd "$ROOT"; exec openwebrx -c "$CONF" --debug; }
 usage(){ cat <<EOF
-Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|failures|env|clean|uninstall]
+Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|failures|check-patches|env|clean|uninstall]
   --profile full|core|decoders|receivers
   --prefix PATH
   --latest                 use dependency branch heads instead of locked refs
@@ -506,7 +518,7 @@ EOF
 CMD=build
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    build|run|doctor|feature-report|failures|env|clean|uninstall|help) CMD="$1"; shift ;;
+    build|run|doctor|feature-report|failures|check-patches|env|clean|uninstall|help) CMD="$1"; shift ;;
     --profile) PROFILE="$2"; shift 2 ;;
     --prefix) PREFIX="$2"; VENV="$PREFIX/venv"; CONF="$PREFIX/etc/openwebrx/openwebrx.conf"; DATA="$PREFIX/var/lib/openwebrx"; TMP="$PREFIX/var/tmp"; shift 2 ;;
     --latest) LATEST=1; shift ;;
@@ -524,6 +536,7 @@ case "$CMD" in
   doctor) doctor ;;
   feature-report) feature_report ;;
   failures) failure_report ;;
+  check-patches) check_patches ;;
   env) env_setup >/dev/null 2>&1; cat "$PREFIX/env.sh" ;;
   clean) rm -rf "$WORK" ;;
   uninstall) rm -rf "$PREFIX" "$WORK" ;;
