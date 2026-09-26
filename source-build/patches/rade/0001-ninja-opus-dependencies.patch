@@ -1,11 +1,17 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index eb70328..dbbb3ae 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -244,6 +244,13 @@ set_target_properties(lpcnet_demo radae_tx radae_rx real2iq rade_demod rade_mod
-     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tools
+@@ -228,9 +228,17 @@
  )
  
+ # put all the command line tools in a tools directory
+-set_target_properties(lpcnet_demo radae_tx radae_rx real2iq rade_demod rade_modulate webrx_rade_decode radae_headless PROPERTIES
+-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tools
+-)
++set_target_properties(lpcnet_demo radae_tx radae_rx real2iq rade_demod rade_modulate webrx_rade_decode radae_headless PROPERTIES
++    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tools
++)
++
 +# Imported libraries do not reliably propagate ExternalProject build ordering
 +# to Ninja consumers. Make the Opus/FARGAN build an explicit dependency.
 +if(TARGET build_opus)
@@ -13,6 +19,6 @@ index eb70328..dbbb3ae 100644
 +        add_dependencies(${_target} build_opus)
 +    endforeach()
 +endif()
-+
+ 
  # ── GUI application ──────────────────────────────────────────────────────────
  if(BUILD_GUI)
