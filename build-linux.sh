@@ -69,6 +69,7 @@ dep hamlib https://github.com/Hamlib/Hamlib.git 50b2a9310edc4a481d8a6ef10e948ea8
 dep sonde-decoders https://github.com/projecthorus/radiosonde_auto_rx.git 53d03c72ad18ce4357c0cedd1f4acf2bf1efb36e master
 dep satdump https://github.com/SatDump/SatDump.git f3d82adbfe04e57c596b93479d687f4b830ee26c master
 dep whisper https://github.com/ggml-org/whisper.cpp.git d09f61a708f3487afa956ff578e60eae5e7a233c master
+dep dxlaprs https://github.com/oe5hpm/dxlAPRS.git 10bec72314d8fbefc3316054bf737e0bfc06e3fa master
 
 # Receiver backends supported by current OpenWebRX+.
 dep hackrf https://github.com/greatscottgadgets/hackrf.git master master
@@ -258,11 +259,12 @@ b_skimmer(){ source_prepare csdr-skimmer; (cd "$SRC/csdr-skimmer"; make clean ||
 b_codec2(){ cmake_dep codec2 -DUNITTEST=OFF; local f; f="$(find "$BLD/codec2" -type f -name freedv_rx -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/freedv_rx"; }
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
 b_dream(){ source_prepare dream; if [[ -f "$SRC/dream/CMakeLists.txt" ]]; then cmake_build dream "$SRC/dream"; else return 1; fi; }
-b_rade(){ source_prepare rade; local f; f="$(find "$SRC/rade" -type f -name 'webrx_rade_decode*' | head -1 || true)"; [[ -n "$f" && -x "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
+b_rade(){ source_prepare rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
 b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" --disable-static CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
 b_sonde(){ source_prepare sonde-decoders; (cd "$SRC/sonde-decoders/demod/mod"; make clean || true; make -j"$JOBS"; for x in rs41mod dfm09mod m10mod m20mod mts01mod; do install -Dm755 "$x" "$PREFIX/bin/$x"; done); }
 b_satdump(){ cmake_dep satdump -DBUILD_GUI=OFF -DBUILD_TESTING=OFF -DBUILD_TOOLS=OFF -DBUILD_OPENCL=OFF -DBUILD_DOCS=OFF -DENABLE_CRASHDUMP=OFF -DENABLE_INSTALL=ON; }
 b_whisper(){ cmake_dep whisper -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_SERVER=ON -DWHISPER_CURL=OFF; local s; s="$(find "$BLD/whisper" -type f -name 'whisper-server' -perm -111 | head -1 || true)"; [[ -z "$s" ]] || install -Dm755 "$s" "$PREFIX/bin/whisper-server"; }
+b_dxlaprs(){ source_prepare dxlaprs; (cd "$SRC/dxlaprs/src"; make clean || true; make lorarx; local f; f="$(find .. -type f -name lorarx -perm -111 | head -1)"; install -Dm755 "$f" "$PREFIX/bin/lorarx"); }
 
 # Receiver special cases
 b_hackrf(){ source_prepare hackrf; cmake_build hackrf "$SRC/hackrf/host"; }
@@ -313,6 +315,7 @@ decoders_plan(){
   step sonde-decoders 0 b_sonde
   step satdump 0 b_satdump
   step whisper 0 b_whisper
+  step dxlaprs 0 b_dxlaprs
   step wsjtx 0 cmake_dep wsjtx -DWSJT_SKIP_MAP65=ON -DWSJT_BUILD_UTILS=OFF -DWSJT_SKIP_MANPAGES=ON
   step js8call 0 cmake_dep js8call
   step dream 0 b_dream
