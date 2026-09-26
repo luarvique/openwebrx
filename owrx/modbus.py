@@ -1,7 +1,7 @@
 """
 Modbus RTU frame recovery and decoding.
 
-Frames come from an asynchronous UART deframer (see owrx.fsk) and may carry
+Frames come from CSDR's native FskUartDecoder and may carry
 junk characters around the real frame when squelch is open. Frames are
 recovered by their CRC-16 and a structure check against the function code,
 then decoded into readable requests, responses and exceptions. Requests

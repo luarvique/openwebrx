@@ -267,6 +267,7 @@ class Modes(object):
             "modbus",
             "Modbus",
             underlying=["nfm"],
+            requirements=["modbus"],
             bandpass=Bandpass(-6000, 6000),
             service=True,
             squelch=True,

@@ -1,8 +1,15 @@
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 import math
 import random
 
-from owrx.fsk import FskUartDecoder
+from array import array
+import threading
+
+try:
+    from pycsdr.modules import FskUartDecoder, Buffer
+    from pycsdr.types import Format
+except ImportError:
+    FskUartDecoder = None
 from owrx.modbus import crc16, findFrames, isPlausible, ModbusDecoder, ModbusStreamDecoder
 
 
@@ -41,17 +48,63 @@ def synth(frames, fs=12000, baud=1200, mark=1300, space=2100, parity=None, lead=
     return out
 
 
-def decodeAll(samples, fs=12000, **kwargs):
+def nativeLines(samples, fs=12000, chunkSize=1000, **kwargs):
+    # A final non-Modbus UART run marks completion of the asynchronous worker.
+    # This avoids sleeps and an implementation-only "process Python samples" API.
+    marker = b"\xfeNativeEnd\x00\xaa\x55"
+    samples = list(samples) + synth([marker], fs=fs,
+        baud=kwargs.get("baudRate", 1200), mark=kwargs.get("markFreq", 1300),
+        space=kwargs.get("spaceFreq", 2100))
+    size = max(65536, len(samples) * 32)
+    source, sink = Buffer(Format.FLOAT, size), Buffer(Format.CHAR, size)
+    reader = sink.getReader()
     decoder = FskUartDecoder(fs, **kwargs)
-    frames = []
-    for i in range(0, len(samples), 1000):
-        frames += decoder.process(samples[i:i + 1000])
-    frames += decoder.flush()
+    lines, errors = [], []
+    completed = threading.Event()
+
+    def collect():
+        pending = b""
+        try:
+            while True:
+                data = reader.read()
+                if data is None:
+                    return
+                pending += data.tobytes()
+                while b"\n" in pending:
+                    line, pending = pending.split(b"\n", 1)
+                    if bytes.fromhex(line.split()[2].decode()) == marker:
+                        completed.set()
+                        return
+                    lines.append(line)
+        except Exception as error:
+            errors.append(error)
+            completed.set()
+
+    thread = threading.Thread(target=collect, daemon=True)
+    thread.start()
+    try:
+        decoder.setReader(source.getReader())
+        decoder.setWriter(sink)
+        for i in range(0, len(samples), chunkSize):
+            source.write(array("f", samples[i:i + chunkSize]).tobytes())
+        if not completed.wait(10):
+            raise AssertionError("native CSDR stream did not finish")
+        if errors:
+            raise errors[0]
+        return lines
+    finally:
+        decoder.stop()
+        reader.stop()
+        thread.join(2)
+
+
+def decodeAll(samples, fs=12000, **kwargs):
     found = []
-    for _, data in frames:
-        for f in findFrames(data):
-            if f not in found:
-                found.append(f)
+    for line in nativeLines(samples, fs, **kwargs):
+        data = bytes.fromhex(line.split()[2].decode())
+        for frame in findFrames(data):
+            if frame not in found:
+                found.append(frame)
     return found
 
 
@@ -60,15 +113,9 @@ def uartLine(bits, data, starts):
 
 
 def decodeStream(samples, chunkSize=1000):
-    uart = FskUartDecoder(12000, withTiming=True)
     decoder = ModbusStreamDecoder()
-    out = []
-    for i in range(0, len(samples), chunkSize):
-        for bits, data, starts in uart.process(samples[i:i + chunkSize]):
-            out.extend(decoder.decode(uartLine(bits, data, starts), now=100.0))
-    for bits, data, starts in uart.flush():
-        out.extend(decoder.decode(uartLine(bits, data, starts), now=100.0))
-    return out
+    return [frame for line in nativeLines(samples, chunkSize=chunkSize)
+            for frame in decoder.decode(line, now=100.0)]
 
 
 REQ = adu(bytes.fromhex("0d170002001b000000020404454504"))
@@ -99,6 +146,7 @@ class FindFramesTest(TestCase):
         self.assertEqual(findFrames(REQ[:-1]), [])
 
 
+@skipUnless(FskUartDecoder is not None, "requires native CSDR/PyCSDR FskUartDecoder")
 class FskUartTest(TestCase):
     def testV23With8N1AndCarriageReturns(self):
         # 0x0D bytes (address 13) must survive the deframer
@@ -207,6 +255,7 @@ class ModbusDecoderTest(TestCase):
 
 
 class ModbusStreamTest(TestCase):
+    @skipUnless(FskUartDecoder is not None, "requires native CSDR/PyCSDR FskUartDecoder")
     def testEchoResponsesSurviveAudioPipeline(self):
         for body in ("01050001ff00", "110600010003", "01160001ffff0000"):
             for parity in (None, "E"):
@@ -218,6 +267,7 @@ class ModbusStreamTest(TestCase):
                     self.assertEqual([r["type"] for r in result], ["request", "response"])
                     self.assertEqual([r["raw"] for r in result], [frame.hex().upper()] * 2)
 
+    @skipUnless(FskUartDecoder is not None, "requires native CSDR/PyCSDR FskUartDecoder")
     def testParallelCopiesAndRepeatedPacketsAcrossChunkSizes(self):
         # Every byte has odd-parity bit 1, so both UARTs recover this frame.
         frame = adu(bytes.fromhex("030300000005"))

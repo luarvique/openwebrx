@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
-from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule, FskUartModule
+from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
 from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
 from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder, ModbusParser
@@ -109,11 +109,14 @@ class ModbusDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     detector. Both 8N1 and 8-bit-with-parity character formats are tried.
     """
     def __init__(self, service: bool = False):
+        # Optional native module: older PyCSDR must still import other modes.
+        from pycsdr.modules import FskUartDecoder
+
         self.sampleRate = 12000
         self.parser = ModbusParser(service=service)
         workers = [
             FmDemod(),
-            FskUartModule(self.sampleRate, 1200, 1300, 2100),
+            FskUartDecoder(self.sampleRate, 1200, 1300, 2100),
             self.parser,
         ]
         super().__init__(workers)
