@@ -484,6 +484,24 @@ doctor(){
   command -v SoapySDRUtil >/dev/null 2>&1 && { echo; SoapySDRUtil --info 2>/dev/null || true; }
 }
 
+check_refs(){
+  local n ref
+  for n in "${!URL[@]}"; do
+    ref="${REF[$n]}"
+    # Full commit SHAs are immutable lock entries; symbolic refs must be
+    # advertised by the remote. This catches misspelled/nonexistent tags
+    # and branches without cloning every dependency.
+    if [[ "$ref" =~ ^[0-9a-fA-F]{40}$ ]]; then
+      continue
+    fi
+    info "Checking ref $n -> $ref"
+    if ! git ls-remote --exit-code "${URL[$n]}"         "$ref" "refs/heads/$ref" "refs/tags/$ref" "refs/tags/$ref^{}"         | grep -q .; then
+      die "Dependency ref does not exist: $n -> $ref (${URL[$n]})"
+    fi
+  done
+  ok "Symbolic dependency refs are valid"
+}
+
 check_patches(){
   layout
   local n
@@ -550,7 +568,7 @@ build_all(){
 
 run_app(){ env_setup >/dev/null 2>&1; [[ -f "$CONF" ]] || die "run build first"; cd "$ROOT"; exec openwebrx -c "$CONF" --debug; }
 usage(){ cat <<EOF
-Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|failures|check-patches|env|clean|uninstall]
+Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|failures|check-refs|check-patches|env|clean|uninstall]
   --profile full|core|decoders|receivers
   --prefix PATH
   --latest                 use dependency branch heads instead of locked refs
@@ -565,7 +583,7 @@ EOF
 CMD=build
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    build|run|doctor|feature-report|failures|check-patches|env|clean|uninstall|help) CMD="$1"; shift ;;
+    build|run|doctor|feature-report|failures|check-refs|check-patches|env|clean|uninstall|help) CMD="$1"; shift ;;
     --profile) PROFILE="$2"; shift 2 ;;
     --prefix) PREFIX="$2"; VENV="$PREFIX/venv"; CONF="$PREFIX/etc/openwebrx/openwebrx.conf"; DATA="$PREFIX/var/lib/openwebrx"; TMP="$PREFIX/var/tmp"; shift 2 ;;
     --latest) LATEST=1; shift ;;
@@ -583,6 +601,7 @@ case "$CMD" in
   doctor) doctor ;;
   feature-report) feature_report ;;
   failures) failure_report ;;
+  check-refs) check_refs ;;
   check-patches) check_patches ;;
   env) env_setup >/dev/null 2>&1; cat "$PREFIX/env.sh" ;;
   clean) rm -rf "$WORK" ;;
