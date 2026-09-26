@@ -316,6 +316,7 @@ b_dream(){ source_prepare dream; local qmake; qmake="$(command -v qmake-qt5 || c
 b_hackrf(){ source_prepare hackrf; cmake_build hackrf "$SRC/hackrf/host" -DINSTALL_UDEV_RULES=OFF; }
 b_perseus(){ source_prepare perseus; (cd "$SRC/perseus"; ./bootstrap.sh; ./configure --prefix="$PREFIX" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
 b_libad9361(){ source_prepare libad9361; apply_patches libad9361; cmake_build libad9361 "$SRC/libad9361" -DBUILD_TESTS=OFF -DWITH_DOC=OFF; }
+b_soapypluto(){ source_prepare soapypluto; apply_patches soapypluto; cmake_build soapypluto "$SRC/soapypluto"; }
 b_direwolf(){ source_prepare direwolf; apply_patches direwolf; cmake_build direwolf "$SRC/direwolf" -DINSTALL_UDEV_RULES=OFF; }
 b_soapyafedri(){ source_prepare soapyafedri; apply_patches soapyafedri; cmake_build soapyafedri "$SRC/soapyafedri"; }
 b_runds(){ source_prepare runds_connector; apply_patches runds_connector; cmake_build runds_connector "$SRC/runds_connector"; }
@@ -381,7 +382,7 @@ receivers_plan(){
   step airspy 0 cmake_dep airspy; step soapyairspy 0 cmake_dep soapyairspy
   step airspyhf 0 cmake_dep airspyhf; step soapyairspyhf 0 cmake_dep soapyairspyhf
   step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_DOC=OFF -DWITH_MAN=OFF -DINSTALL_UDEV_RULE=OFF -DINSTALL_IIOD_HOTPLUG_RULE=OFF
-  step libad9361 0 b_libad9361; step soapypluto 0 cmake_dep soapypluto
+  step libad9361 0 b_libad9361; step soapypluto 0 b_soapypluto
   step limesuite 0 cmake_dep limesuite -DENABLE_EXAMPLES=OFF -DENABLE_DESKTOP=OFF -DENABLE_QUICKTEST=OFF -DENABLE_OCTAVE=OFF -DENABLE_GUI=OFF
   step soapyremote 0 cmake_dep soapyremote; step soapyfcdpp 0 cmake_dep soapyfcdpp
   step perseus 0 b_perseus
