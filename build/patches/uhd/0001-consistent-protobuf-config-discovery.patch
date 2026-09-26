@@ -1,0 +1,32 @@
+diff --git a/host/lib/usrp/common/CMakeLists.txt b/host/lib/usrp/common/CMakeLists.txt
+--- a/host/lib/usrp/common/CMakeLists.txt
++++ b/host/lib/usrp/common/CMakeLists.txt
+@@ -53,16 +53,24 @@ LIBUHD_APPEND_SOURCES(
+ 
+ # Generate protobuf stubs for MPM server
+ if(ENABLE_MPMD)
++    # Prefer the Protobuf CONFIG package whenever the installed gRPC package
++    # also provides CMake config files. Loading CMake's FindProtobuf module
++    # first creates a partial protobuf::* target set; a subsequent
++    # gRPCConfig.cmake -> find_dependency(Protobuf CONFIG) then fails because
++    # the config package tries to define the complete target set.
++    set(protobuf_MODULE_COMPATIBLE ON CACHE BOOL "" FORCE)
+     if(WIN32)
+-        # On Windows: use CONFIG mode to get full dependency chain (utf8_range etc.).
+-        # Use CACHE FORCE so that option() inside protobuf-config.cmake (CMP0077 old
+-        # behavior) does not clear our hint before it is evaluated.
+-        set(protobuf_MODULE_COMPATIBLE ON CACHE BOOL "" FORCE)
+         find_package(Protobuf CONFIG REQUIRED)
+     else()
+-        find_package(Protobuf REQUIRED)
++        find_package(gRPC CONFIG QUIET)
++        if(gRPC_FOUND)
++            find_package(Protobuf CONFIG REQUIRED)
++        else()
++            # Older distributions may ship gRPC only through pkg-config and
++            # Protobuf only through CMake's FindProtobuf module.
++            find_package(Protobuf REQUIRED)
++        endif()
+     endif()
+     find_package(gRPC REQUIRED)
+ 
