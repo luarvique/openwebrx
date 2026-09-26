@@ -5,6 +5,7 @@ from owrx.reporting import ReportingEngine
 from csdr.module import ThreadModule, LineBasedModule
 from pycsdr.types import Format
 from owrx.dsame3.dsame import same_decode_string
+from owrx.modbus import ModbusStreamDecoder
 from datetime import datetime, timezone
 
 import json
@@ -372,3 +373,31 @@ class EasParser(TextParser):
 
         # Return received message as text
         return "\n".join(out)
+
+
+class ModbusParser(TextParser):
+    def __init__(self, service: bool = False):
+        self.decoder = ModbusStreamDecoder()
+        self.colors = ColorCache()
+        # Construct parent object
+        super().__init__(filePrefix="MODBUS", service=service)
+
+    def parse(self, msg: bytes):
+        # The sample positions supplied by FskUartModule distinguish parallel
+        # UART copies from real repeated packets, independent of parser latency.
+        out = {}
+        now = datetime.now().timestamp()
+        for out in self.decoder.decode(msg, now):
+            out["mode"] = "Modbus"
+            out["timestamp"] = round(now * 1000)
+            # Add frequency, if known
+            if self.frequency:
+                out["freq"] = self.frequency
+            # Report frame
+            ReportingEngine.getSharedInstance().spot(out)
+            # In interactive mode, color frames based on server address
+            if not self.service:
+                out["color"] = self.colors.getColor(out["address"])
+        # A single decoded frame is returned; only the last frame of a
+        # run of back-to-back frames is shown, all of them are reported
+        return out
