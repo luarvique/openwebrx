@@ -283,6 +283,7 @@ declare -A BUILD_REV=(
   [fftw]=5
   [hamlib]=3
   [libgpiod1]=1
+  [uhd]=3
 )
 
 stamp(){
@@ -427,7 +428,7 @@ b_dxlaprs(){ source_prepare dxlaprs; (cd "$SRC/dxlaprs/src"; make clean || true;
 b_js8call(){
   source_prepare js8call || return 1
   rm -rf "$BLD/js8call"
-  cmake -S "$SRC/js8call" -B "$BLD/js8call" -G "Unix Makefiles"     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX"     -DCMAKE_INSTALL_LIBDIR=lib     -DCMAKE_PREFIX_PATH="$PREFIX"     -DFFTW3_ROOT_DIR="$PREFIX"     -DWSJT_SKIP_MANPAGES=ON || return 1
+  cmake -S "$SRC/js8call" -B "$BLD/js8call" -G "Unix Makefiles"     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX"     -DCMAKE_INSTALL_LIBDIR=lib     -DCMAKE_PREFIX_PATH="$PREFIX"     -DCMAKE_Fortran_FLAGS="-fallow-argument-mismatch"     -DFFTW3_ROOT_DIR="$PREFIX"     -DWSJT_SKIP_MANPAGES=ON || return 1
   cmake --build "$BLD/js8call" --target js8 --parallel 1 || return 1
   install -Dm755 "$BLD/js8call/js8" "$PREFIX/bin/js8"
 }
