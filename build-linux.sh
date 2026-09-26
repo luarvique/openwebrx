@@ -70,6 +70,7 @@ dep sonde-decoders https://github.com/projecthorus/radiosonde_auto_rx.git 53d03c
 dep satdump https://github.com/SatDump/SatDump.git f3d82adbfe04e57c596b93479d687f4b830ee26c master
 dep whisper https://github.com/ggml-org/whisper.cpp.git d09f61a708f3487afa956ff578e60eae5e7a233c master
 dep dxlaprs https://github.com/oe5hpm/dxlAPRS.git 10bec72314d8fbefc3316054bf737e0bfc06e3fa master
+dep fdkaac https://github.com/mstorsjo/fdk-aac.git 7c83d08002332b2730c845eec3497e6bf585dd28 master
 
 # Receiver backends supported by current OpenWebRX+.
 dep hackrf https://github.com/greatscottgadgets/hackrf.git master master
@@ -94,6 +95,7 @@ dep soapymiri https://github.com/ericek111/SoapyMiri.git main main
 dep soapyafedri https://github.com/alexander-sholohov/SoapyAfedri.git master master
 dep soapyiqfile https://github.com/utn-ba-rf-lab/SoapyIQFile.git main main
 dep soapymalahit https://github.com/luarvique/SoapyMalahitR1.git master master
+dep hydrasdr-host https://github.com/hydrasdr/hydrasdr-host.git 16942cbcbde47198abc6b7968c700ed0cbb8cc87 master
 dep soapyhydra https://github.com/hydrasdr/SoapyHydraSDR.git main main
 dep soapyelad https://github.com/DisagioDigitale/SoapyELAD.git master master
 dep soapysx https://github.com/tejeez/sxxcvr.git master master
@@ -122,11 +124,13 @@ install_system_deps(){
     zypper)
       sudo_run zypper --non-interactive refresh
       pkgs=(git cmake make ninja meson gcc gcc-c++ gcc-fortran autoconf automake libtool patch pkgconf python3 python3-devel python3-pip curl wget go
-        libusb-1_0-devel fftw3-devel libsamplerate-devel systemd-devel protobuf-devel libicu-devel boost-devel
-        libboost_program_options-devel libboost_filesystem-devel libboost_regex-devel libsndfile-devel libao-devel libxml2-devel
-        libconfig-devel libjansson-devel libcurl-devel libopenssl-devel ncurses-devel alsa-devel libpulse-devel libSDL2-devel
-        mpg123-devel libmpg123-devel libfaad-devel faad2-devel hidapi-devel avahi-devel zlib-devel libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame
-        libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel cjson-devel)
+        libusb-1_0-devel fftw3-devel fftw3-threads-devel libsamplerate-devel systemd-devel protobuf-devel libicu-devel boost-devel
+        libboost_program_options-devel libboost_filesystem-devel libboost_regex-devel libboost_log-devel libboost_serialization-devel
+        libsndfile-devel libao-devel libxml2-devel libconfig-devel libjansson-devel libcurl-devel libopenssl-3-devel ncurses-devel
+        alsa-devel libpulse-devel sdl2-compat-devel mpg123-devel libfaad-devel libhidapi-devel avahi-devel zlib-ng-compat-devel
+        libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame popt-devel libgpiod-devel volk-devel
+        libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel
+        qt6-base-devel qt6-multimedia-devel qt6-serialport-devel qt6-websockets-devel cjson-devel)
       ;;
     apt)
       sudo_run apt-get update
@@ -180,12 +184,51 @@ env_setup(){
 }
 
 source_prepare(){
-  local n="$1" d="$SRC/$1"
+  local n="$1" d="$SRC/$1" target resolved
   [[ -d "$d/.git" ]] || git clone "${URL[$n]}" "$d"
-  ( cd "$d"; git remote set-url origin "${URL[$n]}"; git fetch --tags --force origin; git reset --hard; git clean -fdx
-    if [[ "$LATEST" == 1 ]]; then git checkout --detach "origin/${BRANCH[$n]}"; else git checkout --detach "${REF[$n]}"; fi
+  (
+    cd "$d"
+    git remote set-url origin "${URL[$n]}"
+    git fetch --tags --force origin
+    git reset --hard
+    git clean -fdx
+    target="${REF[$n]}"
+    [[ "$LATEST" == 1 ]] && target="origin/${BRANCH[$n]}"
+    if git rev-parse --verify -q "${target}^{commit}" >/dev/null; then
+      resolved="$(git rev-parse "${target}^{commit}")"
+    elif git rev-parse --verify -q "origin/${target}^{commit}" >/dev/null; then
+      resolved="$(git rev-parse "origin/${target}^{commit}")"
+    else
+      echo "Unable to resolve dependency ref '$target' for $n" >&2
+      return 1
+    fi
+    git checkout --detach "$resolved"
     [[ ! -f .gitmodules ]] || { git submodule sync --recursive; git submodule update --init --recursive; }
   )
+}
+
+apply_patches(){
+  local n="$1" d="$SRC/$1" patchdir="$ROOT/source-build/patches/$1" p
+  [[ -d "$patchdir" ]] || return 0
+  for p in "$patchdir"/*.patch; do
+    [[ -f "$p" ]] || continue
+    if (cd "$d" && git apply --check "$p"); then
+      (cd "$d" && git apply "$p") || return 1
+    elif (cd "$d" && git apply --reverse --check "$p"); then
+      :
+    else
+      echo "Patch no longer applies: $p" >&2
+      return 1
+    fi
+  done
+}
+
+patched_dep(){
+  local n="$1"
+  shift
+  source_prepare "$n" || return 1
+  apply_patches "$n" || return 1
+  cmake_build "$n" "$SRC/$n" "$@"
 }
 
 replace_exact(){
@@ -226,9 +269,10 @@ patch_js8py(){
 cmake_build(){
   local n="$1" sd="$2"; shift 2
   rm -rf "$BLD/$n"
-  cmake -S "$sd" -B "$BLD/$n" -G "$GENERATOR" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib     -DCMAKE_INSTALL_RPATH="$PREFIX/lib;$PREFIX/lib64" -DCMAKE_PREFIX_PATH="$PREFIX" "$@"
-  cmake --build "$BLD/$n" --parallel "$JOBS"
-  cmake --install "$BLD/$n"
+  cmake -S "$sd" -B "$BLD/$n" -G "$GENERATOR" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib \
+    -DCMAKE_INSTALL_RPATH="$PREFIX/lib;$PREFIX/lib64" -DCMAKE_PREFIX_PATH="$PREFIX" "$@" || return 1
+  cmake --build "$BLD/$n" --parallel "$JOBS" || return 1
+  cmake --install "$BLD/$n" || return 1
 }
 cmake_dep(){ local n="$1"; shift; source_prepare "$n"; cmake_build "$n" "$SRC/$n" "$@"; }
 pip_dep(){ source_prepare "$1"; python -m pip install --no-build-isolation --no-cache-dir "$SRC/$1"; }
@@ -238,7 +282,7 @@ donep(){ [[ "$FORCE" != 1 && -f "$STATE/$1.ok" && "$(cat "$STATE/$1.ok")" == "$(
 step(){
   local n="$1" required="$2"; shift 2
   donep "$n" && { ok "$n already built"; return; }
-  info "Building $n"; rm -f "$LOG/$n.log"; set +e; ( "$@" ) 2>&1 | tee "$LOG/$n.log"; local rc=${PIPESTATUS[0]}; set -e
+  info "Building $n"; rm -f "$LOG/$n.log"; set +e; ( set -Eeuo pipefail; "$@" ) 2>&1 | tee "$LOG/$n.log"; local rc=${PIPESTATUS[0]}; set -e
   if [[ $rc -eq 0 ]]; then stamp "$n" >"$STATE/$n.ok"; ok "$n"; return; fi
   if [[ "$required" == 1 || "$STRICT" == 1 ]]; then die "$n failed; see $LOG/$n.log"; fi
   warn "$n failed/skipped; see $LOG/$n.log"; echo "$n" >>"$STATE/optional-failures.txt"
@@ -250,6 +294,7 @@ b_soapy(){ cmake_dep soapysdr -DENABLE_PYTHON=OFF -DENABLE_TESTS=OFF; }
 b_pycsdr(){ pip_dep pycsdr; install -d "$PREFIX/include/pycsdr"; for h in pycsdr.hpp reader.hpp writer.hpp source.hpp sink.hpp module.hpp buffer.hpp bufferreader.hpp; do install -m0644 "$SRC/pycsdr/src/$h" "$PREFIX/include/pycsdr/$h"; done; }
 b_codecserver(){ source_prepare codecserver; patch_codecserver; cmake_build codecserver "$SRC/codecserver"; install -d "$PREFIX/etc/codecserver"; install -m0644 "$SRC/codecserver/conf/codecserver.conf" "$PREFIX/etc/codecserver/codecserver.conf"; }
 b_js8py(){ source_prepare js8py; patch_js8py; python -m pip install --no-build-isolation --no-cache-dir "$SRC/js8py"; }
+b_pydigiham(){ source_prepare pydigiham; apply_patches pydigiham; python -m pip install --no-build-isolation --no-cache-dir "$SRC/pydigiham"; }
 
 # Decoder special cases
 b_redsea(){ source_prepare redsea; rm -rf "$BLD/redsea"; meson setup "$BLD/redsea" "$SRC/redsea" --prefix="$PREFIX" --libdir=lib --buildtype=release -Dbuild_tests=false; meson compile -C "$BLD/redsea" -j "$JOBS"; meson install -C "$BLD/redsea"; }
@@ -258,18 +303,26 @@ b_dump978(){ source_prepare dump978; (cd "$SRC/dump978"; make clean; make -j"$JO
 b_skimmer(){ source_prepare csdr-skimmer; (cd "$SRC/csdr-skimmer"; make clean || true; make -j"$JOBS" INCDIRS="-I$PREFIX/include" LIBDIRS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib"; install -Dm755 csdr-cwskimmer "$PREFIX/bin/csdr-cwskimmer"; install -Dm755 csdr-rttyskimmer "$PREFIX/bin/csdr-rttyskimmer"); }
 b_codec2(){ cmake_dep codec2 -DUNITTEST=OFF; local f; f="$(find "$BLD/codec2" -type f -name freedv_rx -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/freedv_rx"; }
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
-b_dream(){ source_prepare dream; if [[ -f "$SRC/dream/CMakeLists.txt" ]]; then cmake_build dream "$SRC/dream"; else return 1; fi; }
-b_rade(){ source_prepare rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
+b_rade(){ source_prepare rade; apply_patches rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
 b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" --disable-static CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
 b_sonde(){ source_prepare sonde-decoders; (cd "$SRC/sonde-decoders/demod/mod"; make clean || true; make -j"$JOBS"; for x in rs41mod dfm09mod m10mod m20mod mts01mod; do install -Dm755 "$x" "$PREFIX/bin/$x"; done); }
 b_satdump(){ cmake_dep satdump -DBUILD_GUI=OFF -DBUILD_TESTING=OFF -DBUILD_TOOLS=OFF -DBUILD_OPENCL=OFF -DBUILD_DOCS=OFF -DENABLE_CRASHDUMP=OFF -DENABLE_INSTALL=ON; }
 b_whisper(){ cmake_dep whisper -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_SERVER=ON -DWHISPER_CURL=OFF; local s; s="$(find "$BLD/whisper" -type f -name 'whisper-server' -perm -111 | head -1 || true)"; [[ -z "$s" ]] || install -Dm755 "$s" "$PREFIX/bin/whisper-server"; }
 b_dxlaprs(){ source_prepare dxlaprs; (cd "$SRC/dxlaprs/src"; make clean || true; make lorarx; local f; f="$(find .. -type f -name lorarx -perm -111 | head -1)"; install -Dm755 "$f" "$PREFIX/bin/lorarx"); }
+b_fdkaac(){ source_prepare fdkaac; (cd "$SRC/fdkaac"; autoreconf -fiv; ./configure --prefix="$PREFIX" --disable-static; make -j"$JOBS"; make install); }
+b_dream(){ source_prepare dream; local qmake; qmake="$(command -v qmake-qt5 || command -v qmake || true)"; [[ -n "$qmake" ]] || return 1; (cd "$SRC/dream"; make distclean >/dev/null 2>&1 || true; "$qmake" CONFIG+=console CONFIG+=fdk-aac dream.pro; make -j"$JOBS"; install -Dm755 dream "$PREFIX/bin/dream"); }
 
 # Receiver special cases
-b_hackrf(){ source_prepare hackrf; cmake_build hackrf "$SRC/hackrf/host"; }
+b_hackrf(){ source_prepare hackrf; cmake_build hackrf "$SRC/hackrf/host" -DINSTALL_UDEV_RULES=OFF; }
 b_perseus(){ source_prepare perseus; (cd "$SRC/perseus"; ./bootstrap.sh; ./configure --prefix="$PREFIX" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
-b_bladerf(){ source_prepare bladerf; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF; }
+b_libad9361(){ source_prepare libad9361; apply_patches libad9361; cmake_build libad9361 "$SRC/libad9361" -DBUILD_TESTS=OFF -DWITH_DOC=OFF; }
+b_direwolf(){ source_prepare direwolf; apply_patches direwolf; cmake_build direwolf "$SRC/direwolf" -DINSTALL_UDEV_RULES=OFF; }
+b_soapyafedri(){ source_prepare soapyafedri; apply_patches soapyafedri; cmake_build soapyafedri "$SRC/soapyafedri"; }
+b_runds(){ source_prepare runds_connector; apply_patches runds_connector; cmake_build runds_connector "$SRC/runds_connector"; }
+b_hydrasdr_host(){ cmake_dep hydrasdr-host -DINSTALL_UDEV_RULES=OFF -DENABLE_SHARED_LIB=ON; }
+b_soapyelad(){ source_prepare soapyelad; cmake_build soapyelad "$SRC/soapyelad/src"; }
+b_soapysx(){ source_prepare soapysx; cmake_build soapysx "$SRC/soapysx/SoapySX" -DINSTALL_PIPEWIRE_CONF=OFF; }
+b_bladerf(){ source_prepare bladerf; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF; }
 b_uhd(){ source_prepare uhd; cmake_build uhd "$SRC/uhd/host" -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF; }
 b_radioberry(){ case "$(uname -m)" in arm*|aarch64) source_prepare radioberry; cmake_build radioberry "$SRC/radioberry/SBC/rpi-4/SoapyRadioberrySDR";; *) warn "Radioberry skipped on $(uname -m)";; esac; }
 b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then warn "SDRplay vendor API v3 not installed; wrapper skipped"; return 0; fi; cmake_dep soapysdrplay; }
@@ -286,7 +339,7 @@ core_plan(){
   step owrx_connector 1 cmake_dep owrx_connector
   step codecserver 0 b_codecserver
   step digiham 0 cmake_dep digiham
-  step pydigiham 0 pip_dep pydigiham
+  step pydigiham 0 b_pydigiham
   step csdr-eti 0 cmake_dep csdr-eti
   step pycsdr-eti 0 pip_dep pycsdr-eti
   step js8py 0 b_js8py
@@ -301,11 +354,11 @@ decoders_plan(){
   step dumphfdl 0 cmake_dep dumphfdl -DSOAPYSDR=OFF -DETSY_STATSD=OFF -DSQLITE=OFF -DZMQ=OFF -DRDKAFKA=OFF
   step dump1090 0 b_dump1090
   step dump978 0 b_dump978
-  step nrsc5 0 cmake_dep nrsc5 -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DBUILD_CLI=ON
+  step nrsc5 0 cmake_dep nrsc5 -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_RTLSDR=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DFAAD2_CMAKE_ARGS=-DCMAKE_INSTALL_LIBDIR=lib -DBUILD_CLI=ON
   step multimon-ng 0 cmake_dep multimon-ng -DX11_SUPPORT=OFF -DPULSE_AUDIO_SUPPORT=OFF -DSDL3_SCOPE=OFF -DBUILD_GEN_NG=OFF
   step csdr-skimmer 0 b_skimmer
   step rtl_433 0 cmake_dep rtl_433 -DENABLE_SOAPYSDR=AUTO -DENABLE_RTLSDR=AUTO
-  step direwolf 0 cmake_dep direwolf
+  step direwolf 0 b_direwolf
   step codec2 0 b_codec2
   step m17 0 cmake_dep m17
   step msk144 0 cmake_dep msk144
@@ -318,6 +371,7 @@ decoders_plan(){
   step dxlaprs 0 b_dxlaprs
   step wsjtx 0 cmake_dep wsjtx -DWSJT_SKIP_MAP65=ON -DWSJT_BUILD_UTILS=OFF -DWSJT_SKIP_MANPAGES=ON
   step js8call 0 cmake_dep js8call
+  step fdkaac 0 b_fdkaac
   step dream 0 b_dream
   step rade 0 b_rade
 }
@@ -326,20 +380,20 @@ receivers_plan(){
   step hackrf 0 b_hackrf; step soapyhackrf 0 cmake_dep soapyhackrf
   step airspy 0 cmake_dep airspy; step soapyairspy 0 cmake_dep soapyairspy
   step airspyhf 0 cmake_dep airspyhf; step soapyairspyhf 0 cmake_dep soapyairspyhf
-  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_DOC=OFF -DWITH_MAN=OFF
-  step libad9361 0 cmake_dep libad9361; step soapypluto 0 cmake_dep soapypluto
+  step libiio 0 cmake_dep libiio -DWITH_TESTS=OFF -DWITH_DOC=OFF -DWITH_MAN=OFF -DINSTALL_UDEV_RULE=OFF -DINSTALL_IIOD_HOTPLUG_RULE=OFF
+  step libad9361 0 b_libad9361; step soapypluto 0 cmake_dep soapypluto
   step limesuite 0 cmake_dep limesuite -DENABLE_EXAMPLES=OFF -DENABLE_DESKTOP=OFF -DENABLE_QUICKTEST=OFF -DENABLE_OCTAVE=OFF -DENABLE_GUI=OFF
   step soapyremote 0 cmake_dep soapyremote; step soapyfcdpp 0 cmake_dep soapyfcdpp
   step perseus 0 b_perseus
   step bladerf 0 b_bladerf; step soapybladerf 0 cmake_dep soapybladerf
   step uhd 0 b_uhd; step soapyuhd 0 cmake_dep soapyuhd
   step libmirisdr 0 cmake_dep libmirisdr; step soapymiri 0 cmake_dep soapymiri
-  step soapyafedri 0 cmake_dep soapyafedri; step soapyiqfile 0 cmake_dep soapyiqfile
-  step soapymalahit 0 cmake_dep soapymalahit; step soapyhydra 0 cmake_dep soapyhydra
-  step soapyelad 0 cmake_dep soapyelad; step soapysx 0 cmake_dep soapysx
+  step soapyafedri 0 b_soapyafedri; step soapyiqfile 0 cmake_dep soapyiqfile
+  step soapymalahit 0 cmake_dep soapymalahit; step hydrasdr-host 0 b_hydrasdr_host; step soapyhydra 0 cmake_dep soapyhydra
+  step soapyelad 0 b_soapyelad; step soapysx 0 b_soapysx
   step radioberry 0 b_radioberry; step soapysdrplay 0 b_sdrplay
   step extio_sddc 0 cmake_dep extio_sddc; step sddc_connector 0 b_sddc
-  step runds_connector 0 cmake_dep runds_connector; step hpsdrconnector 0 b_hpsdr
+  step runds_connector 0 b_runds; step hpsdrconnector 0 b_hpsdr
   step rockprog 0 b_rockprog
 }
 
