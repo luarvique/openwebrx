@@ -1,8 +1,7 @@
 diff --git a/FindLibIIO.cmake b/FindLibIIO.cmake
-index 535c94b..d4ff3ab 100644
 --- a/FindLibIIO.cmake
 +++ b/FindLibIIO.cmake
-@@ -24,7 +24,7 @@ find_path(LibIIO_INCLUDE_DIR iio.h
+@@ -27,7 +27,7 @@
            /opt/local/Library/Frameworks
            ${HOMEBREW_PREFIX}/Cellar/libiio/${PC_LibIIO_VERSION}/Frameworks
            ${HOMEBREW_PREFIX}/Cellar/libiio/${PC_LibIIO_VERSION}
