@@ -307,7 +307,6 @@ b_fftw(){
   local srcdir="$SRC/fftw-$ver"
 
   mkdir -p "$cache"
-
   if [[ ! -f "$archive" ]]; then
     info "Downloading FFTW $ver release tarball"
     if command -v curl >/dev/null; then
@@ -328,15 +327,12 @@ b_fftw(){
 
   rm -rf "$srcdir" "$BLD/fftw-double" "$BLD/fftw-float"
   tar -xzf "$archive" -C "$SRC" || return 1
-
-  # Remove any previously broken FFTW libraries before installing the
-  # validated release builds into the private prefix.
   rm -f "$PREFIX/lib"/libfftw3*.so* "$PREFIX/lib"/libfftw3*.a         "$PREFIX/lib/pkgconfig"/fftw3*.pc 2>/dev/null || true
 
   mkdir -p "$BLD/fftw-double"
   (
     cd "$BLD/fftw-double"
-    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --disable-fortran
+    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads
     make -j"$JOBS"
     make install
   ) || return 1
@@ -344,7 +340,7 @@ b_fftw(){
   mkdir -p "$BLD/fftw-float"
   (
     cd "$BLD/fftw-float"
-    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --enable-float       --disable-fortran
+    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --enable-float
     make -j"$JOBS"
     make install
   ) || return 1
@@ -357,6 +353,13 @@ b_fftw(){
       return 1
     fi
   done
+
+  # WSJT-derived Fortran decoders require these single-precision
+  # Fortran wrapper symbols from the float library.
+  nm -D "$PREFIX/lib/libfftw3f.so.3" | grep -q 'sfftw_execute_' || {
+    echo "FFTW float library is missing Fortran wrapper symbols" >&2
+    return 1
+  }
 }
 
 b_rtlsdr(){ cmake_dep rtl-sdr -DDETACH_KERNEL_DRIVER=ON -DINSTALL_UDEV_RULES=OFF; }
@@ -408,10 +411,11 @@ b_libgpiod1(){
 b_msk144(){
   source_prepare msk144 || return 1
   rm -rf "$BLD/msk144"
-  cmake -S "$SRC/msk144" -B "$BLD/msk144" -G "Unix Makefiles"     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_INSTALL_PREFIX="$PREFIX"     -DCMAKE_INSTALL_LIBDIR=lib     -DCMAKE_INSTALL_RPATH="$PREFIX/lib;$PREFIX/lib64"     -DCMAKE_PREFIX_PATH="$PREFIX" || return 1
-  cmake --build "$BLD/msk144" --parallel "$JOBS" || return 1
-  cmake --install "$BLD/msk144" || return 1
+  cmake -S "$SRC/msk144" -B "$BLD/msk144" -G "Unix Makefiles"     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX"     -DCMAKE_INSTALL_LIBDIR=lib     -DCMAKE_INSTALL_RPATH="$PREFIX/lib;$PREFIX/lib64"     -DCMAKE_PREFIX_PATH="$PREFIX" || return 1
+  cmake --build "$BLD/msk144" --target msk144decoder --parallel 1 || return 1
+  install -Dm755 "$BLD/msk144/msk144decoder" "$PREFIX/bin/msk144decoder"
 }
+
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
 b_rade(){ source_prepare rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
 b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" --disable-static CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
