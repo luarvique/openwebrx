@@ -27,13 +27,15 @@ from owrx.controllers.profile import ProfileController
 from owrx.controllers.imageupload import ImageUploadController
 from owrx.controllers.robots import RobotsController
 from owrx.storage import Storage
+
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-import re
 from abc import ABC, abstractmethod
 from http.cookies import SimpleCookie
 from datetime import datetime
 
+import posixpath
+import re
 import logging
 
 logger = logging.getLogger(__name__)
@@ -198,6 +200,12 @@ class Router(object):
                 return r
 
     def route(self, handler, request):
+        # convert relative path contianing ../. to absolute path
+        path = posixpath.normpath(request.path)
+        if request.path.endswith("/") and not path.endswith("/"):
+            path += "/"
+        request.path = path
+        # get route for this URL
         route = self.find_route(request)
         if route is not None:
             controller = route.controller
