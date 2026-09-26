@@ -281,6 +281,7 @@ pip_dep(){ source_prepare "$1" || return 1; python -m pip install --no-build-iso
 
 declare -A BUILD_REV=(
   [fftw]=5
+  [hamlib]=3
   [libgpiod1]=1
 )
 
