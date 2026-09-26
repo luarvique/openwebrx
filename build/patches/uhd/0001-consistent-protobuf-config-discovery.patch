@@ -1,8 +1,7 @@
 diff --git a/host/lib/usrp/common/CMakeLists.txt b/host/lib/usrp/common/CMakeLists.txt
 --- a/host/lib/usrp/common/CMakeLists.txt
 +++ b/host/lib/usrp/common/CMakeLists.txt
-@@ -53,16 +53,24 @@ LIBUHD_APPEND_SOURCES(
- 
+@@ -63,12 +63,21 @@
  # Generate protobuf stubs for MPM server
  if(ENABLE_MPMD)
 +    # Prefer the Protobuf CONFIG package whenever the installed gRPC package
@@ -29,4 +28,3 @@ diff --git a/host/lib/usrp/common/CMakeLists.txt b/host/lib/usrp/common/CMakeLis
 +        endif()
      endif()
      find_package(gRPC REQUIRED)
- 
