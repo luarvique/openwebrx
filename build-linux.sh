@@ -63,7 +63,7 @@ dep msk144 https://github.com/alexander-sholohov/msk144decoder.git 761d0b3a61cde
 dep dablin https://github.com/Opendigitalradio/dablin.git 96ae480f7ff6c20c9c3cdbcc35c80cf88f5ab750 master
 dep aprs-symbols https://github.com/hessu/aprs-symbols.git master master
 dep wsjtx https://github.com/WSJTX/wsjtx.git v3.0.2 master
-dep js8call https://github.com/js8call/js8call.git v2.3.1 main
+dep js8call https://github.com/js8call/js8call.git b60dfb0ec0d9294fba0e62d699a575368b864919 main
 dep dream https://github.com/wwek/dream.git v2.2.4 main
 dep rade https://github.com/peterbmarks/radae_decoder.git baff453880f89bbfb7cb28f3caa8cb6b83410ee4 main
 dep hamlib https://github.com/Hamlib/Hamlib.git 40f63488fe0bd751b147f48d62fd217bf53713a0 master
@@ -418,11 +418,18 @@ b_msk144(){
 
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
 b_rade(){ source_prepare rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
-b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" --disable-static CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
+b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
 b_sonde(){ source_prepare sonde-decoders; (cd "$SRC/sonde-decoders/demod/mod"; make clean || true; make -j"$JOBS"; for x in rs41mod dfm09mod m10mod m20mod mts01mod; do install -Dm755 "$x" "$PREFIX/bin/$x"; done); }
 b_satdump(){ cmake_dep satdump -DBUILD_GUI=OFF -DBUILD_TESTING=OFF -DBUILD_TOOLS=OFF -DBUILD_OPENCL=OFF -DBUILD_DOCS=OFF -DENABLE_CRASHDUMP=OFF -DENABLE_INSTALL=ON; }
 b_whisper(){ cmake_dep whisper -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_SERVER=ON -DWHISPER_CURL=OFF; local s; s="$(find "$BLD/whisper" -type f -name 'whisper-server' -perm -111 | head -1 || true)"; [[ -z "$s" ]] || install -Dm755 "$s" "$PREFIX/bin/whisper-server"; }
 b_dxlaprs(){ source_prepare dxlaprs; (cd "$SRC/dxlaprs/src"; make clean || true; make lorarx; local f; f="$(find .. -type f -name lorarx -perm -111 | head -1)"; install -Dm755 "$f" "$PREFIX/bin/lorarx"); }
+b_js8call(){
+  source_prepare js8call || return 1
+  rm -rf "$BLD/js8call"
+  cmake -S "$SRC/js8call" -B "$BLD/js8call" -G "Unix Makefiles"     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX"     -DCMAKE_INSTALL_LIBDIR=lib     -DCMAKE_PREFIX_PATH="$PREFIX"     -DFFTW3_ROOT_DIR="$PREFIX"     -DWSJT_SKIP_MANPAGES=ON || return 1
+  cmake --build "$BLD/js8call" --target js8 --parallel 1 || return 1
+  install -Dm755 "$BLD/js8call/js8" "$PREFIX/bin/js8"
+}
 b_fdkaac(){ source_prepare fdkaac; (cd "$SRC/fdkaac"; autoreconf -fiv; ./configure --prefix="$PREFIX" --disable-static; make -j"$JOBS"; make install); }
 b_dream(){ source_prepare dream; local qmake; qmake="$(command -v qmake-qt5 || command -v qmake || true)"; [[ -n "$qmake" ]] || return 1; (cd "$SRC/dream"; make distclean >/dev/null 2>&1 || true; "$qmake" CONFIG+=console CONFIG+=fdk-aac dream.pro; make -j"$JOBS"; install -Dm755 dream "$PREFIX/bin/dream"); }
 
@@ -486,7 +493,7 @@ decoders_plan(){
   step whisper 0 b_whisper
   step dxlaprs 0 b_dxlaprs
   step wsjtx 0 cmake_dep wsjtx -DWSJT_GENERATE_DOCS=OFF -DWSJT_SKIP_MAP65=ON -DWSJT_BUILD_UTILS=OFF -DWSJT_SKIP_MANPAGES=ON
-  step js8call 0 cmake_dep js8call
+  step js8call 0 b_js8call
   step fdkaac 0 b_fdkaac
   step dream 0 b_dream
   step rade 0 b_rade
@@ -575,11 +582,13 @@ check_refs(){
 
 check_patches(){
   layout
-  local n
-  for n in pydigiham direwolf libad9361 nrsc5 rade runds_connector soapyafedri soapypluto; do
+  local patchdir n
+  for patchdir in "$ROOT/build/patches"/*; do
+    [[ -d "$patchdir" ]] || continue
+    n="$(basename "$patchdir")"
+    [[ -n "${URL[$n]:-}" ]] || die "Patch directory has no dependency metadata: $n"
     info "Checking patches for $n"
     source_prepare "$n"
-    apply_patches "$n"
     (cd "$SRC/$n"; git reset --hard; git clean -fdx)
     ok "$n patches apply"
   done
