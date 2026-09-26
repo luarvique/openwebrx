@@ -80,7 +80,7 @@ dep airspy https://github.com/airspy/airspyone_host.git fc61ab6be57ed61f0e2bdd9c
 dep soapyairspy https://github.com/pothosware/SoapyAirspy.git master master
 dep airspyhf https://github.com/airspy/airspyhf.git 24fe8ffcb00b14f827268bbad89ae1392de055e5 master
 dep soapyairspyhf https://github.com/pothosware/SoapyAirspyHF.git master master
-dep libiio https://github.com/analogdevicesinc/libiio.git b6028fdeef888ab45f7c1dd6e4ed9480ae4b55e3 main
+dep libiio https://github.com/analogdevicesinc/libiio.git b6028fdeef888ab45f7c1dd6e4ed9480ae4b55e3 libiio-v0
 dep libad9361 https://github.com/analogdevicesinc/libad9361-iio.git 486e0ad4da422760a8338a8582caf5783691c808 main
 dep soapypluto https://github.com/pothosware/SoapyPlutoSDR.git 6d93ba806e4b2d2e1c5c70c9ba82027b37bdb257 master
 dep limesuite https://github.com/myriadrf/LimeSuite.git 699d05b7212aa612a9802c219dd6621be88c77db master
@@ -181,7 +181,7 @@ env_setup(){
   export LDFLAGS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib -Wl,-rpath,$PREFIX/lib64 ${LDFLAGS:-}"
   export CMAKE_BUILD_PARALLEL_LEVEL="$JOBS"
   python -m pip install -q --upgrade pip setuptools wheel packaging
-  python -m pip install -q --upgrade paho-mqtt meshtastic pycryptodome mako numpy ruamel.yaml mako numpy ruamel.yaml
+  python -m pip install -q --upgrade paho-mqtt meshtastic pycryptodome mako numpy ruamel.yaml
 }
 
 source_prepare(){
@@ -311,58 +311,16 @@ b_fftw(){
     ./configure --prefix="$PREFIX" --libdir="$PREFIX/lib" --enable-shared --disable-static --enable-threads --enable-float --disable-fortran
     make -j"$JOBS"
     make install
-  )
-}
+  ) || return 1
 
-  mkdir -p "$cache"
-  if [[ ! -f "$archive" ]]; then
-    if command -v curl >/dev/null; then
-      curl -fL "https://www.fftw.org/fftw-$ver.tar.gz" -o "$archive.tmp" || return 1
-    elif command -v wget >/dev/null; then
-      wget -O "$archive.tmp" "https://www.fftw.org/fftw-$ver.tar.gz" || return 1
-    else
-      echo "curl or wget is required to fetch FFTW" >&2
+  for lib in "$PREFIX/lib/libfftw3.so.3" "$PREFIX/lib/libfftw3f.so.3"; do
+    [[ -e "$lib" ]] || { echo "Missing FFTW library: $lib" >&2; return 1; }
+    if ldd -r "$lib" 2>&1 | grep -q "undefined symbol"; then
+      echo "FFTW library has unresolved symbols: $lib" >&2
+      ldd -r "$lib" >&2 || true
       return 1
     fi
-    mv "$archive.tmp" "$archive"
-  fi
-
-  printf '%s  %s\n' "$sha" "$archive" | sha256sum -c - || {
-    rm -f "$archive"
-    return 1
-  }
-
-  rm -rf "$srcdir" "$BLD/fftw-double" "$BLD/fftw-float"
-  tar -xzf "$archive" -C "$SRC" || return 1
-
-  mkdir -p "$BLD/fftw-double"
-  (
-    cd "$BLD/fftw-double"
-    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --disable-fortran || exit 1
-    make -j"$JOBS" || exit 1
-    make install || exit 1
-  ) || return 1
-
-  mkdir -p "$BLD/fftw-float"
-  (
-    cd "$BLD/fftw-float"
-    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --disable-fortran       --enable-float || exit 1
-    make -j"$JOBS" || exit 1
-    make install || exit 1
-  ) || return 1
-
-  # Fail immediately if the installed shared libraries contain unresolved
-  # solver/codelet references. This catches incomplete Git-tree/CMake builds.
-  if ldd -r "$PREFIX/lib/libfftw3f.so.3" 2>&1 | grep -q "undefined symbol"; then
-    echo "FFTW float library has unresolved symbols:" >&2
-    ldd -r "$PREFIX/lib/libfftw3f.so.3" >&2 || true
-    return 1
-  fi
-  if ldd -r "$PREFIX/lib/libfftw3.so.3" 2>&1 | grep -q "undefined symbol"; then
-    echo "FFTW double library has unresolved symbols:" >&2
-    ldd -r "$PREFIX/lib/libfftw3.so.3" >&2 || true
-    return 1
-  fi
+  done
 }
 
 b_rtlsdr(){ cmake_dep rtl-sdr -DDETACH_KERNEL_DRIVER=ON -DINSTALL_UDEV_RULES=OFF; }
