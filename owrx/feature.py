@@ -843,21 +843,27 @@ class FeatureDetector(object):
             return False
 
     def _has_acarsdec_version(self, required_version):
-        acarsdec_version_regex = re.compile(r"^Acarsdec\S*\s+v?(\S+)\s+Copyright")
+        # Source builds commonly report git-describe strings such as
+        # "4.4.1-3-gabcdef" rather than a package version. Capture the
+        # leading numeric version instead of requiring a strict first-line
+        # package-style banner.
+        acarsdec_version_regex = re.compile(
+            r"Acarsdec\\S*\\s+v?([0-9]+(?:\\.[0-9]+)+)"
+        )
         try:
-            process = subprocess.Popen(["acarsdec"], stderr=subprocess.PIPE)
-            matches = None
-            for x in range(3):
-                matches = acarsdec_version_regex.match(process.stderr.readline().decode())
-                if matches is not None:
-                    break
-            process.wait(1)
+            process = subprocess.run(
+                ["acarsdec"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                timeout=5,
+                check=False,
+                text=True,
+            )
+            matches = acarsdec_version_regex.search(process.stdout)
             if matches is None:
                 return False
-            else:
-                version = LooseVersion(matches.group(1))
-                return version >= required_version
-        except Exception as e:
+            return LooseVersion(matches.group(1)) >= required_version
+        except Exception:
             return False
 
     def has_acarsdec(self):
