@@ -301,6 +301,7 @@ b_redsea(){ source_prepare redsea; rm -rf "$BLD/redsea"; meson setup "$BLD/redse
 b_dump1090(){ source_prepare dump1090; (cd "$SRC/dump1090"; make clean; make -j"$JOBS" dump1090 RTLSDR=no BLADERF=no HACKRF=no LIMESDR=no SOAPYSDR=no DUMP1090_VERSION="$(git describe --tags --always --dirty)"; install -Dm755 dump1090 "$PREFIX/bin/dump1090"); }
 b_dump978(){ source_prepare dump978; (cd "$SRC/dump978"; make clean; make -j"$JOBS" dump978-fa; install -Dm755 dump978-fa "$PREFIX/bin/dump978"); }
 b_skimmer(){ source_prepare csdr-skimmer; (cd "$SRC/csdr-skimmer"; make clean || true; make -j"$JOBS" INCDIRS="-I$PREFIX/include" LIBDIRS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib"; install -Dm755 csdr-cwskimmer "$PREFIX/bin/csdr-cwskimmer"; install -Dm755 csdr-rttyskimmer "$PREFIX/bin/csdr-rttyskimmer"); }
+b_nrsc5(){ source_prepare nrsc5; apply_patches nrsc5; cmake_build nrsc5 "$SRC/nrsc5" -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_RTLSDR=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DFAAD2_CMAKE_ARGS=-DCMAKE_INSTALL_LIBDIR=lib -DBUILD_CLI=ON; }
 b_codec2(){ cmake_dep codec2 -DUNITTEST=OFF; local f; f="$(find "$BLD/codec2" -type f -name freedv_rx -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/freedv_rx"; }
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
 b_rade(){ source_prepare rade; apply_patches rade; cmake_build rade "$SRC/rade" -DBUILD_GUI=OFF; local f; f="$(find "$BLD/rade" -type f -name 'webrx_rade_decode' -perm -111 | head -1 || true)"; [[ -n "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
@@ -355,7 +356,7 @@ decoders_plan(){
   step dumphfdl 0 cmake_dep dumphfdl -DSOAPYSDR=OFF -DETSY_STATSD=OFF -DSQLITE=OFF -DZMQ=OFF -DRDKAFKA=OFF
   step dump1090 0 b_dump1090
   step dump978 0 b_dump978
-  step nrsc5 0 cmake_dep nrsc5 -DUSE_SYSTEM_FFTW=ON -DUSE_SYSTEM_RTLSDR=ON -DUSE_SYSTEM_LIBUSB=ON -DUSE_SYSTEM_LIBAO=ON -DUSE_FAAD2=ON -DFAAD2_CMAKE_ARGS=-DCMAKE_INSTALL_LIBDIR=lib -DBUILD_CLI=ON
+  step nrsc5 0 b_nrsc5
   step multimon-ng 0 cmake_dep multimon-ng -DX11_SUPPORT=OFF -DPULSE_AUDIO_SUPPORT=OFF -DSDL3_SCOPE=OFF -DBUILD_GEN_NG=OFF
   step csdr-skimmer 0 b_skimmer
   step rtl_433 0 cmake_dep rtl_433 -DENABLE_SOAPYSDR=AUTO -DENABLE_RTLSDR=AUTO
@@ -443,7 +444,7 @@ doctor(){
 check_patches(){
   layout
   local n
-  for n in pydigiham direwolf libad9361 rade runds_connector soapyafedri soapypluto; do
+  for n in pydigiham direwolf libad9361 nrsc5 rade runds_connector soapyafedri soapypluto; do
     info "Checking patches for $n"
     source_prepare "$n"
     apply_patches "$n"
