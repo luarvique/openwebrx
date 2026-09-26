@@ -6,6 +6,7 @@ on:
       - "build-linux.sh"
       - "owrx/feature.py"
       - ".github/workflows/linux-source-build.yml"
+      - "source-build/patches/**"
   push:
     branches:
       - master
