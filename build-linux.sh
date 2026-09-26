@@ -172,10 +172,8 @@ install_system_deps(){
   done
 }
 
-env_setup(){
-  layout
-  for x in git cmake make "$PYTHON" pkg-config; do command -v "$x" >/dev/null || die "required tool missing: $x"; done
-  [[ -x "$VENV/bin/python" ]] || "$PYTHON" -m venv "$VENV"
+activate_env(){
+  [[ -x "$VENV/bin/python" ]] || die "source-build virtual environment missing; run build first"
   export PATH="$VENV/bin:$PREFIX/bin:$PATH"
   export CMAKE_PREFIX_PATH="$PREFIX${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
   export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/lib64/pkgconfig:$PREFIX/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
@@ -187,6 +185,13 @@ env_setup(){
   export CXXFLAGS="-I$PREFIX/include ${CXXFLAGS:-}"
   export LDFLAGS="-L$PREFIX/lib -L$PREFIX/lib64 -Wl,-rpath,$PREFIX/lib -Wl,-rpath,$PREFIX/lib64 ${LDFLAGS:-}"
   export CMAKE_BUILD_PARALLEL_LEVEL="$JOBS"
+}
+
+env_setup(){
+  layout
+  for x in git cmake make "$PYTHON" pkg-config; do command -v "$x" >/dev/null || die "required tool missing: $x"; done
+  [[ -x "$VENV/bin/python" ]] || "$PYTHON" -m venv "$VENV"
+  activate_env
   python -m pip install -q --upgrade pip setuptools wheel packaging
   python -m pip install -q --upgrade paho-mqtt meshtastic pycryptodome mako numpy ruamel.yaml
 }
@@ -290,11 +295,17 @@ declare -A BUILD_REV=(
   [fftw]=5
   [hamlib]=3
   [libgpiod1]=1
-  [tetrarx]=1
+  [tetrarx]=2
   [uhd]=3
-  [whisper]=3
-  [acarsdec]=3
-  [codecserver]=3
+  [digiham]=3
+  [pydigiham]=3
+  [codecserver-mbelib]=3
+  [soapysdrplay]=3
+  [sddc_connector]=3
+  [radioberry]=3
+  [whisper]=4
+  [acarsdec]=4
+  [codecserver]=4
 )
 
 stamp(){
@@ -314,7 +325,7 @@ skip_component(){
 step(){
   local n="$1" required="$2"; shift 2
   donep "$n" && { ok "$n already built"; return; }
-  info "Building $n"; rm -f "$LOG/$n.log"; set +e; ( set -Eeuo pipefail; "$@" ) 2>&1 | tee "$LOG/$n.log"; local rc=${PIPESTATUS[0]}; set -e
+  info "Building $n"; rm -f "$STATE/$n.ok" "$LOG/$n.log"; set +e; ( set -Eeuo pipefail; "$@" ) 2>&1 | tee "$LOG/$n.log"; local rc=${PIPESTATUS[0]}; set -e
   if [[ $rc -eq 0 ]]; then
     rm -f "$STATE/$n.skip"
     stamp "$n" >"$STATE/$n.ok"
@@ -399,18 +410,9 @@ b_rtlsdr(){ cmake_dep rtl-sdr -DDETACH_KERNEL_DRIVER=ON -DINSTALL_UDEV_RULES=OFF
 b_soapy(){ cmake_dep soapysdr -DENABLE_PYTHON=OFF -DENABLE_TESTS=OFF; }
 b_pycsdr(){ pip_dep pycsdr; install -d "$PREFIX/include/pycsdr"; for h in pycsdr.hpp reader.hpp writer.hpp source.hpp sink.hpp module.hpp buffer.hpp bufferreader.hpp; do install -m0644 "$SRC/pycsdr/src/$h" "$PREFIX/include/pycsdr/$h"; done; }
 b_codecserver(){
-  source_prepare codecserver
-  patch_codecserver
+  source_prepare codecserver || return 1
+  patch_codecserver || return 1
   cmake_build codecserver "$SRC/codecserver"
-  install -d "$PREFIX/etc/codecserver"
-  cat >"$PREFIX/etc/codecserver/codecserver.conf" <<'EOF'
-[server:unixdomainsockets]
-socket=/tmp/codecserver.sock
-
-[device:mbelib]
-driver=mbelib
-unvoiced_quality=3
-EOF
 }
 b_codecserver_mbelib(){
   source_prepare codecserver-mbelib || return 1
@@ -516,6 +518,19 @@ b_tetrarx(){
     patch -p0 < "$p" || return 1
     make tetrarx || return 1
     install -Dm755 tetrarx "$PREFIX/bin/tetrarx"
+    # An installation stamp must not hide a non-runnable decoder.
+    python - "$PREFIX/bin/tetrarx" <<'PYTEST'
+import subprocess, sys
+try:
+    p = subprocess.run([sys.argv[1], "-h"], stdin=subprocess.DEVNULL,
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                       text=True, timeout=10)
+except (OSError, subprocess.TimeoutExpired) as exc:
+    raise SystemExit(str(exc))
+if p.returncode not in (0, 1):
+    print(p.stdout, file=sys.stderr)
+    raise SystemExit("tetrarx did not pass its command-line smoke test")
+PYTEST
   )
 }
 
@@ -544,7 +559,7 @@ b_soapysx(){ source_prepare soapysx || return 1; cmake_build soapysx "$SRC/soapy
 b_bladerf(){ source_prepare bladerf || return 1; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF -DINSTALL_SHELL_COMPLETIONS=OFF; }
 b_uhd(){ source_prepare uhd || return 1; cmake_build uhd "$SRC/uhd/host" -DPYTHON_EXECUTABLE="$VENV/bin/python" -DPython3_EXECUTABLE="$VENV/bin/python" -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF; }
 b_radioberry(){ case "$(uname -m)" in arm*|aarch64) source_prepare radioberry; cmake_build radioberry "$SRC/radioberry/SBC/rpi-4/SoapyRadioberrySDR";; *) skip_component radioberry "requires ARM/aarch64 Raspberry Pi hardware";; esac; }
-b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then skip_component soapysdrplay "SDRplay proprietary API v3 is not installed"; return $?; fi; cmake_dep soapysdrplay; }
+b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find "$PREFIX" /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then skip_component soapysdrplay "SDRplay proprietary API v3 is not installed"; return $?; fi; cmake_dep soapysdrplay; }
 b_sddc(){ command -v nvcc >/dev/null || { skip_component sddc_connector "CUDA toolkit/nvcc is not installed"; return $?; }; cmake_dep sddc_connector; }
 b_hpsdr(){ source_prepare hpsdrconnector; command -v go >/dev/null || return 1; (cd "$SRC/hpsdrconnector"; go build -o "$PREFIX/bin/hpsdrconnector" .); }
 b_rockprog(){ source_prepare rockprog || return 1; (cd "$SRC/rockprog"; make clean || true; make -j"$JOBS"; install -Dm755 rockprog "$PREFIX/bin/rockprog"); }
@@ -649,7 +664,7 @@ EOF
 
 check(){ if command -v "$2" >/dev/null 2>&1; then printf '  %-28s PASS  %s\n' "$1" "$(command -v "$2")"; else printf '  %-28s MISS\n' "$1"; fi; }
 doctor(){
-  env_setup >/dev/null 2>&1 || true
+  activate_env
   echo "OpenWebRX+ source-build doctor"; echo "Prefix: $PREFIX"; echo "Binary/module presence (feature-report is authoritative):"; echo
   check openwebrx openwebrx; check rtl_connector rtl_connector; check soapy_connector soapy_connector; check nmux nmux; check codecserver codecserver
   echo; echo Decoders:
@@ -694,118 +709,19 @@ check_patches(){
   done
 }
 
-configure_whisper(){
-  [[ "$WHISPER_MODEL_NAME" != "none" && -s "$WHISPER_MODEL" ]] || return 0
-  python - "$CONF" "$WHISPER_URL" <<'PY'
-from pathlib import Path
-import sys
-from owrx.config.core import CoreConfig
-CoreConfig.load(Path(sys.argv[1]))
-from owrx.config import Config
-cfg = Config.get()
-current = cfg["speech_url"]
-if not current:
-    cfg["speech_url"] = sys.argv[2]
-    cfg.store()
-PY
+runtime_helper(){
+  "$VENV/bin/python" "$ROOT/build/source_runtime.py" "$1" \
+    --root "$ROOT" --prefix "$PREFIX" --venv "$VENV" --config "$CONF" \
+    --logs "$LOG" --state "$STATE" --model "$WHISPER_MODEL" \
+    --model-name "$WHISPER_MODEL_NAME" --speech-url "$WHISPER_URL" --jobs "$JOBS"
 }
 
-start_whisper(){
-  WHISPER_PID=""
-  [[ "$WHISPER_MODEL_NAME" != "none" ]] || return 0
-  [[ -x "$PREFIX/bin/whisper-server" && -s "$WHISPER_MODEL" ]] || return 1
-
-  # Do not spawn our local service if the user configured a different server.
-  local configured
-  configured="$(python - "$CONF" <<'PY'
-from pathlib import Path
-import sys
-from owrx.config.core import CoreConfig
-CoreConfig.load(Path(sys.argv[1]))
-from owrx.config import Config
-print(Config.get()["speech_url"] or "")
-PY
-)"
-  [[ "$configured" == "$WHISPER_URL" ]] || return 0
-
-  # If our endpoint is already serving, leave it alone.
-  if python - "$WHISPER_PORT" <<'PY'
-import socket, sys
-s=socket.socket()
-s.settimeout(0.2)
-try:
-    ok=s.connect_ex(("127.0.0.1", int(sys.argv[1]))) == 0
-finally:
-    s.close()
-raise SystemExit(0 if ok else 1)
-PY
-  then
-    return 0
-  fi
-
-  local threads="$JOBS"
-  (( threads > 4 )) && threads=4
-  "$PREFIX/bin/whisper-server"     -m "$WHISPER_MODEL"     -t "$threads"     -l auto     --host 127.0.0.1     --port "$WHISPER_PORT"     >"$LOG/whisper-runtime.log" 2>&1 &
-  WHISPER_PID=$!
-
-  local i
-  for i in {1..100}; do
-    if python - "$WHISPER_PORT" <<'PY'
-import socket, sys
-s=socket.socket()
-s.settimeout(0.2)
-try:
-    ok=s.connect_ex(("127.0.0.1", int(sys.argv[1]))) == 0
-finally:
-    s.close()
-raise SystemExit(0 if ok else 1)
-PY
-    then
-      return 0
-    fi
-    kill -0 "$WHISPER_PID" 2>/dev/null || { WHISPER_PID=""; return 1; }
-    sleep 0.1
-  done
-  return 1
-}
-
-stop_whisper(){
-  [[ -n "${WHISPER_PID:-}" ]] || return 0
-  kill "$WHISPER_PID" 2>/dev/null || true
-  wait "$WHISPER_PID" 2>/dev/null || true
-  WHISPER_PID=""
-}
-
-start_codecserver(){
-  CODECSERVER_PID=""
-  [[ -x "$PREFIX/bin/codecserver" && -f "$PREFIX/etc/codecserver/codecserver.conf" ]] || return 0
-  if [[ -S /tmp/codecserver.sock ]]; then
-    return 0
-  fi
-  "$PREFIX/bin/codecserver" -c "$PREFIX/etc/codecserver/codecserver.conf" >"$LOG/codecserver-runtime.log" 2>&1 &
-  CODECSERVER_PID=$!
-  local i
-  for i in {1..50}; do
-    [[ -S /tmp/codecserver.sock ]] && return 0
-    kill -0 "$CODECSERVER_PID" 2>/dev/null || { CODECSERVER_PID=""; return 1; }
-    sleep 0.1
-  done
-  return 1
-}
-
-stop_codecserver(){
-  [[ -n "${CODECSERVER_PID:-}" ]] || return 0
-  kill "$CODECSERVER_PID" 2>/dev/null || true
-  wait "$CODECSERVER_PID" 2>/dev/null || true
-  CODECSERVER_PID=""
-  rm -f /tmp/codecserver.sock
-}
+configure_whisper(){ runtime_helper configure; }
 
 failure_report(){
   echo "Source-build optional failures"
   if [[ ! -s "$STATE/optional-failures.txt" ]]; then
     echo "  none recorded"
-    return 0
   fi
   while IFS= read -r n; do
     [[ -n "$n" ]] || continue
@@ -813,13 +729,13 @@ failure_report(){
     echo "===== $n ====="
     if [[ -f "$LOG/$n.log" ]]; then
       echo "-- error excerpts --"
-      grep -nE 'FAILED:|CMake Error|(^|[^[:alpha:]])error:|fatal:|undefined reference|multiple rules generate|Permission denied|Unable to resolve|Could NOT find|required packages were not found|Package .* not found' "$LOG/$n.log" | head -n 40 || true
+      grep -niE 'FAILED:|CMake Error|(^|[^[:alpha:]])error:|fatal:|undefined reference|multiple rules generate|Permission denied|Unable to resolve|Could NOT find|required packages were not found|Package .* not found' "$LOG/$n.log" | head -n 40 || true
       echo "-- final 60 lines --"
       tail -n 60 "$LOG/$n.log"
     else
       echo "No log file: $LOG/$n.log"
     fi
-  done < <(sort -u "$STATE/optional-failures.txt")
+  done < <(if [[ -f "$STATE/optional-failures.txt" ]]; then sort -u "$STATE/optional-failures.txt"; fi)
 
   if [[ -s "$STATE/optional-skips.txt" ]]; then
     echo
@@ -836,26 +752,15 @@ failure_report(){
 }
 
 feature_report(){
-  env_setup >/dev/null 2>&1
+  activate_env
   [[ -f "$CONF" ]] || die "config missing: $CONF"
-  start_codecserver || warn "private CodecServer did not start; AMBE will remain unavailable"
-  start_whisper || warn "private Whisper server did not start; speech transcription may be unavailable"
-  (cd "$ROOT"; python - "$CONF" <<'PY'
-from pathlib import Path
-import sys
-from owrx.config.core import CoreConfig
-CoreConfig.load(Path(sys.argv[1]))
-from owrx.feature import FeatureDetector
-fd=FeatureDetector()
-for name, entry in sorted(fd.feature_report().items()):
-    missing=[k for k,v in entry["requirements"].items() if not v["available"]]
-    print(f"{name:28} {'PASS' if entry['available'] else 'MISS'}" + ("" if not missing else "  missing: "+", ".join(missing)))
-PY
-  )
-  local rc=$?
-  stop_whisper
-  stop_codecserver
-  return $rc
+  runtime_helper report
+}
+
+diagnostics(){
+  activate_env
+  [[ -f "$CONF" ]] || die "config missing: $CONF"
+  runtime_helper diagnostics
 }
 
 build_all(){
@@ -873,16 +778,12 @@ build_all(){
 }
 
 run_app(){
-  env_setup >/dev/null 2>&1
+  activate_env
   [[ -f "$CONF" ]] || die "run build first"
-  start_codecserver || warn "private CodecServer failed to start; AMBE voice decoding unavailable"
-  start_whisper || warn "private Whisper server failed to start; speech transcription unavailable"
-  trap 'stop_whisper; stop_codecserver' EXIT INT TERM
-  cd "$ROOT"
-  openwebrx -c "$CONF" --debug
+  runtime_helper run
 }
 usage(){ cat <<EOF
-Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|failures|check-refs|check-patches|env|clean|uninstall]
+Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|diagnostics|failures|check-refs|check-patches|env|clean|uninstall]
   --profile full|core|decoders|receivers
   --prefix PATH
   --latest                 use dependency branch heads instead of locked refs
@@ -897,7 +798,7 @@ EOF
 CMD=build
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    build|run|doctor|feature-report|failures|check-refs|check-patches|env|clean|uninstall|help) CMD="$1"; shift ;;
+    build|run|doctor|feature-report|diagnostics|failures|check-refs|check-patches|env|clean|uninstall|help) CMD="$1"; shift ;;
     --profile) PROFILE="$2"; shift 2 ;;
     --prefix) PREFIX="$2"; VENV="$PREFIX/venv"; CONF="$PREFIX/etc/openwebrx/openwebrx.conf"; DATA="$PREFIX/var/lib/openwebrx"; TMP="$PREFIX/var/tmp"; WHISPER_DIR="$PREFIX/share/whisper"; WHISPER_MODEL="$WHISPER_DIR/ggml-$WHISPER_MODEL_NAME.bin"; shift 2 ;;
     --latest) LATEST=1; shift ;;
@@ -914,10 +815,11 @@ case "$CMD" in
   run) run_app ;;
   doctor) doctor ;;
   feature-report) feature_report ;;
+  diagnostics) diagnostics ;;
   failures) failure_report ;;
   check-refs) check_refs ;;
   check-patches) check_patches ;;
-  env) env_setup >/dev/null 2>&1; cat "$PREFIX/env.sh" ;;
+  env) cat "$PREFIX/env.sh" ;;
   clean) rm -rf "$WORK" ;;
   uninstall) rm -rf "$PREFIX" "$WORK" ;;
   help) usage ;;

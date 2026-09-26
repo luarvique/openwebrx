@@ -1,0 +1,28 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,7 +1,21 @@
+ add_executable(acarsdec acars.c  acarsdec.c  label.c  msk.c  output.c netout.c fileout.c lib.c statsd.c)
+-execute_process(COMMAND git describe --tags --always --dirty OUTPUT_VARIABLE VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+-if(VERSION)
++# Keep the source's own semantic version. A git hash (or the invoking
++# superproject's version) is not an AcarsDec version for capability checks.
++file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/acarsdec.h" ACARSDEC_VERSION_LINE
++     REGEX [[^#define ACARSDEC_VERSION "[0-9]+(\.[0-9]+)+"]])
++if(NOT ACARSDEC_VERSION_LINE)
++    message(FATAL_ERROR "Cannot read AcarsDec source version from acarsdec.h")
++endif()
++string(REGEX REPLACE [[.*"([0-9]+(\.[0-9]+)+)".*]] [[\1]]
++       VERSION "${ACARSDEC_VERSION_LINE}")
++execute_process(COMMAND git rev-parse --short=12 HEAD
++    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
++    RESULT_VARIABLE ACARSDEC_GIT_STATUS
++    OUTPUT_VARIABLE ACARSDEC_GIT_REV OUTPUT_STRIP_TRAILING_WHITESPACE
++    ERROR_QUIET)
++if(ACARSDEC_GIT_STATUS EQUAL 0)
++    string(APPEND VERSION "+git.${ACARSDEC_GIT_REV}")
++endif()
+ add_compile_definitions(VERSION="${VERSION}")
+-endif()
+ 
+ find_package(PkgConfig)
