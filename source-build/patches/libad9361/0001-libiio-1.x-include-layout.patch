@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8f3c9d1..263a2df 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -76,7 +76,7 @@ endif()
+ add_definitions(-D_POSIX_C_SOURCE=200809L -D__XSI_VISIBLE=500 -DLIBAD9361_EXPORTS=1)
+ 
+ find_library(LIBIIO_LIBRARIES iio)
+-find_path(LIBIIO_INCLUDEDIR iio.h)
++find_path(LIBIIO_INCLUDEDIR NAMES iio.h PATH_SUFFIXES iio)
+ 
+ set(LIBAD9361_HEADERS ad9361.h)
+ 
