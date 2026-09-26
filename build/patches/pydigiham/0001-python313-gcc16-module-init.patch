@@ -1,0 +1,17 @@
+diff --git a/src/modules.cpp b/src/modules.cpp
+--- a/src/modules.cpp
++++ b/src/modules.cpp
+@@ -22,5 +22,10 @@ static PyModuleDef pycsdrmodule = {
+     PyModuleDef_HEAD_INIT,
+-    .m_name = "digiham.modules",
+-    .m_doc = "Python bindings for the digiham library",
+-    .m_size = -1,
++    "digiham.modules",
++    "Python bindings for the digiham library",
++    -1,
++    nullptr,
++    nullptr,
++    nullptr,
++    nullptr,
++    nullptr,
+ };

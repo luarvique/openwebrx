@@ -1,0 +1,36 @@
+name: Linux source builder checks
+
+on:
+  pull_request:
+    paths:
+      - "build-linux.sh"
+      - "owrx/feature*.py"
+      - "build/**"
+      - "test/source_build/**"
+      - ".github/workflows/linux-source-build.yml"
+      - "source-build/**"
+  push:
+    branches:
+      - master
+    paths:
+      - "build-linux.sh"
+      - "owrx/feature*.py"
+      - "build/**"
+      - "test/source_build/**"
+      - ".github/workflows/linux-source-build.yml"
+
+jobs:
+  shell-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate builder syntax
+        run: bash -n build-linux.sh
+      - name: Validate help path
+        run: ./build-linux.sh help
+      - name: Native feature and runtime regressions
+        run: python3 -m unittest discover -s test/source_build -v
+      - name: Validate dependency refs
+        run: ./build-linux.sh --no-system-packages check-refs
+      - name: Validate dependency patches
+        run: ./build-linux.sh --no-system-packages check-patches

@@ -1,0 +1,46 @@
+--- Makefile.org
++++ Makefile
+@@ -75,7 +75,7 @@
+ CFLAGS		= -I$(INCL) -c -O2 -fdata-sections -ffunction-sections -I/usr/X11/include -DMACOS
+ LFLAGS		= -L/usr/X11/lib -lX11
+ else
+-CFLAGS		= -I$(INCL) -c -O2 -fdata-sections -ffunction-sections
++CFLAGS		= -I$(INCL) -I./tetra -c -O2 -fdata-sections -ffunction-sections
+ LFLAGS		= -Wl,--gc-sections
+ endif
+ # ---------------------- armv6 (raspberry pi 1) specific -----------------------
+@@ -199,6 +199,7 @@
+ OBJ_SDRTX	= sdrtx.o
+ OBJ_LORATX	= loratx.o
+ OBJ_LORARX	= lorarx.o loraprotocols.o
++OBJ_TETRARX	= tetrarx.o viterbi_cch.o conv.o tetra/cdec_tet.o tetra/fexp_tet.o tetra/fmat_tet.o tetra/sdecode.o tetra/sdec_tet.o tetra/sub_cd.o tetra/sub_dsp.o tetra/sub_sc_d.o tetra/tetra_op.o tetra/csdecoder.o tetra/fbas_tet.o
+ OBJ_FLARM	= flarm.o
+ OBJ_FSK4RX	= fsk4rx.o
+ OBJ_RA02WATERFALL	= ra02waterfall.o pngwritepalette.o filesize.o ft232bang.o
+@@ -232,6 +233,7 @@
+ 	sdrtx \
+ 	loratx \
+ 	lorarx \
++	tetrarx \
+ 	ra02 \
+ 	fsk4rx \
+ 	gpssdr
+@@ -270,6 +272,7 @@
+ 	$(OBJ_SDRTX) \
+ 	$(OBJ_LORATX) \
+ 	$(OBJ_LORARX) \
++	$(OBJ_TETRARX) \
+ 	$(OBJ_RA02) \
+ 	$(OBJ_FSK4RX) \
+ 	$(OBJ_GPSSDR)
+@@ -395,6 +398,10 @@
+ 	$(CC) $(LFLAGS) -o lorarx $(OBJ_LORARX) $(OBJ_COMMON) -lm
+ 	$(STRIP) lorarx $(STRIPFLAGS)
+ 
++tetrarx: $(OBJ_TETRARX) $(OBJ_COMMON)
++	$(CC) $(LFLAGS) -o tetrarx -I./tetra $(OBJ_TETRARX) $(OBJ_COMMON) -lm
++	$(STRIP) tetrarx $(STRIPFLAGS)
++
+ flarm: $(OBJ_FLARM) $(OBJ_COMMON)
+ 	$(CC) $(LFLAGS) -o flarm $(OBJ_FLARM) $(OBJ_COMMON) -lm
+ 	$(STRIP) flarm $(STRIPFLAGS)

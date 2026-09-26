@@ -1,0 +1,24 @@
+diff --git a/lib/jplsubs.f b/lib/jplsubs.f
+--- a/lib/jplsubs.f
++++ b/lib/jplsubs.f
+@@ -534,6 +534,6 @@
+ C+++++++++++++++++++++++++
+ C
+-      SUBROUTINE SPLIT(TT,FR)
++      SUBROUTINE JPLSPLIT(TT,FR)
+ C
+ C+++++++++++++++++++++++++
+ C
+@@ -754,9 +754,9 @@
+       IF(ET2(1) .EQ. 0.D0) RETURN
+ 
+       S=ET2(1)-.5D0
+-      CALL SPLIT(S,PJD(1))
+-      CALL SPLIT(ET2(2),PJD(3))
++      CALL JPLSPLIT(S,PJD(1))
++      CALL JPLSPLIT(ET2(2),PJD(3))
+       PJD(1)=PJD(1)+PJD(3)+.5D0
+       PJD(2)=PJD(2)+PJD(4)
+-      CALL SPLIT(PJD(2),PJD(3))
++      CALL JPLSPLIT(PJD(2),PJD(3))
+       PJD(1)=PJD(1)+PJD(3)

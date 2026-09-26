@@ -1,0 +1,19 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -9,4 +9,5 @@
+ enable_language(CXX)
+-set(CMAKE_CXX_STANDARD 11)
++set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+ include(GNUInstallDirs)
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -1,4 +1,4 @@
+ add_library(mbelib SHARED mbelibdriver.cpp mbelibdevice.cpp mbelibsession.cpp)
+-target_link_libraries(mbelib codecserver ${CMAKE_THREAD_LIBS_INIT})
++target_link_libraries(mbelib CodecServer::codecserver ${CMAKE_THREAD_LIBS_INIT})
+ target_include_directories(mbelib PRIVATE ${LIBMBE_INCLUDE_DIR})
+ target_link_libraries(mbelib ${LIBMBE_LIBRARY})

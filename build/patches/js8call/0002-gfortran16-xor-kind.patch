@@ -1,0 +1,50 @@
+diff --git a/lib/js8/ldpcsim174js8a.f90 b/lib/js8/ldpcsim174js8a.f90
+--- a/lib/js8/ldpcsim174js8a.f90
++++ b/lib/js8/ldpcsim174js8a.f90
+@@ -95,5 +95,5 @@
+   i1Msg8BitBytes(10:11)=0
+   checksum = crc12 (c_loc (i1Msg8BitBytes), 11)
+-  checksum = xor(checksum, 42) ! TODO: jsherer - could change the crc here
++  checksum = xor(checksum, int(42,kind(checksum))) ! TODO: jsherer - could change the crc here
+ ! For reference, the next 3 lines show how to check the CRC
+   i1Msg8BitBytes(10)=checksum/256
+diff --git a/lib/js8/ldpcsim174js8b.f90 b/lib/js8/ldpcsim174js8b.f90
+--- a/lib/js8/ldpcsim174js8b.f90
++++ b/lib/js8/ldpcsim174js8b.f90
+@@ -95,5 +95,5 @@
+   i1Msg8BitBytes(10:11)=0
+   checksum = crc12 (c_loc (i1Msg8BitBytes), 11)
+-  checksum = xor(checksum, 42) ! TODO: jsherer - could change the crc here
++  checksum = xor(checksum, int(42,kind(checksum))) ! TODO: jsherer - could change the crc here
+ ! For reference, the next 3 lines show how to check the CRC
+   i1Msg8BitBytes(10)=checksum/256
+diff --git a/lib/js8/ldpcsim174js8c.f90 b/lib/js8/ldpcsim174js8c.f90
+--- a/lib/js8/ldpcsim174js8c.f90
++++ b/lib/js8/ldpcsim174js8c.f90
+@@ -95,5 +95,5 @@
+   i1Msg8BitBytes(10:11)=0
+   checksum = crc12 (c_loc (i1Msg8BitBytes), 11)
+-  checksum = xor(checksum, 42) ! TODO: jsherer - could change the crc here
++  checksum = xor(checksum, int(42,kind(checksum))) ! TODO: jsherer - could change the crc here
+ ! For reference, the next 3 lines show how to check the CRC
+   i1Msg8BitBytes(10)=checksum/256
+diff --git a/lib/js8/ldpcsim174js8e.f90 b/lib/js8/ldpcsim174js8e.f90
+--- a/lib/js8/ldpcsim174js8e.f90
++++ b/lib/js8/ldpcsim174js8e.f90
+@@ -95,5 +95,5 @@
+   i1Msg8BitBytes(10:11)=0
+   checksum = crc12 (c_loc (i1Msg8BitBytes), 11)
+-  checksum = xor(checksum, 42) ! TODO: jsherer - could change the crc here
++  checksum = xor(checksum, int(42,kind(checksum))) ! TODO: jsherer - could change the crc here
+ ! For reference, the next 3 lines show how to check the CRC
+   i1Msg8BitBytes(10)=checksum/256
+diff --git a/lib/js8/ldpcsim174js8i.f90 b/lib/js8/ldpcsim174js8i.f90
+--- a/lib/js8/ldpcsim174js8i.f90
++++ b/lib/js8/ldpcsim174js8i.f90
+@@ -95,5 +95,5 @@
+   i1Msg8BitBytes(10:11)=0
+   checksum = crc12 (c_loc (i1Msg8BitBytes), 11)
+-  checksum = xor(checksum, 42) ! TODO: jsherer - could change the crc here
++  checksum = xor(checksum, int(42,kind(checksum))) ! TODO: jsherer - could change the crc here
+ ! For reference, the next 3 lines show how to check the CRC
+   i1Msg8BitBytes(10)=checksum/256

@@ -1,0 +1,12 @@
+diff --git a/cmake/BuildOpus.cmake b/cmake/BuildOpus.cmake
+index ed15de1..0000000 100644
+--- a/cmake/BuildOpus.cmake
++++ b/cmake/BuildOpus.cmake
+@@ -60,6 +60,7 @@ ExternalProject_Add(build_opus
+     DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/.cache/opus
+     SOURCE_DIR   ${CMAKE_SOURCE_DIR}/.cache/opus/src
+     STAMP_DIR    ${CMAKE_SOURCE_DIR}/.cache/opus/stamp
++    BUILD_BYPRODUCTS ${CMAKE_SOURCE_DIR}/.cache/opus/src/.libs/libopus${CMAKE_STATIC_LIBRARY_SUFFIX}
+     BUILD_IN_SOURCE 1
+     PATCH_COMMAND sh -c "patch --forward dnn/nnet.h < ${CMAKE_SOURCE_DIR}/extern/rade_c/src/opus-nnet.h.diff || true; patch --forward dnn/nnet.c < ${CMAKE_SOURCE_DIR}/extern/rade_c/src/opus-nnet.c.diff || true"
+     CONFIGURE_COMMAND ${CONFIGURE_COMMAND}

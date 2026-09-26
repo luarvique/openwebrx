@@ -1,0 +1,21 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -262,10 +262,13 @@
+         set_property (TARGET faad2 PROPERTY IMPORTED_LOCATION "${FAAD2_PREFIX}/lib/libfaad_hdc.a")
+         add_dependencies (faad2 faad2_external)
+ 
+-        set (FAAD2_INCLUDE_DIRS "${FAAD2_PREFIX}/include")
+-        set (FAAD2_LIBRARIES faad2)
+-        set (FAAD2_BUILTIN faad2)
+-        set (FAAD2_FOUND ON)
++        set (FAAD2_INCLUDE_DIRS "${FAAD2_PREFIX}/include")
++        set (FAAD2_LIBRARIES faad2)
++        # Ninja needs the concrete ExternalProject target in downstream
++        # dependencies; depending only on the imported archive target can
++        # leave libfaad_hdc.a without a generating build edge.
++        set (FAAD2_BUILTIN faad2_external)
++        set (FAAD2_FOUND ON)
+     endif()
+ 
+     if (FAAD2_FOUND)
