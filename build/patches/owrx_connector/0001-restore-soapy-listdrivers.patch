@@ -1,7 +1,7 @@
 diff --git a/src/app/soapy_connector.cpp b/src/app/soapy_connector.cpp
 --- a/src/app/soapy_connector.cpp
 +++ b/src/app/soapy_connector.cpp
-@@ -3,8 +3,10 @@
+@@ -3,7 +3,9 @@
  #include <iostream>
  #include <algorithm>
  #include <getopt.h>
@@ -11,7 +11,7 @@ diff --git a/src/app/soapy_connector.cpp b/src/app/soapy_connector.cpp
  
  int main (int argc, char** argv) {
      Connector* connector = new SoapyConnector();
-@@ -17,8 +19,9 @@ std::stringstream SoapyConnector::get_usage_string() {
+@@ -17,7 +19,8 @@ std::stringstream SoapyConnector::get_usage_string() {
      std::stringstream s = Connector::get_usage_string();
      s <<
          " -a, --antenna           select antenna input\n" <<
@@ -21,7 +21,7 @@ diff --git a/src/app/soapy_connector.cpp b/src/app/soapy_connector.cpp
      return s;
  }
  
-@@ -26,7 +29,8 @@ std::vector<struct option> SoapyConnector::getopt_long_options() {
+@@ -26,6 +29,7 @@ std::vector<struct option> SoapyConnector::getopt_long_options() {
      std::vector<struct option> long_options = Connector::getopt_long_options();
      long_options.push_back({"antenna", required_argument, NULL, 'a'});
      long_options.push_back({"settings", required_argument, NULL, 't'});
