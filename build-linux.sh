@@ -31,7 +31,7 @@ declare -A URL REF BRANCH
 dep(){ URL["$1"]="$2"; REF["$1"]="$3"; BRANCH["$1"]="${4:-}"; }
 
 # Locked integration revisions. OWRX_LATEST=1 switches to the named branch.
-dep fftw https://github.com/FFTW/fftw3.git fftw-3.3.10-release master
+dep fftw https://github.com/FFTW/fftw3.git 7184fc796279cfa70e4ba62519ac2938054584e6 master
 dep rtl-sdr https://github.com/osmocom/rtl-sdr.git 797f8143266d983c56d8f35d2d442527529dd8a5 master
 dep soapysdr https://github.com/pothosware/SoapySDR.git 1551ea0d39ce546b32a15808b9b1241018a89fc8 master
 dep soapyrtlsdr https://github.com/pothosware/SoapyRTLSDR.git 6ca357c15cbf676ff30eb8eb445d1e1eac17c136 master
