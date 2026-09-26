@@ -29,7 +29,7 @@ diff --git a/src/app/soapy_connector.cpp b/src/app/soapy_connector.cpp
      return long_options;
  }
  
-@@ -37,12 +41,23 @@ int SoapyConnector::receive_option(int c, char* optarg) {
+@@ -37,12 +41,24 @@ int SoapyConnector::receive_option(int c, char* optarg) {
          case 't':
              settings = std::string(optarg);
              break;
