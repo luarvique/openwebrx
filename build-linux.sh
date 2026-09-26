@@ -124,7 +124,8 @@ install_system_deps(){
         libusb-1_0-devel fftw3-devel libsamplerate-devel systemd-devel protobuf-devel libicu-devel boost-devel
         libboost_program_options-devel libboost_filesystem-devel libboost_regex-devel libsndfile-devel libao-devel libxml2-devel
         libconfig-devel libjansson-devel libcurl-devel libopenssl-devel ncurses-devel alsa-devel libpulse-devel libSDL2-devel
-        mpg123-devel libfaad-devel hidapi-devel avahi-devel zlib-devel libpcap-devel speexdsp-devel hamlib-devel ImageMagick lame)
+        mpg123-devel libmpg123-devel libfaad-devel faad2-devel hidapi-devel avahi-devel zlib-devel libpcap-devel speexdsp-devel hamlib hamlib-devel ImageMagick lame
+        libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtserialport-devel libqt5-qtwebsockets-devel libqt5-qtsvg-devel cjson-devel)
       ;;
     apt)
       sudo_run apt-get update
@@ -258,6 +259,10 @@ b_codec2(){ cmake_dep codec2 -DUNITTEST=OFF; local f; f="$(find "$BLD/codec2" -t
 b_aprs(){ source_prepare aprs-symbols; rm -rf "$PREFIX/share/aprs-symbols"; mkdir -p "$PREFIX/share/aprs-symbols"; cp -a "$SRC/aprs-symbols/." "$PREFIX/share/aprs-symbols/"; rm -rf "$PREFIX/share/aprs-symbols/.git"; }
 b_dream(){ source_prepare dream; if [[ -f "$SRC/dream/CMakeLists.txt" ]]; then cmake_build dream "$SRC/dream"; else return 1; fi; }
 b_rade(){ source_prepare rade; local f; f="$(find "$SRC/rade" -type f -name 'webrx_rade_decode*' | head -1 || true)"; [[ -n "$f" && -x "$f" ]] || return 1; install -Dm755 "$f" "$PREFIX/bin/webrx_rade_decode"; }
+b_hamlib(){ source_prepare hamlib; (cd "$SRC/hamlib"; ./bootstrap || autoreconf -i; ./configure --prefix="$PREFIX" --disable-static CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"; make -j"$JOBS"; make install); }
+b_sonde(){ source_prepare sonde-decoders; (cd "$SRC/sonde-decoders/demod/mod"; make clean || true; make -j"$JOBS"; for x in rs41mod dfm09mod m10mod m20mod mts01mod; do install -Dm755 "$x" "$PREFIX/bin/$x"; done); }
+b_satdump(){ cmake_dep satdump -DBUILD_GUI=OFF -DBUILD_TESTING=OFF -DBUILD_TOOLS=OFF -DBUILD_OPENCL=OFF -DBUILD_DOCS=OFF -DENABLE_CRASHDUMP=OFF -DENABLE_INSTALL=ON; }
+b_whisper(){ cmake_dep whisper -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_SERVER=ON -DWHISPER_CURL=OFF; local s; s="$(find "$BLD/whisper" -type f -name 'whisper-server' -perm -111 | head -1 || true)"; [[ -z "$s" ]] || install -Dm755 "$s" "$PREFIX/bin/whisper-server"; }
 
 # Receiver special cases
 b_hackrf(){ source_prepare hackrf; cmake_build hackrf "$SRC/hackrf/host"; }
@@ -304,7 +309,11 @@ decoders_plan(){
   step msk144 0 cmake_dep msk144
   step dablin 0 cmake_dep dablin
   step aprs-symbols 0 b_aprs
-  step wsjtx 0 cmake_dep wsjtx -DWSJT_GENERATE_DOCS=OFF
+  step hamlib 0 b_hamlib
+  step sonde-decoders 0 b_sonde
+  step satdump 0 b_satdump
+  step whisper 0 b_whisper
+  step wsjtx 0 cmake_dep wsjtx -DWSJT_SKIP_MAP65=ON -DWSJT_BUILD_UTILS=OFF -DWSJT_SKIP_MANPAGES=ON
   step js8call 0 cmake_dep js8call
   step dream 0 b_dream
   step rade 0 b_rade
