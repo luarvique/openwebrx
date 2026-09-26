@@ -370,7 +370,7 @@ EOF
 check(){ if command -v "$2" >/dev/null 2>&1; then printf '  %-28s PASS  %s\n' "$1" "$(command -v "$2")"; else printf '  %-28s MISS\n' "$1"; fi; }
 doctor(){
   env_setup >/dev/null 2>&1 || true
-  echo "OpenWebRX+ source-build doctor"; echo "Prefix: $PREFIX"; echo
+  echo "OpenWebRX+ source-build doctor"; echo "Prefix: $PREFIX"; echo "Binary/module presence (feature-report is authoritative):"; echo
   check openwebrx openwebrx; check rtl_connector rtl_connector; check soapy_connector soapy_connector; check nmux nmux
   echo; echo Decoders:
   check ADSB/dump1090 dump1090; check UAT/dump978 dump978; check HFDL dumphfdl; check VDL2 dumpvdl2; check ACARS acarsdec
@@ -380,6 +380,24 @@ doctor(){
   echo; echo Receiver helpers:
   check Airspy airspy_rx; check Perseus perseustest; check RunDS runds_connector; check HPSDR hpsdrconnector; check SDDC sddc_connector; check FiFi/rockprog rockprog
   command -v SoapySDRUtil >/dev/null 2>&1 && { echo; SoapySDRUtil --info 2>/dev/null || true; }
+}
+
+failure_report(){
+  echo "Source-build optional failures"
+  if [[ ! -s "$STATE/optional-failures.txt" ]]; then
+    echo "  none recorded"
+    return 0
+  fi
+  while IFS= read -r n; do
+    [[ -n "$n" ]] || continue
+    echo
+    echo "===== $n ====="
+    if [[ -f "$LOG/$n.log" ]]; then
+      tail -n 35 "$LOG/$n.log"
+    else
+      echo "No log file: $LOG/$n.log"
+    fi
+  done < <(sort -u "$STATE/optional-failures.txt")
 }
 
 feature_report(){
@@ -415,7 +433,7 @@ build_all(){
 
 run_app(){ env_setup >/dev/null 2>&1; [[ -f "$CONF" ]] || die "run build first"; cd "$ROOT"; exec openwebrx -c "$CONF" --debug; }
 usage(){ cat <<EOF
-Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|env|clean|uninstall]
+Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|failures|env|clean|uninstall]
   --profile full|core|decoders|receivers
   --prefix PATH
   --latest                 use dependency branch heads instead of locked refs
@@ -430,7 +448,7 @@ EOF
 CMD=build
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    build|run|doctor|feature-report|env|clean|uninstall|help) CMD="$1"; shift ;;
+    build|run|doctor|feature-report|failures|env|clean|uninstall|help) CMD="$1"; shift ;;
     --profile) PROFILE="$2"; shift 2 ;;
     --prefix) PREFIX="$2"; VENV="$PREFIX/venv"; CONF="$PREFIX/etc/openwebrx/openwebrx.conf"; DATA="$PREFIX/var/lib/openwebrx"; TMP="$PREFIX/var/tmp"; shift 2 ;;
     --latest) LATEST=1; shift ;;
@@ -447,6 +465,7 @@ case "$CMD" in
   run) run_app ;;
   doctor) doctor ;;
   feature-report) feature_report ;;
+  failures) failure_report ;;
   env) env_setup >/dev/null 2>&1; cat "$PREFIX/env.sh" ;;
   clean) rm -rf "$WORK" ;;
   uninstall) rm -rf "$PREFIX" "$WORK" ;;
