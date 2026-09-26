@@ -301,13 +301,33 @@ stamp(){
   printf '%s|latest=%s|v=%s\n' "${REF[$1]:-repo}" "$LATEST" "$rev"
 }
 donep(){ [[ "$FORCE" != 1 && -f "$STATE/$1.ok" && "$(cat "$STATE/$1.ok")" == "$(stamp "$1")" ]]; }
+
+skip_component(){
+  local n="$1"; shift
+  mkdir -p "$STATE"
+  printf '%s\n' "$*" >"$STATE/$n.skip"
+  warn "$n skipped: $*"
+  return 75
+}
+
 step(){
   local n="$1" required="$2"; shift 2
   donep "$n" && { ok "$n already built"; return; }
   info "Building $n"; rm -f "$LOG/$n.log"; set +e; ( set -Eeuo pipefail; "$@" ) 2>&1 | tee "$LOG/$n.log"; local rc=${PIPESTATUS[0]}; set -e
-  if [[ $rc -eq 0 ]]; then stamp "$n" >"$STATE/$n.ok"; ok "$n"; return; fi
+  if [[ $rc -eq 0 ]]; then
+    rm -f "$STATE/$n.skip"
+    stamp "$n" >"$STATE/$n.ok"
+    ok "$n"
+    return
+  fi
+  if [[ $rc -eq 75 ]]; then
+    rm -f "$STATE/$n.ok"
+    echo "$n" >>"$STATE/optional-skips.txt"
+    return 0
+  fi
   if [[ "$required" == 1 || "$STRICT" == 1 ]]; then die "$n failed; see $LOG/$n.log"; fi
-  warn "$n failed/skipped; see $LOG/$n.log"; echo "$n" >>"$STATE/optional-failures.txt"
+  warn "$n failed; see $LOG/$n.log"
+  echo "$n" >>"$STATE/optional-failures.txt"
 }
 
 # Core
@@ -494,9 +514,9 @@ b_soapyelad(){ source_prepare soapyelad || return 1; cmake_build soapyelad "$SRC
 b_soapysx(){ source_prepare soapysx || return 1; cmake_build soapysx "$SRC/soapysx/SoapySX" -DINSTALL_PIPEWIRE_CONF=OFF; }
 b_bladerf(){ source_prepare bladerf || return 1; cmake_build bladerf "$SRC/bladerf/host" -DBUILD_DOCUMENTATION=OFF -DTREAT_WARNINGS_AS_ERRORS=OFF -DINSTALL_UDEV_RULES=OFF -DINSTALL_SHELL_COMPLETIONS=OFF; }
 b_uhd(){ source_prepare uhd || return 1; cmake_build uhd "$SRC/uhd/host" -DPYTHON_EXECUTABLE="$VENV/bin/python" -DPython3_EXECUTABLE="$VENV/bin/python" -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF; }
-b_radioberry(){ case "$(uname -m)" in arm*|aarch64) source_prepare radioberry; cmake_build radioberry "$SRC/radioberry/SBC/rpi-4/SoapyRadioberrySDR";; *) warn "Radioberry skipped on $(uname -m)";; esac; }
-b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then warn "SDRplay vendor API v3 not installed; wrapper skipped"; return 0; fi; cmake_dep soapysdrplay; }
-b_sddc(){ command -v nvcc >/dev/null || { warn "CUDA/nvcc unavailable; sddc_connector skipped"; return 0; }; cmake_dep sddc_connector; }
+b_radioberry(){ case "$(uname -m)" in arm*|aarch64) source_prepare radioberry; cmake_build radioberry "$SRC/radioberry/SBC/rpi-4/SoapyRadioberrySDR";; *) skip_component radioberry "requires ARM/aarch64 Raspberry Pi hardware";; esac; }
+b_sdrplay(){ if ! (ldconfig -p 2>/dev/null | grep -qi libsdrplay_api || find /usr /opt -name 'libsdrplay_api.so*' -print -quit 2>/dev/null | grep -q .); then skip_component soapysdrplay "SDRplay proprietary API v3 is not installed"; return $?; fi; cmake_dep soapysdrplay; }
+b_sddc(){ command -v nvcc >/dev/null || { skip_component sddc_connector "CUDA toolkit/nvcc is not installed"; return $?; }; cmake_dep sddc_connector; }
 b_hpsdr(){ source_prepare hpsdrconnector; command -v go >/dev/null || return 1; (cd "$SRC/hpsdrconnector"; go build -o "$PREFIX/bin/hpsdrconnector" .); }
 b_rockprog(){ source_prepare rockprog || return 1; (cd "$SRC/rockprog"; make clean || true; make -j"$JOBS"; install -Dm755 rockprog "$PREFIX/bin/rockprog"); }
 
@@ -770,6 +790,19 @@ failure_report(){
       echo "No log file: $LOG/$n.log"
     fi
   done < <(sort -u "$STATE/optional-failures.txt")
+
+  if [[ -s "$STATE/optional-skips.txt" ]]; then
+    echo
+    echo "External/platform skips"
+    while IFS= read -r n; do
+      [[ -n "$n" ]] || continue
+      if [[ -f "$STATE/$n.skip" ]]; then
+        printf '  %-24s %s\n' "$n" "$(cat "$STATE/$n.skip")"
+      else
+        printf '  %s\n' "$n"
+      fi
+    done < <(sort -u "$STATE/optional-skips.txt")
+  fi
 }
 
 feature_report(){
@@ -796,7 +829,7 @@ PY
 }
 
 build_all(){
-  layout; install_system_deps; env_setup; : >"$STATE/optional-failures.txt"
+  layout; install_system_deps; env_setup; : >"$STATE/optional-failures.txt"; : >"$STATE/optional-skips.txt"
   case "$PROFILE" in
     core) core_plan ;;
     decoders) core_plan; decoders_plan ;;
