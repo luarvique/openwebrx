@@ -12,6 +12,7 @@ This module has no dependencies beyond the Python standard library.
 """
 
 import time
+from collections import deque
 
 
 def _crcTable():
@@ -82,6 +83,14 @@ def _bytecountFits(adu: bytes, pos: int, extra: int) -> bool:
     return len(adu) > pos and len(adu) == pos + 1 + adu[pos] + extra
 
 
+def _readResponseFits(adu: bytes) -> bool:
+    if not _bytecountFits(adu, 2, 2) or not 1 <= adu[2] <= 250:
+        return False
+    # Register values occupy two bytes; an eight-byte ADU with byte count 3
+    # can only be a coil/input response, never a register response.
+    return adu[1] in (0x01, 0x02) or adu[2] % 2 == 0
+
+
 def isPlausible(adu: bytes) -> bool:
     """Check that the frame length is consistent with its function code."""
     n = len(adu)
@@ -93,7 +102,7 @@ def isPlausible(adu: bytes) -> bool:
     if fc not in FUNCTIONS:
         return False
     if fc in (0x01, 0x02, 0x03, 0x04):
-        return n == 8 or _bytecountFits(adu, 2, 2)
+        return n == 8 or _readResponseFits(adu)
     if fc in (0x05, 0x06, 0x08):
         return n == 8
     if fc in (0x0F, 0x10):
@@ -189,7 +198,11 @@ class ModbusDecoder(object):
         req = self._pendingRequest(addr, fc, now)
 
         if fc in (0x01, 0x02, 0x03, 0x04):
-            isResp = _bytecountFits(adu, 2, 2) and (n != 8 or req is not None)
+            expected = None if req is None else (
+                (req["qty"] + 7) // 8 if fc in (0x01, 0x02) else 2 * req["qty"]
+            )
+            matches = req is not None and adu[2] == expected
+            isResp = _readResponseFits(adu) and (n != 8 or matches)
             kind = "coils" if fc in (0x01, 0x02) else "registers"
             if not isResp:
                 start, qty = _u16(pdu, 0), _u16(pdu, 2)
@@ -200,6 +213,10 @@ class ModbusDecoder(object):
                 data = pdu[1:]
                 out["type"] = "response"
                 self.pending.pop((addr, fc), None)
+                # A missed request can leave a stale transaction behind. Do
+                # not attach its register/coil addresses to an unrelated reply.
+                if not matches:
+                    req = None
                 at = " from %d" % req["start"] if req else ""
                 if fc in (0x01, 0x02):
                     qty = req["qty"] if req else len(data) * 8
@@ -280,3 +297,43 @@ class ModbusDecoder(object):
 
     def _request(self, addr: int, fc: int, now: float, details: dict) -> None:
         self.pending[(addr, fc)] = (now, details)
+
+
+class ModbusStreamDecoder(object):
+    """Decode timed UART runs, reporting each received ADU once.
+
+    Parallel UART deframers may find the same ADU in different character runs.
+    Its first character's sample position identifies that physical occurrence;
+    a later, identical request or echo response has a different position.
+    """
+
+    def __init__(self):
+        self.decoder = ModbusDecoder()
+        self.seen = deque(maxlen=64)
+
+    def decode(self, line: bytes, now: float = None) -> list:
+        parts = line.split()
+        if len(parts) != 3 or parts[0] not in (b"8", b"9"):
+            return []
+        try:
+            starts = [int(value) for value in parts[1].split(b",")]
+            data = bytes.fromhex(parts[2].decode("ascii"))
+        except ValueError:
+            return []
+        if len(starts) != len(data) or any(n < 0 for n in starts) or any(
+            a >= b for a, b in zip(starts, starts[1:])
+        ):
+            return []
+        out = []
+        offset = 0
+        for adu in findFrames(data):
+            offset = data.index(adu, offset)
+            occurrence = (starts[offset], adu)
+            offset += len(adu)
+            if occurrence in self.seen:
+                continue
+            self.seen.append(occurrence)
+            frame = self.decoder.decode(adu, now)
+            frame["format"] = "8N1" if parts[0] == b"8" else "8P1"
+            out.append(frame)
+        return out

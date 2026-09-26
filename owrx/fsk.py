@@ -28,7 +28,8 @@ class FskUartDecoder(object):
         spaceFreq: float = 2100,
         dataBits: tuple = (8, 9),
         gapChars: float = 3.5,
-        maxFrame: int = 256,
+        maxFrame: int = 264,
+        withTiming: bool = False,
     ):
         self.sampleRate = sampleRate
         self.baudRate = baudRate
@@ -47,13 +48,15 @@ class FskUartDecoder(object):
         self.dcAlpha = 1.0 - math.exp(-2 * math.pi * 50.0 / sampleRate)
         self.lastBit = 1
         self.n = 0
+        # A 256-byte Modbus ADU may be preceded by up to eight junk bytes.
         self.maxFrame = maxFrame
-        self.uarts = [_Uart(bits, self.spb, gapChars) for bits in dataBits]
+        self.uarts = [_Uart(bits, self.spb, gapChars, withTiming) for bits in dataBits]
 
     def process(self, samples) -> list:
         """
         Feed audio samples. Returns a list of completed frames as
-        (dataBits, frame: bytes) tuples.
+        (dataBits, frame: bytes) tuples. With withTiming enabled, a third
+        element contains the start sample of each character, including junk.
         """
         out = []
         win = self.win
@@ -126,7 +129,7 @@ class FskUartDecoder(object):
 class _Uart(object):
     """Asynchronous UART deframer on a per-sample bit decision stream."""
 
-    def __init__(self, dataBits: int, spb: float, gapChars: float):
+    def __init__(self, dataBits: int, spb: float, gapChars: float, withTiming: bool = False):
         self.dataBits = dataBits
         self.spb = spb
         # gap that ends a frame, measured from the centre of the last stop bit
@@ -137,6 +140,9 @@ class _Uart(object):
         self.shift = 0
         self.frame = bytearray()
         self.lastEnd = 0
+        self.withTiming = withTiming
+        self.starts = []
+        self.charStart = 0
 
     def step(self, n: int, bit: int, maxFrame: int):
         state = self.state
@@ -150,6 +156,7 @@ class _Uart(object):
                 self.state = 0
                 self.next = n + self.spb / 2
                 self.shift = 0
+                self.charStart = n
             self.prev = bit
             return result
 
@@ -175,6 +182,8 @@ class _Uart(object):
             # framing error: drop the character, it ends the current frame
             return self.flush()
         self.frame.append(self.shift & 0xFF)
+        if self.withTiming:
+            self.starts.append(self.charStart)
         self.lastEnd = n
         if len(self.frame) >= maxFrame:
             return self.flush()
@@ -184,5 +193,8 @@ class _Uart(object):
         if not self.frame:
             return None
         result = (self.dataBits, bytes(self.frame))
+        if self.withTiming:
+            result += (tuple(self.starts),)
+            self.starts = []
         self.frame = bytearray()
         return result
