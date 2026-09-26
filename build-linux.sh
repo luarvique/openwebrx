@@ -385,17 +385,15 @@ b_codecserver(){
   cat >"$PREFIX/etc/codecserver/codecserver.conf" <<'EOF'
 [server:unixdomainsockets]
 socket=/tmp/codecserver.sock
-EOF
-}
-b_codecserver_mbelib(){
-  source_prepare codecserver-mbelib || return 1
-  cmake_build codecserver-mbelib "$SRC/codecserver-mbelib"
-  cat >>"$PREFIX/etc/codecserver/codecserver.conf" <<'EOF'
 
 [device:mbelib]
 driver=mbelib
 unvoiced_quality=3
 EOF
+}
+b_codecserver_mbelib(){
+  source_prepare codecserver-mbelib || return 1
+  cmake_build codecserver-mbelib "$SRC/codecserver-mbelib"
 }
 b_js8py(){ source_prepare js8py; patch_js8py; python -m pip install --no-build-isolation --no-cache-dir "$SRC/js8py"; }
 b_pydigiham(){ source_prepare pydigiham; python -m pip install --no-build-isolation --no-cache-dir "$SRC/pydigiham"; }
