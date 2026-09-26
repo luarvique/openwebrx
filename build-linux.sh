@@ -39,6 +39,8 @@ dep csdr https://github.com/luarvique/csdr.git f26b52071c4a127fc8193d058c249cac5
 dep pycsdr https://github.com/luarvique/pycsdr.git 42a5ab3ca48953e65441c4ed7fbd63f030f5afa8 master
 dep owrx_connector https://github.com/luarvique/owrx_connector.git bca362707131289f91441c8080fd368fdc067b6d develop
 dep codecserver https://github.com/jketterl/codecserver.git 8caf36aab936c5587fa404572b2c59c6ab7d4339 master
+dep mbelib https://github.com/szechyjs/mbelib.git 9a04ed5c78176a9965f3d43f7aa1b1f5330e771f master
+dep codecserver-mbelib https://github.com/fventuri/codecserver-mbelib-module.git dae3eb4c2d56f253f7531bd39989b5ef5ba6cd3f master
 dep digiham https://github.com/luarvique/digiham.git beec78229edb8e049f8b82729498def952b79cc1 master
 dep pydigiham https://github.com/luarvique/pydigiham.git 9ab0f239130d3f0aea5ac15d4b209ed7db2b88be master
 dep csdr-eti https://github.com/luarvique/csdr-eti.git a52651366276c382fbe87131d44c37642de65e7f develop
@@ -284,6 +286,9 @@ declare -A BUILD_REV=(
   [hamlib]=3
   [libgpiod1]=1
   [uhd]=3
+  [owrx_connector]=3
+  [acarsdec]=3
+  [codecserver]=3
 )
 
 stamp(){
@@ -367,7 +372,26 @@ b_fftw(){
 b_rtlsdr(){ cmake_dep rtl-sdr -DDETACH_KERNEL_DRIVER=ON -DINSTALL_UDEV_RULES=OFF; }
 b_soapy(){ cmake_dep soapysdr -DENABLE_PYTHON=OFF -DENABLE_TESTS=OFF; }
 b_pycsdr(){ pip_dep pycsdr; install -d "$PREFIX/include/pycsdr"; for h in pycsdr.hpp reader.hpp writer.hpp source.hpp sink.hpp module.hpp buffer.hpp bufferreader.hpp; do install -m0644 "$SRC/pycsdr/src/$h" "$PREFIX/include/pycsdr/$h"; done; }
-b_codecserver(){ source_prepare codecserver; patch_codecserver; cmake_build codecserver "$SRC/codecserver"; install -d "$PREFIX/etc/codecserver"; install -m0644 "$SRC/codecserver/conf/codecserver.conf" "$PREFIX/etc/codecserver/codecserver.conf"; }
+b_codecserver(){
+  source_prepare codecserver
+  patch_codecserver
+  cmake_build codecserver "$SRC/codecserver"
+  install -d "$PREFIX/etc/codecserver"
+  cat >"$PREFIX/etc/codecserver/codecserver.conf" <<'EOF'
+[server:unixdomainsockets]
+socket=/tmp/codecserver.sock
+EOF
+}
+b_codecserver_mbelib(){
+  source_prepare codecserver-mbelib || return 1
+  cmake_build codecserver-mbelib "$SRC/codecserver-mbelib"
+  cat >>"$PREFIX/etc/codecserver/codecserver.conf" <<'EOF'
+
+[device:mbelib]
+driver=mbelib
+unvoiced_quality=3
+EOF
+}
 b_js8py(){ source_prepare js8py; patch_js8py; python -m pip install --no-build-isolation --no-cache-dir "$SRC/js8py"; }
 b_pydigiham(){ source_prepare pydigiham; python -m pip install --no-build-isolation --no-cache-dir "$SRC/pydigiham"; }
 
@@ -463,6 +487,8 @@ core_plan(){
   step pycsdr 1 b_pycsdr
   step owrx_connector 1 cmake_dep owrx_connector
   step codecserver 0 b_codecserver
+  step mbelib 0 cmake_dep mbelib -DDISABLE_TEST=ON
+  step codecserver-mbelib 0 b_codecserver_mbelib
   step digiham 0 cmake_dep digiham
   step pydigiham 0 b_pydigiham
   step csdr-eti 0 cmake_dep csdr-eti
@@ -553,7 +579,7 @@ check(){ if command -v "$2" >/dev/null 2>&1; then printf '  %-28s PASS  %s\n' "$
 doctor(){
   env_setup >/dev/null 2>&1 || true
   echo "OpenWebRX+ source-build doctor"; echo "Prefix: $PREFIX"; echo "Binary/module presence (feature-report is authoritative):"; echo
-  check openwebrx openwebrx; check rtl_connector rtl_connector; check soapy_connector soapy_connector; check nmux nmux
+  check openwebrx openwebrx; check rtl_connector rtl_connector; check soapy_connector soapy_connector; check nmux nmux; check codecserver codecserver
   echo; echo Decoders:
   check ADSB/dump1090 dump1090; check UAT/dump978 dump978; check HFDL dumphfdl; check VDL2 dumpvdl2; check ACARS acarsdec
   check ISM/rtl_433 rtl_433; check Packet/direwolf direwolf; check FreeDV freedv_rx; check M17 m17-demod; check MSK144 msk144decoder
@@ -596,6 +622,31 @@ check_patches(){
   done
 }
 
+start_codecserver(){
+  CODECSERVER_PID=""
+  [[ -x "$PREFIX/bin/codecserver" && -f "$PREFIX/etc/codecserver/codecserver.conf" ]] || return 0
+  if [[ -S /tmp/codecserver.sock ]]; then
+    return 0
+  fi
+  "$PREFIX/bin/codecserver" -c "$PREFIX/etc/codecserver/codecserver.conf" >"$LOG/codecserver-runtime.log" 2>&1 &
+  CODECSERVER_PID=$!
+  local i
+  for i in {1..50}; do
+    [[ -S /tmp/codecserver.sock ]] && return 0
+    kill -0 "$CODECSERVER_PID" 2>/dev/null || { CODECSERVER_PID=""; return 1; }
+    sleep 0.1
+  done
+  return 1
+}
+
+stop_codecserver(){
+  [[ -n "${CODECSERVER_PID:-}" ]] || return 0
+  kill "$CODECSERVER_PID" 2>/dev/null || true
+  wait "$CODECSERVER_PID" 2>/dev/null || true
+  CODECSERVER_PID=""
+  rm -f /tmp/codecserver.sock
+}
+
 failure_report(){
   echo "Source-build optional failures"
   if [[ ! -s "$STATE/optional-failures.txt" ]]; then
@@ -620,6 +671,7 @@ failure_report(){
 feature_report(){
   env_setup >/dev/null 2>&1
   [[ -f "$CONF" ]] || die "config missing: $CONF"
+  start_codecserver || warn "private CodecServer did not start; AMBE will remain unavailable"
   (cd "$ROOT"; python - "$CONF" <<'PY'
 from pathlib import Path
 import sys
@@ -632,6 +684,9 @@ for name, entry in sorted(fd.feature_report().items()):
     print(f"{name:28} {'PASS' if entry['available'] else 'MISS'}" + ("" if not missing else "  missing: "+", ".join(missing)))
 PY
   )
+  local rc=$?
+  stop_codecserver
+  return $rc
 }
 
 build_all(){
@@ -648,7 +703,14 @@ build_all(){
   info "Run: $0 run"
 }
 
-run_app(){ env_setup >/dev/null 2>&1; [[ -f "$CONF" ]] || die "run build first"; cd "$ROOT"; exec openwebrx -c "$CONF" --debug; }
+run_app(){
+  env_setup >/dev/null 2>&1
+  [[ -f "$CONF" ]] || die "run build first"
+  start_codecserver || warn "private CodecServer failed to start; AMBE voice decoding unavailable"
+  trap stop_codecserver EXIT INT TERM
+  cd "$ROOT"
+  openwebrx -c "$CONF" --debug
+}
 usage(){ cat <<EOF
 Usage: ./build-linux.sh [options] [build|run|doctor|feature-report|failures|check-refs|check-patches|env|clean|uninstall]
   --profile full|core|decoders|receivers
