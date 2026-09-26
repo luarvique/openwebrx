@@ -1,0 +1,24 @@
+name: Linux source builder checks
+
+on:
+  pull_request:
+    paths:
+      - "build-linux.sh"
+      - "owrx/feature.py"
+      - ".github/workflows/linux-source-build.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "build-linux.sh"
+      - "owrx/feature.py"
+
+jobs:
+  shell-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate builder syntax
+        run: bash -n build-linux.sh
+      - name: Validate help path
+        run: ./build-linux.sh help
