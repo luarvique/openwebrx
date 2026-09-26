@@ -22,3 +22,5 @@ jobs:
         run: bash -n build-linux.sh
       - name: Validate help path
         run: ./build-linux.sh help
+      - name: Validate dependency patches
+        run: ./build-linux.sh --no-system-packages check-patches
