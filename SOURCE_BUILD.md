@@ -17,6 +17,9 @@ The default `full` profile builds OpenWebRX+ into a private prefix at `~/.local/
 ./build-linux.sh run
 ./build-linux.sh doctor
 ./build-linux.sh feature-report
+./build-linux.sh failures
+./build-linux.sh check-refs
+./build-linux.sh check-patches
 ./build-linux.sh env
 ./build-linux.sh clean
 ./build-linux.sh uninstall
@@ -55,6 +58,9 @@ The current integration includes the compatibility work required by contemporary
 - PyCSDR development headers installed under the private prefix for PyCSDR-ETI.
 - JS8Py migration away from removed `pkg_resources`.
 - Current FlightAware Dump1090 and Dump978 source builds.
+- SoapySDR feature detection that works with connector revisions both with and without `--listdrivers`.
+- A source-built CodecServer software AMBE backend using mbelib for DigiHam voice decoding.
+- A local whisper.cpp speech server using the official multilingual `tiny` model by default.
 - Decoder and receiver families represented by current OpenWebRX+ feature/source definitions.
 
 Dependencies with known stable integration revisions are pinned in the script. `--latest` switches dependency checkouts to their configured upstream branch heads for compatibility testing.
@@ -66,8 +72,10 @@ A full OpenWebRX+ feature matrix includes components with substantial or externa
 Examples:
 
 - SDRplay requires the vendor SDRplay API v3 before the open SoapySDRPlay3 wrapper can be built.
-- The CUDA SDDC connector requires an installed CUDA toolkit/`nvcc`; the Soapy path is attempted separately.
-- Some hardware backends are architecture-specific, such as Radioberry on Raspberry Pi.
+- The direct CUDA SDDC connector requires an installed CUDA toolkit/`nvcc`; the separate SoapySDDC path is built without treating CUDA as mandatory.
+- Radioberry is only built on ARM/AArch64 hosts where the Raspberry Pi-oriented backend is applicable.
+- OpenWebRX+'s TETRA integration expects the dxlAPRS `tetrarx` command. That decoder is not present in the pinned/open dxlAPRS GitHub source tree, so the builder does not substitute an unrelated program merely to satisfy feature detection.
+- The software AMBE backend is third-party software; users are responsible for determining whether codec/patent licensing requirements apply in their jurisdiction or deployment.
 - Large suites such as WSJT-X, JS8Call, Dream, UHD, and LimeSuite may require distribution-specific development packages beyond the common prerequisite set.
 
 Build logs are saved under:
@@ -106,3 +114,24 @@ or with `OWRX_PREFIX`.
 `doctor` checks installed commands and SoapySDR information. `feature-report` initializes the OpenWebRX core configuration and runs the application's own `FeatureDetector`, avoiding differences between the build script's assumptions and the current OpenWebRX+ source.
 
 The objective is that missing capabilities are explicit rather than discovered only when a mode or receiver is selected in the UI.
+
+
+## Speech transcription
+
+The `full` and `decoders` profiles build whisper.cpp's `whisper-server` and, by default, download the multilingual `tiny` GGML model into the private prefix. The default model artifact is SHA-256 verified. OpenWebRX+'s `speech_url` is set to a loopback-only server endpoint only when the existing setting is empty.
+
+The runtime command starts the private server on `127.0.0.1:8074` by default:
+
+```text
+http://127.0.0.1:8074/inference
+```
+
+Useful overrides:
+
+```bash
+OWRX_WHISPER_MODEL=none ./build-linux.sh build
+OWRX_WHISPER_MODEL=base ./build-linux.sh build
+OWRX_WHISPER_PORT=18074 ./build-linux.sh build
+```
+
+A user-configured non-empty `speech_url` is preserved and the builder will not replace it with the private server.
