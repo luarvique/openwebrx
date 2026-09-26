@@ -848,7 +848,7 @@ class FeatureDetector(object):
         # leading numeric version instead of requiring a strict first-line
         # package-style banner.
         acarsdec_version_regex = re.compile(
-            r"Acarsdec\\S*\\s+v?([0-9]+(?:\\.[0-9]+)+)"
+            r"Acarsdec\S*\s+v?([0-9]+(?:\.[0-9]+)+)"
         )
         try:
             process = subprocess.run(
