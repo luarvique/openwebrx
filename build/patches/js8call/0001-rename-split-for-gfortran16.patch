@@ -1,7 +1,7 @@
 diff --git a/lib/jplsubs.f b/lib/jplsubs.f
 --- a/lib/jplsubs.f
 +++ b/lib/jplsubs.f
-@@ -536,7 +536,7 @@ C
+@@ -534,7 +534,7 @@
  C+++++++++++++++++++++++++
  C
 -      SUBROUTINE SPLIT(TT,FR)
@@ -9,9 +9,9 @@ diff --git a/lib/jplsubs.f b/lib/jplsubs.f
  C
  C+++++++++++++++++++++++++
  C
-@@ -754,11 +754,11 @@ C
- C       ********** MAIN ENTRY POINT ********
- C
+@@ -754,9 +754,9 @@
+       IF(ET2(1) .EQ. 0.D0) RETURN
+ 
        S=ET2(1)-.5D0
 -      CALL SPLIT(S,PJD(1))
 -      CALL SPLIT(ET2(2),PJD(3))
@@ -22,5 +22,3 @@ diff --git a/lib/jplsubs.f b/lib/jplsubs.f
 -      CALL SPLIT(PJD(2),PJD(3))
 +      CALL JPLSPLIT(PJD(2),PJD(3))
        PJD(1)=PJD(1)+PJD(3)
- 
- C       ERROR RETURN FOR EPOCH OUT OF RANGE
