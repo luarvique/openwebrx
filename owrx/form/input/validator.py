@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from owrx.form.error import ValidationError
 from typing import List
 
+import re
 
 class Validator(ABC):
     @abstractmethod
@@ -69,3 +70,9 @@ class AddressAndOptionalPortValidator(Validator):
                 raise ValidationError(key, "Port number must be numeric")
             if not 0 <= port <= 65535:
                 raise ValidationError(key, "Port number out of range")
+
+
+class AlsaDeviceValidator(Validator):
+    def validate(self, key, value) -> None:
+        if not re.fullmatch(r"\w+(:CARD=\w+(,DEV=\d+)?)?", value):
+            raise ValidationError(key, "Value is not a valid ALSA device name")
