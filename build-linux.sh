@@ -31,7 +31,7 @@ declare -A URL REF BRANCH
 dep(){ URL["$1"]="$2"; REF["$1"]="$3"; BRANCH["$1"]="${4:-}"; }
 
 # Locked integration revisions. OWRX_LATEST=1 switches to the named branch.
-dep fftw https://github.com/FFTW/fftw3.git 7184fc796279cfa70e4ba62519ac2938054584e6 master
+dep fftw https://github.com/FFTW/fftw3.git fftw-3.3.10-release master
 dep rtl-sdr https://github.com/osmocom/rtl-sdr.git 797f8143266d983c56d8f35d2d442527529dd8a5 master
 dep soapysdr https://github.com/pothosware/SoapySDR.git 1551ea0d39ce546b32a15808b9b1241018a89fc8 master
 dep soapyrtlsdr https://github.com/pothosware/SoapyRTLSDR.git 6ca357c15cbf676ff30eb8eb445d1e1eac17c136 master
@@ -279,7 +279,14 @@ cmake_build(){
 cmake_dep(){ local n="$1"; shift; source_prepare "$n" || return 1; cmake_build "$n" "$SRC/$n" "$@"; }
 pip_dep(){ source_prepare "$1" || return 1; python -m pip install --no-build-isolation --no-cache-dir "$SRC/$1"; }
 
-stamp(){ printf '%s|latest=%s|v=2\n' "${REF[$1]:-repo}" "$LATEST"; }
+declare -A BUILD_REV=(
+  [fftw]=3
+)
+
+stamp(){
+  local rev="${BUILD_REV[$1]:-2}"
+  printf '%s|latest=%s|v=%s\n' "${REF[$1]:-repo}" "$LATEST" "$rev"
+}
 donep(){ [[ "$FORCE" != 1 && -f "$STATE/$1.ok" && "$(cat "$STATE/$1.ok")" == "$(stamp "$1")" ]]; }
 step(){
   local n="$1" required="$2"; shift 2
@@ -292,14 +299,61 @@ step(){
 
 # Core
 b_fftw(){
-  source_prepare fftw || return 1
-  rm -rf "$BLD/fftw-double" "$BLD/fftw-float"
-  cmake -S "$SRC/fftw" -B "$BLD/fftw-double" -G "$GENERATOR"     -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib     -DBUILD_SHARED_LIBS=ON -DBUILD_TESTS=OFF -DENABLE_THREADS=ON     -DENABLE_FLOAT=OFF -DDISABLE_FORTRAN=ON || return 1
-  cmake --build "$BLD/fftw-double" --parallel "$JOBS" || return 1
-  cmake --install "$BLD/fftw-double" || return 1
-  cmake -S "$SRC/fftw" -B "$BLD/fftw-float" -G "$GENERATOR"     -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib     -DBUILD_SHARED_LIBS=ON -DBUILD_TESTS=OFF -DENABLE_THREADS=ON     -DENABLE_FLOAT=ON -DDISABLE_FORTRAN=ON || return 1
-  cmake --build "$BLD/fftw-float" --parallel "$JOBS" || return 1
-  cmake --install "$BLD/fftw-float" || return 1
+  local ver="3.3.10"
+  local sha="56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467"
+  local cache="$WORK/cache"
+  local archive="$cache/fftw-$ver.tar.gz"
+  local srcdir="$SRC/fftw-$ver"
+
+  mkdir -p "$cache"
+  if [[ ! -f "$archive" ]]; then
+    if command -v curl >/dev/null; then
+      curl -fL "https://www.fftw.org/fftw-$ver.tar.gz" -o "$archive.tmp" || return 1
+    elif command -v wget >/dev/null; then
+      wget -O "$archive.tmp" "https://www.fftw.org/fftw-$ver.tar.gz" || return 1
+    else
+      echo "curl or wget is required to fetch FFTW" >&2
+      return 1
+    fi
+    mv "$archive.tmp" "$archive"
+  fi
+
+  printf '%s  %s\n' "$sha" "$archive" | sha256sum -c - || {
+    rm -f "$archive"
+    return 1
+  }
+
+  rm -rf "$srcdir" "$BLD/fftw-double" "$BLD/fftw-float"
+  tar -xzf "$archive" -C "$SRC" || return 1
+
+  mkdir -p "$BLD/fftw-double"
+  (
+    cd "$BLD/fftw-double"
+    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --disable-fortran || exit 1
+    make -j"$JOBS" || exit 1
+    make install || exit 1
+  ) || return 1
+
+  mkdir -p "$BLD/fftw-float"
+  (
+    cd "$BLD/fftw-float"
+    "$srcdir/configure"       --prefix="$PREFIX"       --libdir="$PREFIX/lib"       --enable-shared       --disable-static       --enable-threads       --disable-fortran       --enable-float || exit 1
+    make -j"$JOBS" || exit 1
+    make install || exit 1
+  ) || return 1
+
+  # Fail immediately if the installed shared libraries contain unresolved
+  # solver/codelet references. This catches incomplete Git-tree/CMake builds.
+  if ldd -r "$PREFIX/lib/libfftw3f.so.3" 2>&1 | grep -q "undefined symbol"; then
+    echo "FFTW float library has unresolved symbols:" >&2
+    ldd -r "$PREFIX/lib/libfftw3f.so.3" >&2 || true
+    return 1
+  fi
+  if ldd -r "$PREFIX/lib/libfftw3.so.3" 2>&1 | grep -q "undefined symbol"; then
+    echo "FFTW double library has unresolved symbols:" >&2
+    ldd -r "$PREFIX/lib/libfftw3.so.3" >&2 || true
+    return 1
+  fi
 }
 
 b_rtlsdr(){ cmake_dep rtl-sdr -DDETACH_KERNEL_DRIVER=ON -DINSTALL_UDEV_RULES=OFF; }
