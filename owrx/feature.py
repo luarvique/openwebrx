@@ -329,15 +329,44 @@ class FeatureDetector(object):
         return self._check_owrx_connector("soapy_connector")
 
     def _has_soapy_driver(self, driver):
+        # Preferred path: connector revisions that expose their Soapy registry.
         try:
-            process = subprocess.Popen(["soapy_connector", "--listdrivers"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            process = subprocess.run(
+                ["soapy_connector", "--listdrivers"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                timeout=5,
+                check=False,
+                text=True,
+            )
+            drivers = [line.strip() for line in process.stdout.splitlines()]
+            if driver in drivers:
+                return True
+        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
+            pass
 
-            drivers = [line.decode().strip() for line in process.stdout]
-            process.wait(1)
+        # Some newer owrx_connector development revisions do not implement
+        # --listdrivers. SoapySDR itself can still report the plugin factories,
+        # which is the capability this check is intended to test.
+        try:
+            process = subprocess.run(
+                ["SoapySDRUtil", "--info"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                timeout=5,
+                check=False,
+                text=True,
+            )
+            for line in process.stdout.splitlines():
+                if line.startswith("Available factories..."):
+                    factories = [item.strip() for item in line.split("...", 1)[1].split(",")]
+                    return driver in factories
+        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
+            pass
 
-            return driver in drivers
-        except (FileNotFoundError, PermissionError):
-            return False
+        return False
 
     def has_soapy_rtl_sdr(self):
         """
