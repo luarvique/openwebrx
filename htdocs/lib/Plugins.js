@@ -10,7 +10,7 @@ function Plugins() {}
 
 Plugins.addButton = function(id, title, handler = null, color = null) {
     var $stack = $('#openwebrx-panel-plugins');
-    if (!$stack) return null;
+    if (!$stack.length) return null;
 
     var $button = $(
       '<div class="openwebrx-button openwebrx-plugin-button"'
@@ -31,7 +31,7 @@ Plugins.addButton = function(id, title, handler = null, color = null) {
 
 Plugins.toggleWindow = function(id, on) {
     var $window = $('#plugin-window-' + id);
-    if (!$window) return;
+    if (!$window.length) return;
 
     if (typeof(on) === 'undefined')
         on = !$window.is(':visible');
@@ -45,7 +45,7 @@ Plugins.addWindow = function(id, title, content = '') {
     if ($window.length > 0) return $window[0];
 
     var $page = $('#webrx-page-container');
-    if (!$page) return null;
+    if (!$page.length) return null;
 
     var $window = $(
       '<div class="openwebrx-plugin-window" id="plugin-window-' + id + '">'
@@ -121,8 +121,8 @@ Plugins.addWindow = function(id, title, content = '') {
 
 Plugins.toggleSection = function(id, on) {
     var $section = $('#plugin-section-' + id);
-    if (!$section) return;
-    UI.toggleSection($section[0]);
+    if (!$section.length) return;
+    UI.toggleSection($section[0], on);
 }
 
 Plugins.addSection = function(id, title, content = '') {

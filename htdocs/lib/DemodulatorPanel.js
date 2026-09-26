@@ -220,7 +220,9 @@ DemodulatorPanel.prototype.collectParams = function() {
 
 DemodulatorPanel.prototype.startDemodulator = function() {
     var params = this.collectParams();
-    this.setMagicKey(params.magic_key);
+
+    if ("magic_key" in params)
+        this.setMagicKey(params.magic_key);
 
     if (Modes.initComplete() && this.center_freq)
         this._apply(params);
