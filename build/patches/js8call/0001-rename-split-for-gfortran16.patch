@@ -1,7 +1,7 @@
 diff --git a/lib/jplsubs.f b/lib/jplsubs.f
 --- a/lib/jplsubs.f
 +++ b/lib/jplsubs.f
-@@ -534,7 +534,7 @@
+@@ -534,6 +534,6 @@
  C+++++++++++++++++++++++++
  C
 -      SUBROUTINE SPLIT(TT,FR)
