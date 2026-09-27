@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from owrx.form.error import ValidationError
+from urllib.parse import urlparse
 from typing import List
 
 import re
@@ -72,7 +73,23 @@ class AddressAndOptionalPortValidator(Validator):
                 raise ValidationError(key, "Port number out of range")
 
 
+class UrlValidator(Validator):
+    def validate(self, key, value) -> None:
+        try:
+            result = urlparse(value)
+            if result.scheme not in ["http", "https"] or not result.netloc:
+                raise ValueError
+        except ValueError:
+            raise ValidationError(key, "Value is not a valid URL")
+
+
 class AlsaDeviceValidator(Validator):
     def validate(self, key, value) -> None:
         if not re.fullmatch(r"\w+(:CARD=\w+(,DEV=\d+)?)?", value):
             raise ValidationError(key, "Value is not a valid ALSA device name")
+
+
+class RigCtlDeviceValidator(Validator):
+    def validate(self, key, value) -> None:
+        if not re.fullmatch(r"(/dev(/\w+)+)|(\w+(\.\w+)*(:\d+)?)", value):
+            raise ValidationError(key, "Value is not a valid device name or IP address:port")

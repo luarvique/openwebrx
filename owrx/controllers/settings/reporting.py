@@ -3,7 +3,7 @@ from owrx.form.section import Section
 from owrx.form.input.converter import OptionalConverter, IntConverter, TextConverter
 from owrx.form.input.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput, PasswordInput, Option
-from owrx.form.input.validator import AddressAndOptionalPortValidator
+from owrx.form.input.validator import AddressAndOptionalPortValidator, RigCtlDeviceValidator
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 from owrx.rigcontrol import RigControl
 
@@ -234,6 +234,7 @@ class ReportingController(SettingsFormController):
                     "rig_device",
                     "Transceiver CAT device",
                     infotext="Device or IP address:port used to control transceiver",
+                    validator=RigCtlDeviceValidator(),
                 ),
                 NumberInput(
                     "rig_address",
