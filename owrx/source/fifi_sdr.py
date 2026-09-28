@@ -7,7 +7,7 @@ from pycsdr.modules import Convert, Gain
 from pycsdr.types import Format
 from typing import List
 from owrx.form.input import Input, TextInput
-from owrx.form.input.validator import Range
+from owrx.form.input.validator import Range, AlsaDeviceValidator
 import logging
 
 
@@ -65,6 +65,7 @@ class FifiSdrDeviceDescription(DirectSourceDeviceDescription):
                 "device",
                 "Device identifier",
                 infotext="Alsa audio device identifier",
+                validator=AlsaDeviceValidator(),
             ),
         ]
 

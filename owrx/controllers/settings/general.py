@@ -11,7 +11,7 @@ from owrx.form.input import (
     PasswordInput,
     Option,
 )
-from owrx.form.input.validator import RangeValidator
+from owrx.form.input.validator import RangeValidator, UrlValidator
 from owrx.form.input.converter import WaterfallColorsConverter, IntConverter
 from owrx.form.input.receiverid import ReceiverKeysInput
 from owrx.form.input.gfx import AvatarInput, TopPhotoInput
@@ -338,6 +338,7 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Specifies callsign lookup URL, such as QRZ.COM "
                     + "or QRZCQ.COM. Place curly brackets ({}) where callsign "
                     + "is supposed to be.",
+                    validator=UrlValidator(),
                 ),
                 TextInput(
                     "vessel_url",
@@ -345,6 +346,7 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Specifies vessel lookup URL, such as VESSELFINDER.COM, "
                     + "allowing to look up vessel information by its AIS MMSI number. "
                     + "Place curly brackets ({}) where MMSI is supposed to be.",
+                    validator=UrlValidator(),
                 ),
                 TextInput(
                     "flight_url",
@@ -352,6 +354,7 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Specifies flight lookup URL, such as FLIGHTAWARE.COM, "
                     + "allowing to look up flights and aircraft. Place curly brackets "
                     + "({}) where flight or aircraft identifier is supposed to be.",
+                    validator=UrlValidator(),
                 ),
                 TextInput(
                     "modes_url",
@@ -359,6 +362,7 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Specifies aircraft lookup URL, such as PLANESPOTTERS.NET, "
                     + "allowing to look up aircraft by their Mode-S codes. Place curly "
                     + "brackets ({}) where aircraft Mode-S code is supposed to be.",
+                    validator=UrlValidator(),
                 ),
                 TextInput(
                     "sonde_url",
@@ -366,6 +370,7 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Specifies radiosonde lookup URL, such as SONDEHUB.ORG, "
                     + "allowing to look up sonde information by its ID number. "
                     + "Place curly brackets ({}) where ID is supposed to be.",
+                    validator=UrlValidator(),
                 ),
                 TextInput(
                     "geoip_url",
@@ -373,6 +378,7 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Specifies IP geolocation URL, such as GEOLOCATION.COM, "
                     + "allowing to estimate geographic locations of IP addresses. "
                     + "Place curly brackets ({}) where IP is supposed to be.",
+                    validator=UrlValidator(),
                 ),
             ),
             Section(
