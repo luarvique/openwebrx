@@ -3,6 +3,7 @@
 - Added validation for URL settings.
 - Added validation for RigCtl device setting.
 - Added validation for FiFi SDR device setting.
+- Fixed APRS reporter dropping non-ASCII messages [Nico Rey].
 - Fixed redirection to external URLs via ?ref=...
 - Fixed relative path parsing.
 - Fixed JavaScript plugin issues.
