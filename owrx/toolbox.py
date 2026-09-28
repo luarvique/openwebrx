@@ -383,7 +383,7 @@ class ModbusParser(TextParser):
         super().__init__(filePrefix="MODBUS", service=service)
 
     def parse(self, msg: bytes):
-        # The sample positions supplied by FskUartModule distinguish parallel
+        # The sample positions supplied by FskUartDecoder distinguish parallel
         # UART copies from real repeated packets, independent of parser latency.
         out = {}
         now = datetime.now().timestamp()
