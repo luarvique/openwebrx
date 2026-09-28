@@ -230,7 +230,7 @@ class AprsIgate(FilteredReporter):
             if not self.connect() or self.rejected:
                 return
             try:
-                self.socket.sendall((line.rstrip() + "\r\n").encode("ascii"))
+                self.socket.sendall((line.rstrip() + "\r\n").encode("ascii", errors="replace"))
                 logger.debug("Forwarded packet to APRS-IS: %s", line)
             except OSError:
                 logger.warning("APRS-IS connection lost while sending")
