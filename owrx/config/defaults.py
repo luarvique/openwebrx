@@ -359,6 +359,7 @@ defaultConfig = PropertyLayer(
     magic_key="memagic",
     allow_center_freq_changes=False,
     allow_audio_recording=True,
+    allow_remote_config=True,
     allow_chat=True,
     tuning_precision=2,
     squelch_auto_margin=10,
@@ -487,6 +488,5 @@ defaultConfig = PropertyLayer(
     meshcom_bw="8",
     speech_url="",
     speech_squelch=20,
-    speech_hang_time=5000,
-    local_login_only=False
+    speech_hang_time=5000
 ).readonly()

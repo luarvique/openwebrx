@@ -1,5 +1,6 @@
 **1.2.126**
 - Added Evening Wave waterfall theme by Nikolay Akishin.
+- Added option to restrict logins to local network.
 - Added validation for URL settings.
 - Added validation for RigCtl device setting.
 - Added validation for FiFi SDR device setting.

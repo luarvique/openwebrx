@@ -54,13 +54,13 @@ class SessionStorage(object):
 
 class SessionController(WebpageController):
     def loginAction(self):
-        if not self.request.local and Config.get()["local_login_only"]:
-            self.send_response("page not found", code=404)
-        else:
+        if self.request.local or Config.get()["allow_remote_config"]:
             self.serve_template("login.html", **self.template_variables())
+        else:
+            self.send_response("page not found", code=404)
 
     def processLoginAction(self):
-        if not self.request.local and Config.get()["local_login_only"]:
+        if not self.request.local and not Config.get()["allow_remote_config"]:
             self.send_response("page not found", code=404)
             return
 
@@ -88,7 +88,7 @@ class SessionController(WebpageController):
         self.send_redirect(target)
 
     def logoutAction(self):
-        if not self.request.local and Config.get()["local_login_only"]:
-            self.send_response("page not found", code=404)
-        else:
+        if self.request.local or Config.get()["allow_remote_config"]:
             self.send_redirect("logout happening here")
+        else:
+            self.send_response("page not found", code=404)
