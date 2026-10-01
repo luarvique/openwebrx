@@ -126,6 +126,10 @@ class GeneralSettingsController(SettingsFormController):
                     "Detect and ban bots trying to connect",
                 ),
                 CheckboxInput(
+                    "local_login_only",
+                    "Restrict settings access to local network",
+                ),
+                CheckboxInput(
                     "allow_chat",
                     "Allow users to chat with each other",
                 ),

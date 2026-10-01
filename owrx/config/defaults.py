@@ -487,5 +487,6 @@ defaultConfig = PropertyLayer(
     meshcom_bw="8",
     speech_url="",
     speech_squelch=20,
-    speech_hang_time=5000
+    speech_hang_time=5000,
+    local_login_only=False
 ).readonly()

@@ -1,4 +1,5 @@
 from owrx.controllers.template import WebpageController
+from owrx.config import Config
 from urllib.parse import parse_qs, urlencode
 from uuid import uuid4
 from http.cookies import SimpleCookie
@@ -53,9 +54,16 @@ class SessionStorage(object):
 
 class SessionController(WebpageController):
     def loginAction(self):
-        self.serve_template("login.html", **self.template_variables())
+        if not self.request.local and Config.get()["local_login_only"]:
+            self.send_response("page not found", code=404)
+        else:
+            self.serve_template("login.html", **self.template_variables())
 
     def processLoginAction(self):
+        if not self.request.local and Config.get()["local_login_only"]:
+            self.send_response("page not found", code=404)
+            return
+
         data = parse_qs(self.get_body().decode("utf-8"))
         data = {k: v[0] for k, v in data.items()}
         userlist = UserList.getSharedInstance()
@@ -80,4 +88,7 @@ class SessionController(WebpageController):
         self.send_redirect(target)
 
     def logoutAction(self):
-        self.send_redirect("logout happening here")
+        if not self.request.local and Config.get()["local_login_only"]:
+            self.send_response("page not found", code=404)
+        else:
+            self.send_redirect("logout happening here")
