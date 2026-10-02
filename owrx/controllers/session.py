@@ -57,11 +57,11 @@ class SessionController(WebpageController):
         if self.request.local or Config.get()["allow_remote_config"]:
             self.serve_template("login.html", **self.template_variables())
         else:
-            self.send_response("page not found", code=404)
+            self.send_response("access forbidden", code=403)
 
     def processLoginAction(self):
         if not self.request.local and not Config.get()["allow_remote_config"]:
-            self.send_response("page not found", code=404)
+            self.send_response("access forbidden", code=403)
             return
 
         data = parse_qs(self.get_body().decode("utf-8"))
@@ -91,4 +91,4 @@ class SessionController(WebpageController):
         if self.request.local or Config.get()["allow_remote_config"]:
             self.send_redirect("logout happening here")
         else:
-            self.send_response("page not found", code=404)
+            self.send_response("access forbidden", code=403)
