@@ -109,7 +109,7 @@ class Storage(object):
         compress_filter = pm["image_compress_filter"] # int 0-5. compression-filter in magick
         quantize = pm["image_quantize"] # boolean. Do quantization?
         quantize_colors = pm["image_quantize_colors"] # int. Number of colors in palette.
-        
+
         # Adds storage path
         if not inFile.startswith('/'):
             inFile = self.getFilePath(inFile)
