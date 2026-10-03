@@ -1,10 +1,11 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain, DemodulatorError, ServiceDemodulator
 from pycsdr.modules import FmDemod, Agc, Writer, Buffer, DcBlock, Lowpass
 from pycsdr.types import Format
-from digiham.modules import DstarDecoder, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, P25Decoder, PocsagDecoder
+from digiham.modules import DstarDecoder, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, P25Decoder, EasyPalDecoder, PocsagDecoder
 from digiham.ambe import Modes, ServerError
 from owrx.meta import MetaParser
 from owrx.pocsag import PocsagParser
+from owrx.sstv import EasyPalParser
 
 import logging
 
@@ -129,6 +130,23 @@ class P25(DigihamChain):
             filter=WideRrcFilter(),
             codecserver=codecserver
         )
+
+
+class EasyPalDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self, service: bool = False):
+        self.parser = EasyPalParser(service=service)
+        self.sampleRate = 12000
+        workers = [
+            EasyPalDecoder(),
+            self.parser
+        ]
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
 
 
 class PocsagDemodulator(ServiceDemodulator, DialFrequencyReceiver):

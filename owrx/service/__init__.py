@@ -343,6 +343,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "sstv":
             from csdr.chain.digimodes import SstvDemodulator
             return SstvDemodulator(service=True)
+        elif mod == "epal":
+            from csdr.chain.digiham import EasyPalDemodulator
+            return EasyPalDemodulator(service=True)
         elif mod == "fax":
             from csdr.chain.digimodes import FaxDemodulator
             return FaxDemodulator(service=True)
