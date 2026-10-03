@@ -5,9 +5,8 @@ from owrx.aprs.kiss import KissDeframer
 from owrx.aprs import Ax25Parser, AprsParser
 from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder, RttyDecoder, BaudotDecoder, Lowpass, MFRttyDecoder, CwDecoder, SstvDecoder, FaxDecoder, SitorBDecoder, Ccir476Decoder, DscDecoder, Ccir493Decoder, NavtexDecoder, Shift
 from pycsdr.types import Format
-from digiham.modules import EasyPalDecoder
 from owrx.aprs.direwolf import DirewolfModule
-from owrx.sstv import SstvParser, EasyPalParser
+from owrx.sstv import SstvParser
 from owrx.fax import FaxParser
 from owrx.marine import DscParser, NavtexParser
 from owrx.config import Config
@@ -185,23 +184,6 @@ class SstvDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         self.dbgTime = 300000
         workers = [
             SstvDecoder(self.sampleRate, self.dbgTime),
-            self.parser
-        ]
-        super().__init__(workers)
-
-    def getFixedAudioRate(self) -> int:
-        return self.sampleRate
-
-    def setDialFrequency(self, frequency: int) -> None:
-        self.parser.setDialFrequency(frequency)
-
-
-class EasyPalDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self, service: bool = False):
-        self.parser = EasyPalParser(service=service)
-        self.sampleRate = 12000
-        workers = [
-            EasyPalDecoder(),
             self.parser
         ]
         super().__init__(workers)

@@ -243,6 +243,13 @@ class Modes(object):
             squelch=True
         ),
         DigitalMode(
+            "epal",
+            "EasyPal",
+            underlying=["usb", "lsb", "nfm"],
+            service=True,
+            squelch=True
+        ),
+        DigitalMode(
             "fax",
             "Fax",
             underlying=["usb"],
