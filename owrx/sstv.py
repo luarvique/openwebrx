@@ -313,10 +313,11 @@ class EasyPalParser(DataRecorder, ThreadModule):
                 else:
                     # Result contains received image
                     out = {
-                        "mode": "EPAL",
-                        "pixels": base64.b64encode(self.data[0:self.length]).decode(),
-                        "callsign" : self.callsign,
-                        "filename" : self.fileName
+                        "mode":      "EPAL",
+                        "pixels":    base64.b64encode(self.data[0:self.length]).decode(),
+                        "callsign":  self.callsign,
+                        "filename":  self.fileName,
+                        "frequency": self.frequency
                     }
                 # Reset state for the next image
                 del self.data[0:self.length]
