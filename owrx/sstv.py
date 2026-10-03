@@ -62,6 +62,7 @@ modeNames = {
     115: "Pasokon P7",
 }
 
+
 class SstvParser(DataRecorder, ThreadModule):
     def __init__(self, service: bool = False):
         self.service = service
@@ -217,6 +218,112 @@ class SstvParser(DataRecorder, ThreadModule):
                             }
                         # Remove parsed data
                         del self.data[0:54]
+
+        except Exception as exptn:
+            logger.debug("%s: Exception parsing: %s" % (self.myName(), str(exptn)))
+
+        # Return parsed result or None if no result yet
+        return out
+
+
+class EasyPalParser(DataRecorder, ThreadModule):
+    def __init__(self, service: bool = False):
+        self.service  = service
+        self.data     = bytearray(b'')
+        self.fileName = None
+        self.callsign = None
+        self.length   = 0
+        self.next     = 0
+        DataRecorder.__init__(self, "EPAL", ".jpg")
+        ThreadModule.__init__(self)
+
+    def getInputFormat(self) -> Format:
+        return Format.CHAR
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+    def myName(self):
+        return "%s%s" % (
+            "Service" if self.service else "Client",
+            " at %dkHz" % (self.frequency // 1000) if self.frequency>0 else ""
+        )
+
+    def run(self):
+        logger.debug("%s starting..." % self.myName())
+        # Run while there is input data
+        while self.doRun:
+            # Read input data
+            inp = self.reader.read()
+            # Terminate if no input data
+            if inp is None:
+                self.doRun = False
+                break
+            # Add read data to the buffer
+            self.data = self.data + inp.tobytes()
+            # Process buffer contents
+            out = self.process()
+            # Keep processing while there is input to parse
+            while out is not None:
+                if len(out)>0:
+                    self.writer.write(pickle.dumps(out))
+                out = self.process()
+        # We are done
+        logger.debug("%s exiting..." % self.myName())
+
+    def process(self):
+        # No result yet
+        out = None
+
+        try:
+            if self.length == 0 and len(self.data) >= 9:
+                # Get header and file length
+                i = self.data.find(b'EPAL')
+                if i < 0:
+                    del self.data[0 : len(self.data)-3]
+                else if len(self.data) - i >= 9:
+                    self.length = int.from_bytes(self.data[i+4 : i+7], byteorder="little")
+                    self.next   = self.data[i+8]
+                    del self.data[0 : i+9]
+                # Empty result, no data yet
+                out = {}
+            elif self.fileName == None and len(self.data) >= self.next + 1:
+                # Get file name
+                i = self.next
+                self.fileName = self.data[0 : i].decode()
+                self.next     = self.data[i]
+                del self.data[0 : i+1]
+                # Empty result, no data yet
+                out = {}
+            elif self.callsign == None and len(self.data) >= self.next
+                # Get callsign
+                i = self.next
+                self.callsign = self.data[0 : i].decode()
+                del self.data[0, i]
+                # Empty result, no data yet
+                out = {}
+            elif len(self.data) >= self.length:
+                # Get actual file data
+                if self.service:
+                    # Service saves received images to files
+                    self.writeFile(self.data[0:self.length])
+                    self.closeFile()
+                    # Empty result
+                    out = {}
+                else:
+                    # Result contains received image
+                    out = {
+                        "mode": "EPAL",
+                        "pixels": base64.b64encode(self.data[0:self.length]).decode(),
+                        "callsign" : self.callsign,
+                        "filename" : self.fileName
+                    }
+                # Reset state for the next image
+                del self.data[0:self.length]
+                self.fileName = None
+                self.callsign = None
+                self.length = 0
+                self.next = 0
 
         except Exception as exptn:
             logger.debug("%s: Exception parsing: %s" % (self.myName(), str(exptn)))
