@@ -793,7 +793,7 @@ SstvMessagePanel.prototype.pushMessage = function(msg) {
     }
     else if(msg.mode === 'EPAL') {
         var f = msg.frequency>0? ' at ' + Math.floor(msg.frequency/1000) + 'kHz' : '';
-        var n = msg.callsign? msg.callsign? ' from ' + msg.callsign : '';
+        var n = msg.callsign? ' from ' + msg.callsign : '';
         var h = '<div>' + msg.filename + n + f + '</div>';
         var c = '<div onclick="Utils.saveCanvas(\'' + msg.filename + '\');">' +
             '<canvas class="frame" id="' + msg.filename + '"></canvas></div>';
