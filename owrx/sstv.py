@@ -295,7 +295,7 @@ class EasyPalParser(DataRecorder, ThreadModule):
                 del self.data[0 : i+1]
                 # Empty result, no data yet
                 out = {}
-            elif self.callsign == None and len(self.data) >= self.next
+            elif self.callsign == None and len(self.data) >= self.next:
                 # Get callsign
                 i = self.next
                 self.callsign = self.data[0 : i].decode()
