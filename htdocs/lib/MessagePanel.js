@@ -769,7 +769,7 @@ SstvMessagePanel = function(el) {
 SstvMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 SstvMessagePanel.prototype.supportsMessage = function(message) {
-    return message['mode'] === 'SSTV';
+    return (message['mode'] === 'SSTV') || (message['mode'] === 'EPAL');
 };
 
 SstvMessagePanel.prototype.render = function() {
