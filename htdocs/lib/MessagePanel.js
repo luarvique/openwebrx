@@ -791,6 +791,27 @@ SstvMessagePanel.prototype.pushMessage = function(msg) {
 //        $b.append($('<tr><td class="message">' + msg.message + '</td></tr>'));
 //        this.scrollToBottom();
     }
+    else if(msg.mode === 'EPAL') {
+        var f = msg.frequency>0? ' at ' + Math.floor(msg.frequency/1000) + 'kHz' : '';
+        var n = msg.callsign? msg.callsign? ' from ' + msg.callsign : '';
+        var h = '<div>' + msg.filename + n + f + '</div>';
+        var c = '<div onclick="Utils.saveCanvas(\'' + msg.filename + '\');">' +
+            '<canvas class="frame" id="' + msg.filename + '"></canvas></div>';
+        // Append a new canvas
+        $b.append($('<tr><td class="message">' + h + c + '</td></tr>'));
+        $b.scrollTop($b[0].scrollHeight);
+        // Load image
+        var url = URL.createObjectURL(new Blob(atob(msg.pixels), { type: 'image/jpeg' }));
+        var ctx = $(this.el).find('canvas').get(-1).getContext("2d");
+        var img = new Image();
+        img.onload = function() {
+            ctx.width  = img.naturalWidth;
+            ctx.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+        }
+        img.src = url;
+    }
     else if(msg.width>0 && msg.height>0 && !msg.hasOwnProperty('line')) {
         var f = msg.frequency>0? ' at ' + Math.floor(msg.frequency/1000) + 'kHz' : '';
         var h = '<div>' + msg.timestamp + ' ' + msg.width + 'x' + msg.height +
