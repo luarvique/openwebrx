@@ -281,7 +281,7 @@ class EasyPalParser(DataRecorder, ThreadModule):
                 i = self.data.find(b'EPAL')
                 if i < 0:
                     del self.data[0 : len(self.data)-3]
-                else if len(self.data) - i >= 9:
+                elif len(self.data) - i >= 9:
                     self.length = int.from_bytes(self.data[i+4 : i+7], byteorder="little")
                     self.next   = self.data[i+8]
                     del self.data[0 : i+9]
