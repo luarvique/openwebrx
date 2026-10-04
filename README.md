@@ -9,16 +9,17 @@ Key differences between this fork and the base version:
 * ACARS Telemetry Parsing Fix and external UDP logging.
 * Numerous minor fixes.
 
-Prerequisites and Dependencies
+🛠️ Installation Guide
 =========
+
+### Prerequisites and Dependencies
 
 To install high-performance DSP engines and specialized digital decoders natively via the system package manager, you must first connect the developer's package repository.
 👉 **Follow the official repository setup instructions here:** https://fms.komkon.org/OWRX/#InstallGuide
 ⚠️ **IMPORTANT NOTE FOR USERS:** Follow the guide **ONLY** up to the point of adding the repository for your specific Linux distribution.
 **DO NOT install the main `openwebrx` package** from that guide, as it will conflict with this source-built fork. Only the repository configuration is needed.
 
-Install CORE runtime engine (Mandatory for all users)
-=========
+### Install CORE runtime engine (Mandatory for all users)
 
 ```bash
 sudo apt install -y git python3-pip python3-setuptools python3-requests \
@@ -29,8 +30,7 @@ libfdk-aac2t64 soapy-connector python3-bleak python3-dbus-fast python3-dotmap \
 libaml0t64 libpaho-mqtt1.3 librtaudio7 perl-openssl-defaults
 ```
 
-Install SDR receiver DRIVERS (Pick only ONE for your hardware)
-=========
+### Install SDR receiver DRIVERS (Pick only ONE for your hardware)
 
 * 🔹 **For RTL-SDR Dongles (v3, v4, Nooelec, and clones):**
   ```bash
@@ -49,8 +49,7 @@ Install SDR receiver DRIVERS (Pick only ONE for your hardware)
   sudo apt install -y soapysdr0.8-module-hackrf
   ```
 
-Install OPTIONAL digital decoders (Install by interest)
-=========
+### Install OPTIONAL digital decoders (Install by interest)
 
 Do not populate your system with unused packages. Selectively install decoder blocks based on the radio networks you intend to monitor.
 
