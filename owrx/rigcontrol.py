@@ -406,7 +406,6 @@ class RigControl():
         ] + (
             ["-c", str(address)] if address > 0 and address < 256 else []
         ) + ["-"]
-        #cmd = ["rigctl", "-"] # @@@ REMOVE ME!!!!
         # Create Rigctl process, make stdout/stderr pipes non-blocking
         self.rigctl = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, text=True)
         os.set_blocking(self.rigctl.stdout.fileno(), False)

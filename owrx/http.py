@@ -27,13 +27,16 @@ from owrx.controllers.profile import ProfileController
 from owrx.controllers.imageupload import ImageUploadController
 from owrx.controllers.robots import RobotsController
 from owrx.storage import Storage
+
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-import re
 from abc import ABC, abstractmethod
 from http.cookies import SimpleCookie
 from datetime import datetime
 
+import ipaddress
+import posixpath
+import re
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,7 +44,7 @@ logger.setLevel(logging.INFO)
 
 
 class Request(object):
-    def __init__(self, url, method, headers):
+    def __init__(self, url, method, headers, local):
         parsed_url = urlparse(url)
         self.path = parsed_url.path
         self.query = parse_qs(parsed_url.query)
@@ -49,6 +52,7 @@ class Request(object):
         self.method = method
         self.headers = headers
         self.cookies = SimpleCookie()
+        self.local = local;
         if "Cookie" in headers:
             self.cookies.load(headers["Cookie"])
 
@@ -198,6 +202,12 @@ class Router(object):
                 return r
 
     def route(self, handler, request):
+        # convert relative path contianing ../. to absolute path
+        path = posixpath.normpath(request.path)
+        if request.path.endswith("/") and not path.endswith("/"):
+            path += "/"
+        request.path = path
+        # get route for this URL
         route = self.find_route(request)
         if route is not None:
             controller = route.controller
@@ -223,4 +233,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.router.route(self, self._build_request("DELETE"))
 
     def _build_request(self, method):
-        return Request(self.path, method, self.headers)
+        try:
+            local = ipaddress.ip_address(self.address_string()).is_private
+        except Exception:
+            local = False
+        return Request(self.path, method, self.headers, local)

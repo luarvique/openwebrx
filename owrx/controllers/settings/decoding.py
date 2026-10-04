@@ -5,7 +5,7 @@ from owrx.form.input.dab import DabOutputRateValues
 from owrx.form.input.wfm import WfmTauValues
 from owrx.form.input.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput
 from owrx.form.input.converter import OptionalConverter
-from owrx.form.input.validator import RangeValidator
+from owrx.form.input.validator import RangeValidator, UrlValidator
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 
@@ -125,6 +125,7 @@ class DecodingSettingsController(SettingsFormController):
                     "speech_url",
                     "Whisper transcription server",
                     infotext="Server URL used to send audio for transcription into text",
+                    validator=UrlValidator(),
                 ),
                 NumberInput(
                     "speech_squelch",

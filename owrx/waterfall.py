@@ -297,6 +297,14 @@ class EclipseWaterfall(Waterfall):
         ])
 
 
+class EveningWaveWaterfall(Waterfall):
+    def __init__(self):
+        super().__init__([
+            0x020817, 0x061A38, 0x0B3B78, 0x0869B6, 0x1596D4, 0x7DD3ED, 0xF2F3E4, 0xF5D33A,
+            0xF58A24, 0xE93D2F, 0xA91428, 0xD91F2F, 0xFFE7C2
+        ])
+
+
 class CustomWaterfall(Waterfall):
     def __init__(self):
         config = Config.get()
@@ -314,6 +322,7 @@ class WaterfallOptions(DropdownEnum):
     HA7ILM  = ("Legacy Theme by Andras (HA7ILM)", Ha7ilmWaterfall)
     OCEAN   = ("Blue Ocean Theme by Zoran (9A6NDZ)", ZoranWaterfall)
     ECLIPSE = ("Eclipse Theme by Dimitar (LZ2DMV) and LZ4ZD", EclipseWaterfall)
+    WAVE    = ("Evening Wave Theme by Nikolay Akishin", EveningWaveWaterfall)
     CUSTOM  = ("Custom", CustomWaterfall)
 
     def __new__(cls, *args, **kwargs):

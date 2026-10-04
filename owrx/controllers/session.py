@@ -1,4 +1,5 @@
 from owrx.controllers.template import WebpageController
+from owrx.config import Config
 from urllib.parse import parse_qs, urlencode
 from uuid import uuid4
 from http.cookies import SimpleCookie
@@ -53,9 +54,16 @@ class SessionStorage(object):
 
 class SessionController(WebpageController):
     def loginAction(self):
-        self.serve_template("login.html", **self.template_variables())
+        if self.request.local or Config.get()["allow_remote_config"]:
+            self.serve_template("login.html", **self.template_variables())
+        else:
+            self.send_response("access forbidden", code=403)
 
     def processLoginAction(self):
+        if not self.request.local and not Config.get()["allow_remote_config"]:
+            self.send_response("access forbidden", code=403)
+            return
+
         data = parse_qs(self.get_body().decode("utf-8"))
         data = {k: v[0] for k, v in data.items()}
         userlist = UserList.getSharedInstance()
@@ -68,7 +76,11 @@ class SessionController(WebpageController):
                     cookie["owrx-session"] = key
                     target = self.request.query["ref"][0] if "ref" in self.request.query else "/settings"
                     if user.must_change_password:
+                        # force password change
                         target = "/pwchange?{0}".format(urlencode({"ref": target}))
+                    elif not target.startswith("/"):
+                        # prevent redirecting to external URL
+                        target = "/settings"
                     self.set_response_cookies(cookie)
                     self.send_redirect(target)
                     return
@@ -76,4 +88,7 @@ class SessionController(WebpageController):
         self.send_redirect(target)
 
     def logoutAction(self):
-        self.send_redirect("logout happening here")
+        if self.request.local or Config.get()["allow_remote_config"]:
+            self.send_redirect("logout happening here")
+        else:
+            self.send_response("access forbidden", code=403)
