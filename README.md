@@ -1,12 +1,100 @@
 Key differences between this fork and the base version:
 =========
 
+* The minimum required set of packages for installation.
 * Sort Bookmarks by Frequency in Admin's UI.
 * Reduction in the number of decoder-related freezes during restarts.
 * Localizing OSM Map Assets for Traffic Independence and Supply Chain Security.
 * Efficient Storage & Intelligent Squelch-Based Audio Splitting.
 * ACARS Telemetry Parsing Fix and external UDP logging.
 * Numerous minor fixes.
+
+Prerequisites and Dependencies
+=========
+
+To install high-performance DSP engines and specialized digital decoders natively via the system package manager, you must first connect the developer's package repository.
+👉 **Follow the official repository setup instructions here:** https://fms.komkon.org/OWRX/#InstallGuide
+⚠️ **IMPORTANT NOTE FOR USERS:** Follow the guide **ONLY** up to the point of adding the repository for your specific Linux distribution.
+**DO NOT install the main `openwebrx` package** from that guide, as it will conflict with this source-built fork. Only the repository configuration is needed.
+
+Install CORE runtime engine (Mandatory for all users)
+=========
+
+```bash
+sudo apt install -y git python3-pip python3-setuptools python3-requests \
+python3-protobuf python3-tabulate python3-paho-mqtt paho-mqtt1.3 \
+libowrx-connector owrx-connector codecserver codecserver-driver-all \
+codecserver-driver-ambe3k csdr-skimmer libcsdr-eti0 python3-csdr \
+libfdk-aac2t64 soapy-connector python3-bleak python3-dbus-fast python3-dotmap \
+libaml0t64 libpaho-mqtt1.3 librtaudio7 perl-openssl-defaults
+```
+
+Install SDR receiver DRIVERS (Pick only ONE for your hardware)
+=========
+
+* 🔹 **For RTL-SDR Dongles (v3, v4, Nooelec, and clones):**
+  ```bash
+  sudo apt install -y soapysdr0.8-module-rtlsdr rtl-connector rtl-tcp-connector
+  ```
+* 🔹 **For Airspy Receivers (R2, Mini, HF+):**
+  ```bash
+  sudo apt install -y soapysdr0.8-module-airspy
+  ```
+* 🔹 **For SDRplay / MSI2500 clones (RSP1 architecture):**
+  ```bash
+  sudo apt install -y soapysdr0.8-module-msi2500 libosmosdr0 soapyosmo-common0.8 libmirisdr4
+  ```
+* 🔹 **For HackRF One Systems:**
+  ```bash
+  sudo apt install -y soapysdr0.8-module-hackrf
+  ```
+
+Install OPTIONAL digital decoders (Install by interest)
+=========
+
+Do not populate your system with unused packages. Selectively install decoder blocks based on the radio networks you intend to monitor.
+
+#### ✈️ Aviation Tracking Networks
+* **Aircraft text messages via ACARS (VHF) and VDL Mode 2:**
+  ```bash
+  sudo apt install -y acarsdec dumpvdl2
+  ```
+* **Aircraft geographic plotting via ADS-B (1090 MHz) and UAT (978 MHz):**
+  ```bash
+  sudo apt install -y dump1090-fa-minimal dump978-fa-minimal
+  ```
+* **HF Aviation tracking via HFDL:**
+  ```bash
+  sudo apt install -y dumphfdl
+  ```
+
+#### 📻 Amateur Radio & Telemetry
+* **Automated Weather Station (AWS), ISM band sensors, and tire pressure (433/868 MHz):**
+  ```bash
+  sudo apt install -y rtl-433
+  ```
+* **Ham radio geolocation grids via APRS packet networks:**
+  ```bash
+  sudo apt install -y direwolf aprs-symbols multimon-ng python3-js8py libhamlib-utils libhamlib4t64 libdigiham0 python3-digiham
+  ```
+* **High-altitude weather balloon telemetry (Radiosondes):**
+  ```bash
+  sudo apt install -y sonde-decoders
+  ```
+* **Decentralized LoRa mesh endpoints:**
+  ```bash
+  sudo apt install -y python3-meshtastic
+  ```
+
+#### 🛰️ Digital Broadcast Audio
+* **Broadcast text capture (RDS FM Data):**
+  ```bash
+  sudo apt install -y redsea
+  ```
+* **Digital Terrestrial Radio standards (DAB/DAB+, Shortwave DRM, HD Radio):**
+  ```bash
+  sudo apt install -y dablin dream nrsc5 codec2 lame
+  ```
 
 OpenWebRX+
 =========
