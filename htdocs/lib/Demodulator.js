@@ -2,7 +2,7 @@ function Filter(demodulator) {
     var mod2 = demodulator.get_secondary_demod();
     var max_bw;
 
-    if (['pocsag', 'page', 'packet', 'ais', 'acars', 'sonde-rs41', 'sonde-mts01', 'sonde-dfm9', 'sonde-dfm17'].indexOf(mod2) >= 0) {
+    if (['pocsag', 'page', 'modbus', 'packet', 'ais', 'acars', 'sonde-rs41', 'sonde-mts01', 'sonde-dfm9', 'sonde-dfm17'].indexOf(mod2) >= 0) {
         max_bw = 12500;
     } else if (['vdl2', 'sonde-m10', 'sonde-m20'].indexOf(mod2) >= 0) {
         max_bw = 25000;

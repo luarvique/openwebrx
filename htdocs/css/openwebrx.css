@@ -1380,6 +1380,41 @@ img.openwebrx-mirror-img
     word-wrap: break-word;
 }
 
+#openwebrx-panel-modbus-message {
+    height: 310px;
+}
+
+#openwebrx-panel-modbus-message tbody {
+    height: 280px;
+}
+
+#openwebrx-panel-modbus-message .timestamp {
+    width: 90px;
+    text-align: center;
+}
+
+#openwebrx-panel-modbus-message .address {
+    width: 60px;
+    text-align: center;
+}
+
+#openwebrx-panel-modbus-message .function {
+    width: 316px;
+}
+
+#openwebrx-panel-modbus-message .type {
+    width: 100px;
+    text-align: center;
+}
+
+#openwebrx-panel-modbus-message .message {
+    width: 566px;
+    max-width: 566px;
+    column-span: all;
+    word-wrap: break-word;
+    font-family: monospace;
+}
+
 #openwebrx-panel-hfdl-message {
     height: 310px;
 }
