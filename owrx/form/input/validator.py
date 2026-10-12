@@ -76,6 +76,9 @@ class AddressAndOptionalPortValidator(Validator):
 class UrlValidator(Validator):
     def validate(self, key, value) -> None:
         try:
+            # allow empty URLs
+            if value.isEmpty():
+                return
             result = urlparse(value)
             if result.scheme not in ["http", "https"] or not result.netloc:
                 raise ValueError
