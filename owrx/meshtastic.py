@@ -225,7 +225,7 @@ class MeshtasticParser(TextParser):
         # Meshtastic packet must have payload and valid CRC
         if "payload" not in data or "crc" not in data or data["crc"] < 1:
             return None
-        # Try parsing Meshtastic packer
+        # Try parsing Meshtastic packet
         try:
             return self.parsePacket(base64.b64decode(data["payload"]))
         except Exception as e:
