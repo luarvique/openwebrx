@@ -1,3 +1,7 @@
+**1.2.127**
+- Allowed empty URLs in the settings.
+- Fixed bandwidth units in LoRa config.
+
 **1.2.126**
 - Added Evening Wave waterfall theme by Nikolay Akishin.
 - Added option to restrict logins to local network.
