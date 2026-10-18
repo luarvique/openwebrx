@@ -358,6 +358,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "eas":
             from csdr.chain.toolbox import EasDemodulator
             return EasDemodulator(service=True)
+        elif mod == "modbus":
+            from csdr.chain.toolbox import ModbusDemodulator
+            return ModbusDemodulator(service=True)
         elif mod == "ism":
             from csdr.chain.toolbox import IsmDemodulator
             return IsmDemodulator(250000, service=True)
