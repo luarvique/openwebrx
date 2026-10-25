@@ -1,9 +1,8 @@
 **1.2.127**
+- Refactored and simplified Sondehub reporter.
 - Allowed empty URLs in the settings.
 - Fixed bandwidth units in LoRa config.
 - Improved SSTV peak search algorithm.
-- Refactored and simplified Sondehub reporter.
-- Removed listener reporting to Sondehub.
 
 **1.2.126**
 - Added Evening Wave waterfall theme by Nikolay Akishin.

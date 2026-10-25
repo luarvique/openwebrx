@@ -112,12 +112,12 @@ class ReportingController(SettingsFormController):
                     "Uploader callsign",
                     infotext="This callsign will be used when reporting sonde telemetry to Sondehub",
                 ),
-#                TextInput(
-#                    "sondehub_antenna",
-#                    "Antenna information",
-#                    infotext="Antenna description sent to Sondehub with telemetry reports",
-#                    converter=TextConverter(),
-#                ),
+                TextInput(
+                    "sondehub_antenna",
+                    "Antenna information",
+                    infotext="Antenna description sent to Sondehub with listener reports",
+                    converter=TextConverter(),
+                ),
             ),
             Section(
                 "AIS reporter settings",

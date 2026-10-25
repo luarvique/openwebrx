@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 PoisonPill = object()
 
 SOFTWARE_NAME = "OpenWebRX"
+SELF_SPOT_SECONDS = 3600 * 6
 
 MANUFACTURERS = {
     "RS41"  : "Vaisala",
@@ -36,11 +37,13 @@ class Worker(threading.Thread):
     dfmMinPackets = 10
     uploadRetries = 5
 
-    def __init__(self, queue: Queue, uploadCounter: CounterMetric, errorCounter: CounterMetric):
+    def __init__(self, queue: Queue, uploadCounter: CounterMetric, errorCounter: CounterMetric, selfUploadCounter: CounterMetric, selfErrorCounter: CounterMetric):
         self.doRun = True
         self.queue = queue
         self.uploadCounter = uploadCounter
         self.errorCounter = errorCounter
+        self.selfUploadCounter = selfUploadCounter
+        self.selfErrorCounter = selfErrorCounter
         self.standardBuffer = []
         self.dfmBuffer = []
         self.standardSeen = set()
@@ -50,16 +53,22 @@ class Worker(threading.Thread):
         super().__init__(daemon=True, name="sondehub-uploader")
 
     def run(self):
+        logger.info("Sondehub telemetry reporting started")
         while self.doRun:
             try:
                 # Get next queued spot
-                spot = self.queue.get(timeout=1.0)
+                spot = self.queue.get()
 
                 # Terminate if stopping
                 if spot is PoisonPill:
                     self.doRun = False
                     self.queue.task_done()
                     break
+
+                # Detect and upload own position reports
+                if "type" not in spot:
+                    self.uploadSelfSpot(spot)
+                    continue
 
                 # Determine where to buffer spot
                 if spot["type"] == "DFM":
@@ -94,6 +103,9 @@ class Worker(threading.Thread):
             except Empty:
                 pass
 
+        # Done with the worker thread
+        logger.info("Sondehub telemetry reporting stopped")
+
     def uploadBatch(self, batch, batchType):
         # Prepare request body and headers
         body = gzip.compress(json.dumps(batch).encode("utf-8"))
@@ -103,13 +115,40 @@ class Worker(threading.Thread):
             "Date": formatdate(timeval=None, localtime=False, usegmt=True),
             "User-Agent": "{0}-{1}".format(SOFTWARE_NAME.rstrip("+"), openwebrx_version.lstrip("v"))
         }
+        # Send HTTP request
+        if self.httpUpload(self.telemetryEndpoint, headers, body):
+            self.uploadCounter.inc()
+            logger.info("Sondehub batch upload succeeded type=%s packets=%d",
+                batchType, len(batch)
+            )
+        else:
+            self.errorCounter.inc()
+            logger.error("Sondehub batch upload failed type=%s packets=%d",
+                batchType, len(batch)
+            )
 
+    def uploadSelfSpot(self, spot):
+        # Prepare request body and headers
+        body = json.dumps(spot).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "{0}-{1}".format(SOFTWARE_NAME.rstrip("+"), openwebrx_version.lstrip("v"))
+        }
+        # Send HTTP request
+        if self.httpUpload(self.listenerEndpoint, headers, body):
+            self.selfUploadCounter.inc()
+            logger.info("Sondehub listener report upload succeeded")
+        else:
+            self.selfErrorCounter.inc()
+            logger.error("Sondehub listener report upload failed")
+
+    def httpUpload(self, url, headers, body):
         # Try sending HTTP request multiple times
         for attempt in range(1, self.uploadRetries + 1):
             responseText = ""
             status = None
             try:
-                req = request.Request(self.telemetryEndpoint, data=body, headers=headers, method="PUT")
+                req = request.Request(url, data=body, headers=headers, method="PUT")
                 with request.urlopen(req, timeout=60) as response:
                     status = getattr(response, "status", None)
                     responseText = response.read().decode("utf-8", errors="replace")
@@ -121,51 +160,31 @@ class Worker(threading.Thread):
                 status = e.code
                 if 500 <= e.code < 600 and attempt < self.uploadRetries:
                     logger.warning(
-                        "Sondehub batch upload server error (attempt %d/%d): %s",
-                        attempt,
-                        self.uploadRetries,
-                        responseText,
+                        "Sondehub upload server error (attempt %d/%d): %s",
+                        attempt, self.uploadRetries, responseText
                     )
                     time.sleep(1)
                 else:
-                    self.errorCounter.inc()
-                    logger.error(
-                        "Sondehub batch upload failed type=%s packets=%d status=%s response=%s",
-                        batchType,
-                        len(batch),
-                        status,
-                        responseText,
+                    logger.error("Sondehub upload failed with status=%s response=%s",
+                        status, responseText
                     )
-                    return
+                    return False
 
             # If non-HTTP error occurred, drop out
-            except Exception:
-                self.errorCounter.inc()
-                logger.exception(
-                    "Sondehub batch upload failed type=%s packets=%d",
-                    batchType,
-                    len(batch),
-                )
-                return
+            except Exception as e:
+                logger.exception("Sondehub upload failed: %s", str(e))
+                return False
 
-        self.uploadCounter.inc()
-        logger.info(
-            "Sondehub uploaded %s batch packets=%d status=%s uploader=%s",
-            batchType,
-            len(batch),
-            status if status is not None else "unknown",
-            batch[0].get("uploader_callsign"),
-        )
-
-        if responseText:
-            logger.debug("Sondehub telemetry batch response: %s", responseText)
+        # Success
+        return True
 
 
 class SondehubReporter(FilteredReporter):
     def __init__(self):
         self.queue = Queue(500)
-        self.telemetryWorker = None
+        self.worker = None
         self.callsign = None
+        self.lastSelfSpot = 0
         # Create reporting metrics
         metrics = Metrics.getSharedInstance()
         self.spotCounter = CounterMetric()
@@ -174,6 +193,10 @@ class SondehubReporter(FilteredReporter):
         metrics.addMetric("sondehub.uploads", self.uploadCounter)
         self.errorCounter = CounterMetric()
         metrics.addMetric("sondehub.errors", self.errorCounter)
+        self.selfUploadCounter = CounterMetric()
+        metrics.addMetric("sondehub.self_uploads", self.selfUploadCounter)
+        self.selfErrorCounter = CounterMetric()
+        metrics.addMetric("sondehub.self_errors", self.selfErrorCounter)
         # Subscribe to config changes
         self.configSub = Config.get().filter(
             "sondehub_enabled",
@@ -185,22 +208,36 @@ class SondehubReporter(FilteredReporter):
     def getSupportedModes(self):
         return ["SONDE"]
 
+    # Parse and report sonde spots
     def spot(self, spot):
-        # Must have reporting enabled and spot data
-        if not self.callsign or not self.telemetryWorker:
-            return
-        # Convert spot data to reportable data
-        data = self.parseSpot(spot)
-        if data is None:
+        # Must have reporting enabled
+        if not self.callsign or not self.worker:
             return
         # Queue up the spot
-        try:
-            self.queue.put(data, block=False)
-            self.spotCounter.inc()
-        except Full:
-            logger.warning("Sondehub queue overflow, one telemetry frame lost")
-            self.errorCounter.inc()
+        data = self.parseSpot(spot)
+        if data is not None:
+            try:
+                self.queue.put(data, block=False)
+                self.spotCounter.inc()
+            except Full:
+                logger.warning("Sondehub queue overflow, one telemetry frame lost")
+                self.errorCounter.inc()
+        # Periodically report our own position
+        now = time.monotonic()
+        if now - self.lastSelfSpot < SELF_SPOT_SECONDS:
+            return
+        # Queue up self-spot
+        data = self.selfSpot()
+        if data is not None:
+            try:
+                self.queue.put(data, block=False)
+                self.selfSpotCounter.inc()
+                self.lastSelfSpot = now
+            except Full:
+                logger.warning("Sondehub queue overflow, one self reporting frame lost")
+                self.selfErrorCounter.inc()
 
+    # Check field value for validity
     def isValidValue(field, value):
         # Convert value to floating point
         try:
@@ -219,13 +256,14 @@ class SondehubReporter(FilteredReporter):
         else:
             return False
 
+    # Get our own position in reportable format
     def getOurPosition(self):
-        # Get receiver position and altitude
         config = Config.get()
         position = config["receiver_gps"]
         altitude = config["receiver_asl"] if "receiver_asl" in config else 0
         return [position["lat"], position["lon"], altitude]
 
+    # Get sonde type
     def parseType(self, data):
         # Get type and subtype
         type    = data["type"].upper() if "type" in data else ""
@@ -247,6 +285,7 @@ class SondehubReporter(FilteredReporter):
         # Return family, type, subtype
         return family, type or family or None, subtype or None
 
+    # Convert spotted data into reported data
     def parseSpot(self, spot):
         # Must have data and callsign
         if not self.callsign or "data" not in spot:
@@ -286,33 +325,50 @@ class SondehubReporter(FilteredReporter):
         # Done
         return out
 
+    # Report own location
+    def selfSpot(self):
+        # Must have callsign
+        if not self.callsign:
+            return None
+        # Get antenna desctiption
+        config = Config.get()
+        antenna = config["sondehub_antenna"] if "sondehub_antenna" in config else ""
+        # Create own position report
+        return {
+            "software_name": SOFTWARE_NAME,
+            "software_version": openwebrx_version.lstrip("v"),
+            "uploader_callsign": self.callsign,
+            "uploader_position": self.getOurPosition(),
+            "uploader_radio": SOFTWARE_NAME,
+            "uploader_antenna": antenna,
+            "mobile": False,
+        }
+
     def onConfigChanged(self, *args):
         # Get Sondehub callsign, set to None if disabled or empty
         config = Config.get()
-        if not config["sondehub_enabled"] or not config["sondehub_callsign"]:
+        if not config["sondehub_enabled"]:
             self.callsign = None
         else:
             self.callsign = config["sondehub_callsign"]
-            if self.callsign == "N0CALL":
+            if not self.callsign or self.callsign == "N0CALL":
                 self.callsign = None
         # Start/stop workers when enabled/disabled
-        if self.callsign is not None and self.telemetryWorker is None:
+        if self.callsign is not None and self.worker is None:
             self.queue = Queue(500)
-            self.telemetryWorker = Worker(self.queue, self.uploadCounter, self.errorCounter)
-            self.telemetryWorker.start()
-            logger.info("Sondehub telemetry reporting started")
-        elif self.telemetryWorker is not None:
-            self._stopTelemetryWorker()
-            logger.info("Sondehub telemetry reporting stopped")
+            self.worker = Worker(self.queue, self.uploadCounter, self.errorCounter, self.selfUploadCounter, self.selfErrorCounter)
+            self.worker.start()
+        elif self.worker is not None:
+            self._stopWorker()
 
     def stop(self):
         if self.configSub is not None:
             self.configSub.cancel()
             self.configSub = None
-        if self.telemetryWorker is not None:
-            self._stopTelemetryWorker()
+        if self.worker is not None:
+            self._stopWorker()
 
-    def _stopTelemetryWorker(self):
+    def _stopWorker(self):
         while not self.queue.empty():
             try:
                 self.queue.get(timeout=1)
@@ -320,5 +376,5 @@ class SondehubReporter(FilteredReporter):
             except Exception:
                 break
         self.queue.put(PoisonPill)
-        self.telemetryWorker.join(timeout=5)
-        self.telemetryWorker = None
+        self.worker.join(timeout=5)
+        self.worker = None
