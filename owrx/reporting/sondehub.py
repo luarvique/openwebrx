@@ -23,8 +23,8 @@ SELF_SPOT_SECONDS = 3600 * 6
 MANUFACTURERS = {
     "RS41"  : "Vaisala",
     "DFM"   : "Graw",
-    "M10"   : "MeteoModem",
-    "M20"   : "MeteoModem",
+    "M10"   : "Meteomodem",
+    "M20"   : "Meteomodem",
     "MTS01" : "Meteosis",
 }
 
