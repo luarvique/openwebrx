@@ -1,4 +1,5 @@
 **1.2.127**
+- Added ability to ban clients forever.
 - Refactored and simplified Sondehub reporter.
 - Allowed empty URLs in the settings.
 - Fixed bandwidth units in LoRa config.

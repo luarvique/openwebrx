@@ -3,6 +3,9 @@ from owrx.controllers.template import WebpageController
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem, BreadcrumbMixin
 from owrx.client import ClientRegistry
 from owrx.config import Config
+
+from datetime import datetime
+
 import json
 import re
 
@@ -46,6 +49,7 @@ class ClientController(AuthorizationMixin, WebpageController):
                                 <option value="360">6 hours</option>
                                 <option value="720">12 hours</option>
                                 <option value="1440">1 day</option>
+                                <option value="1000000000">forever</option>
                             </select>
                         </td>
                     </tr>
@@ -56,12 +60,14 @@ class ClientController(AuthorizationMixin, WebpageController):
 
     @staticmethod
     def renderClient(c):
+        dt = datetime.now() - c["ts"]
+        ts = c["ts"].strftime("%H:%M:%S") if abs(dt.days) <= 1 else "long time"
         return "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3} {4}</td><td>{5}</td></tr>".format(
             ClientController.renderIp(c["ip"]),
             c["name"] if "name" in c else "",
             "banned" if c["ban"] else c["sdr"] + " " + c["band"] if "sdr" in c else "n/a",
             "until" if c["ban"] else "since",
-            c["ts"].strftime("%H:%M:%S"),
+            ts,
             ClientController.renderButtons(c)
         )
 
