@@ -270,7 +270,7 @@ class SondehubReporter(FilteredReporter):
         subtype = data["subtype"].upper() if "subtype" in data else ""
         family  = ""
         # Guess device family
-        if type.startsWith("DFM") or ":DFM" in subtype:
+        if type.startswith("DFM") or ":DFM" in subtype:
             family = "DFM"
         elif "rs41_mainboard" in data:
             family = "RS41"
