@@ -1,5 +1,7 @@
 from owrx.details import ReceiverDetails
 from owrx.dsp import DspManager
+from owrx.demodulators import DemodulatorPool, DemodulatorHandle, parseDemodulatorId, \
+    InvalidDemodulatorIdException, TooManyDemodulatorsException, PRIMARY_DEMODULATOR
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
 from owrx.source import SdrSourceState, SdrClientClass, SdrSourceEventClient
@@ -156,8 +158,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def __init__(self, conn):
         super().__init__(conn)
 
-        self.dsp = None
-        self.dspLock = threading.Lock()
+        self.dsps = DemodulatorPool(self._createDsp, lambda: Config.get()["max_demodulators_per_client"])
         self.sdr = None
         self.configSubs = []
         self.bookmarkSub = None
@@ -321,15 +322,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             message = json.loads(message)
             if "type" in message:
                 if message["type"] == "dspcontrol":
-                    dsp = self.getDsp()
-                    if dsp is None:
-                        logger.warning("DSP not available; discarding client dspcontrol message")
-                    else:
-                        if "action" in message and message["action"] == "start":
-                            dsp.start()
-                        if "params" in message:
-                            params = message["params"]
-                            dsp.setProperties(params)
+                    self.handleDspControl(message)
 
                 elif message["type"] == "setsdr":
                     if "params" in message and "sdr" in message["params"]:
@@ -357,8 +350,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 elif message["type"] == "connectionproperties":
                     if "params" in message:
                         self.connectionProperties.update(message["params"])
-                        if self.dsp:
-                            self.getDsp().setProperties(self.connectionProperties)
+                        for dsp in self.dsps.all():
+                            dsp.setProperties(self.connectionProperties)
 
                 elif message["type"] == "sendmessage":
                     if "text" in message:
@@ -470,20 +463,52 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             self.bookmarkSub = None
         super().close(error)
 
+    def handleDspControl(self, message):
+        try:
+            demodId = parseDemodulatorId(message)
+        except InvalidDemodulatorIdException as e:
+            logger.warning("discarding client dspcontrol message: %s", str(e))
+            return
+
+        action = message["action"] if "action" in message else None
+        if action == "stop":
+            # the primary demodulator lives as long as the connection to the sdr
+            if demodId == PRIMARY_DEMODULATOR:
+                logger.warning("refusing to stop the primary demodulator")
+            else:
+                self.dsps.stop(demodId)
+            return
+
+        try:
+            dsp = self.getDsp(demodId)
+        except TooManyDemodulatorsException as e:
+            DemodulatorHandle(self, demodId).write_demodulator_error(str(e))
+            return
+
+        if dsp is None:
+            logger.warning("DSP not available; discarding client dspcontrol message")
+            return
+        if action == "start":
+            dsp.start()
+        if "params" in message:
+            dsp.setProperties(message["params"])
+
+    def _createDsp(self, demodId):
+        if self.sdr is None:
+            return None
+        primary = demodId == PRIMARY_DEMODULATOR
+        handler = self if primary else DemodulatorHandle(self, demodId)
+        dsp = DspManager(handler, self.sdr, primary=primary)
+        dsp.setProperties(self.connectionProperties)
+        return dsp
+
     def stopDsp(self):
-        with self.dspLock:
-            if self.dsp is not None:
-                self.dsp.stop()
-                self.dsp = None
+        self.dsps.stop()
         if self.sdr is not None:
             self.sdr.removeSpectrumClient(self)
 
-    def getDsp(self):
-        with self.dspLock:
-            if self.dsp is None and self.sdr is not None:
-                self.dsp = DspManager(self, self.sdr)
-                self.dsp.setProperties(self.connectionProperties)
-        return self.dsp
+    def getDsp(self, demodId=PRIMARY_DEMODULATOR):
+        return self.dsps.get(demodId)
 
     def write_spectrum_data(self, data):
         self.mp_send(bytes([0x01]) + data)
