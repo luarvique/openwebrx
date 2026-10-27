@@ -1,3 +1,7 @@
+**1.2.128**
+- Fixed Sondehub reporting [MidwestTechnologies].
+- Fixed UrlValidator [Wiktor Starzak].
+
 **1.2.127**
 - Added ability to ban clients forever.
 - Refactored and simplified Sondehub reporter.
