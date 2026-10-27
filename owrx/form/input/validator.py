@@ -77,7 +77,7 @@ class UrlValidator(Validator):
     def validate(self, key, value) -> None:
         try:
             # allow empty URLs
-            if value.isEmpty():
+            if not value:
                 return
             result = urlparse(value)
             if result.scheme not in ["http", "https"] or not result.netloc:
