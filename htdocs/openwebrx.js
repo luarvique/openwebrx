@@ -154,8 +154,9 @@ function setSmeterRelativeValue(value) {
     }
 }
 
-function setSquelchSliderBackground(val) {
-    var $slider = $('#openwebrx-panel-receiver .openwebrx-squelch-slider');
+// $slider defaults to the main demodulator's squelch slider
+function setSquelchSliderBackground(val, $slider) {
+    $slider = $slider || $('#openwebrx-panel-receiver .openwebrx-squelch-slider');
     var min = Number($slider.attr('min'));
     var max = Number($slider.attr('max'));
     var sliderPosition = $slider.val();

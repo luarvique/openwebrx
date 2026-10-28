@@ -122,6 +122,7 @@ ExtraDemodulator.prototype.updateModeControls = function() {
 ExtraDemodulator.prototype.setLevel = function(level) {
     var db = getLogSmeterValue(level);
     this.el.find('.openwebrx-extra-demod-level').text(isFinite(db) ? Math.round(db) + ' dB' : '');
+    if (isFinite(db)) setSquelchSliderBackground(db, this.el.find('.openwebrx-squelch-slider'));
 };
 
 ExtraDemodulator.prototype.setTuningPrecision = function(precision) {
