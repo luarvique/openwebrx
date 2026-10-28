@@ -659,6 +659,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod in ["usbd", "lsbd"]:
             from csdr.chain.analog import SsbDigital
             return SsbDigital()
+        elif demod == "iq":
+            from csdr.chain.analog import IqStream
+            return IqStream()
 
     def setDemodulator(self, mod):
         # this kills both primary and secondary demodulators
