@@ -106,7 +106,7 @@ class GeneralSettingsController(SettingsFormController):
                 ),
                 NumberInput(
                     "max_demodulators_per_client",
-                    "Number of concurrent demodulators per client",
+                    "Number of concurrent demodulators",
                     infotext="Number of demodulators that can be spawned for each client.",
                 ),
                 NumberInput(
