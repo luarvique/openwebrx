@@ -226,11 +226,14 @@ UI.setVolume = function(x) {
         LS.save('volume', x);
         $('#openwebrx-panel-volume').val(x)
         if (audioEngine) {
-            // Map 0-150 to -55..+5db gain
-            gain = x > 0? Math.pow(10, ((x / 2.5) - 55) / 20) : 0;
-            audioEngine.setVolume(gain);
+            audioEngine.setVolume(this.volumeToGain(x));
         }
     }
+};
+
+// Map volume slider values 0-150 to -55..+5db gain
+UI.volumeToGain = function(x) {
+    return x > 0? Math.pow(10, ((x / 2.5) - 55) / 20) : 0;
 };
 
 // Toggle audio muting.

@@ -34,16 +34,17 @@ function ExtraDemodulator(id, offset_frequency, modulation) {
         self.demodulator.setSquelch(parseInt($(this).val()));
     });
     this.el.on('input change', '.openwebrx-extra-demod-volume', function() {
-        self.audio.setVolume(parseInt($(this).val()) / 100);
+        self.setVolume($(this).val());
     });
     this.el.on('click', '.openwebrx-extra-demod-mute', function() {
-        self.audio.setMuted(!self.audio.isMuted());
-        $(this)[self.audio.isMuted() ? 'addClass' : 'removeClass']('muted');
+        self.toggleMute();
     });
     this.el.on('click', '.openwebrx-extra-demod-close', function() {
         ExtraDemodulators.remove(self.id);
     });
 
+    this.volume = 100;
+    this.setVolume(this.volume);
     this.updateModeControls();
     this.updateFrequency();
     this.demodulator.start();
@@ -82,6 +83,22 @@ ExtraDemodulator.prototype.render = function() {
             '</div>' +
         '</div>'
     );
+};
+
+// volume on the same 0-150 scale as the main volume slider
+ExtraDemodulator.prototype.setVolume = function(x) {
+    this.volume = Math.min(150, Math.max(0, Math.round(parseFloat(x))));
+    this.audio.setVolume(UI.volumeToGain(this.volume));
+};
+
+// like the main panel: muting drops the slider to 0 and locks it, unmuting restores the previous volume
+ExtraDemodulator.prototype.toggleMute = function() {
+    var muted = !this.audio.isMuted();
+    this.audio.setMuted(muted);
+    this.el.find('.openwebrx-extra-demod-mute')[muted ? 'addClass' : 'removeClass']('muted');
+    this.el.find('.openwebrx-extra-demod-volume')
+        .val(muted ? 0 : this.volume)
+        .prop('disabled', muted);
 };
 
 ExtraDemodulator.prototype.getCwDelta = function() {
