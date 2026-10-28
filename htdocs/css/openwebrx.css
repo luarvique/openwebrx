@@ -2319,15 +2319,17 @@ img.openwebrx-mirror-img
 
 /* additional demodulators */
 
-.openwebrx-extra-demod {
-    border-left: 4px solid transparent;
-    padding-left: 6px;
+#openwebrx-extra-demods {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.openwebrx-extra-demod + .openwebrx-extra-demod {
-    margin-top: 10px;
-    padding-top: 5px;
-    border-top: 1px solid #373737;
+.openwebrx-extra-demod {
+    border-left: 4px solid transparent;
+    border-radius: 5px;
+    padding: 0 6px 6px 6px;
+    background-color: rgba(0, 0, 0, 0.15);
 }
 
 .openwebrx-extra-demod-header {
