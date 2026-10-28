@@ -246,6 +246,8 @@ Envelope.prototype.wheel = function(x, dir, modifier){
 // It already supports most basic modulations used for ham radio and commercial services: AM/FM/LSB/USB
 
 function Demodulator(offset_frequency, modulation) {
+    // server-side demodulator id, 0 is the main demodulator. see ExtraDemodulators for the others.
+    this.id = 0;
     this.offset_frequency = offset_frequency;
     this.envelope = new Envelope(this);
     this.color = Demodulator.get_next_color();
@@ -332,18 +334,24 @@ Demodulator.prototype.get_modulation = function() {
 Demodulator.prototype.start = function() {
     this.started = true;
     this.set();
-    ws.send(JSON.stringify({
-        "type": "dspcontrol",
-        "action": "start"
-    }));
+    this.sendControl({"action": "start"});
 };
 
-// TODO check if this is actually used
+// the main demodulator lives as long as the connection, so this only tears down additional ones
 Demodulator.prototype.stop = function() {
+    if (!this.id || !this.started) return;
+    this.started = false;
+    this.sendControl({"action": "stop"});
+};
+
+Demodulator.prototype.sendControl = function(message) {
+    message.type = "dspcontrol";
+    if (this.id) message.demod = this.id;
+    ws.send(JSON.stringify(message));
 };
 
 Demodulator.prototype.send = function(params) {
-    ws.send(JSON.stringify({"type": "dspcontrol", "params": params}));
+    this.sendControl({"params": params});
 }
 
 Demodulator.prototype.set = function () {  //this function sends demodulator parameters to the server
@@ -428,8 +436,8 @@ Demodulator.prototype.moveBandpass = function(low_new, high_new) {
     // Sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
     if (high_new <= this.low_cut) return;
 
-    // Save modified bandpass, but only in analog modes
-    if (!this.secondary_demod)
+    // Save modified bandpass, but only in analog modes, and only for the main demodulator
+    if (!this.secondary_demod && !this.id)
         UI.saveBandpass(this.modulation, low_new, high_new);
 
     // Set new bounds

@@ -102,14 +102,7 @@ AudioEngine.prototype._start = function() {
 
     if (useAudioWorklets && me.audioContext.audioWorklet) {
         me.audioContext.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
-            me.audioNode = new AudioWorkletNode(me.audioContext, 'openwebrx-audio-processor', {
-                numberOfInputs: 0,
-                numberOfOutputs: 1,
-                outputChannelCount: [1],
-                processorOptions: {
-                    maxBufferSize: me.maxBufferSize
-                }
-            });
+            me.audioNode = me._buildWorkletNode();
             me.audioNode.connect(me.gainNode);
             me.audioNode.port.addEventListener('message', function(m){
                 var json = JSON.parse(m.data);
@@ -127,61 +120,79 @@ AudioEngine.prototype._start = function() {
         });
     } else {
         me.audioBuffers = [];
-
-        if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefox does
-            AudioBuffer.prototype.copyToChannel = function (input, channel) //input is Float32Array
-            {
-                var cd = this.getChannelData(channel);
-                for (var i = 0; i < input.length; i++) cd[i] = input[i];
-            }
-        }
-
-        var bufferSize;
-        if (me.audioContext.sampleRate < 44100 * 2)
-            bufferSize = 4096;
-        else if (me.audioContext.sampleRate >= 44100 * 2 && me.audioContext.sampleRate < 44100 * 4)
-            bufferSize = 4096 * 2;
-        else if (me.audioContext.sampleRate > 44100 * 4)
-            bufferSize = 4096 * 4;
-
-
-        function audio_onprocess(e) {
-            var total = 0;
-            var out = new Float32Array(bufferSize);
-            while (me.audioBuffers.length) {
-                var b = me.audioBuffers.shift();
-                // not enough space to fit all data, so splice and put back in the queue
-                if (total + b.length > bufferSize) {
-                    var spaceLeft  = bufferSize - total;
-                    var tokeep = b.subarray(0, spaceLeft);
-                    out.set(tokeep, total);
-                    var tobuffer = b.subarray(spaceLeft, b.length);
-                    me.audioBuffers.unshift(tobuffer);
-                    total += spaceLeft;
-                    break;
-                } else {
-                    out.set(b, total);
-                    total += b.length;
-                }
-            }
-
-            e.outputBuffer.copyToChannel(out, 0);
-            me.audioSamples.add(total);
-
-        }
-
-        //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
-        var method = 'createScriptProcessor';
-        if (me.audioContext.createJavaScriptNode) {
-            method = 'createJavaScriptNode';
-        }
-        me.audioNode = me.audioContext[method](bufferSize, 0, 1);
-        me.audioNode.onaudioprocess = audio_onprocess;
+        me.audioNode = me._buildScriptProcessor(me.audioBuffers, function(samples) {
+            me.audioSamples.add(samples);
+        });
         me.audioNode.connect(me.gainNode);
         runCallbacks('ScriptProcessorNode')
     }
 
     setInterval(me.reportStats.bind(me), 1000);
+};
+
+// requires the AudioProcessor module to be loaded
+AudioEngine.prototype._buildWorkletNode = function() {
+    return new AudioWorkletNode(this.audioContext, 'openwebrx-audio-processor', {
+        numberOfInputs: 0,
+        numberOfOutputs: 1,
+        outputChannelCount: [1],
+        processorOptions: {
+            maxBufferSize: this.maxBufferSize
+        }
+    });
+};
+
+// fallback for browsers without AudioWorklet support (or insecure contexts).
+// plays back the Float32Array buffers queued in the given array, which is consumed in place.
+AudioEngine.prototype._buildScriptProcessor = function(audioBuffers, onSamples) {
+    if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefox does
+        AudioBuffer.prototype.copyToChannel = function (input, channel) //input is Float32Array
+        {
+            var cd = this.getChannelData(channel);
+            for (var i = 0; i < input.length; i++) cd[i] = input[i];
+        }
+    }
+
+    var bufferSize;
+    if (this.audioContext.sampleRate < 44100 * 2)
+        bufferSize = 4096;
+    else if (this.audioContext.sampleRate >= 44100 * 2 && this.audioContext.sampleRate < 44100 * 4)
+        bufferSize = 4096 * 2;
+    else if (this.audioContext.sampleRate > 44100 * 4)
+        bufferSize = 4096 * 4;
+
+    function audio_onprocess(e) {
+        var total = 0;
+        var out = new Float32Array(bufferSize);
+        while (audioBuffers.length) {
+            var b = audioBuffers.shift();
+            // not enough space to fit all data, so splice and put back in the queue
+            if (total + b.length > bufferSize) {
+                var spaceLeft  = bufferSize - total;
+                var tokeep = b.subarray(0, spaceLeft);
+                out.set(tokeep, total);
+                var tobuffer = b.subarray(spaceLeft, b.length);
+                audioBuffers.unshift(tobuffer);
+                total += spaceLeft;
+                break;
+            } else {
+                out.set(b, total);
+                total += b.length;
+            }
+        }
+
+        e.outputBuffer.copyToChannel(out, 0);
+        if (onSamples) onSamples(total);
+    }
+
+    //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
+    var method = 'createScriptProcessor';
+    if (this.audioContext.createJavaScriptNode) {
+        method = 'createJavaScriptNode';
+    }
+    var node = this.audioContext[method](bufferSize, 0, 1);
+    node.onaudioprocess = audio_onprocess;
+    return node;
 };
 
 AudioEngine.prototype.onStart = function(callback) {
@@ -331,7 +342,103 @@ AudioEngine.prototype.setVolume = function(volume) {
 AudioEngine.prototype.getBuffersize = function() {
     // only available when using ScriptProcessorNode
     if (!this.audioBuffers) return 0;
-    return this.audioBuffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
+    return getQueuedSamples(this.audioBuffers);
+};
+
+function getQueuedSamples(audioBuffers) {
+    return audioBuffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
+}
+
+AudioEngine.prototype.createChannel = function() {
+    return new AudioChannel(this);
+};
+
+// Separate audio output for an additional demodulator. Each channel needs its own ADPCM codec and resamplers,
+// since their state belongs to a single stream. Output goes through the engine's gain node, so the main
+// volume and mute apply to all channels.
+function AudioChannel(engine) {
+    this.engine = engine;
+    this.codec = new ImaAdpcmCodec();
+    this.resampler = new Interpolator(engine.resamplingFactor);
+    this.hdResampler = new Interpolator(engine.hdResamplingFactor);
+    this.volume = 1;
+    this.muted = false;
+    this.closed = false;
+    this.node = null;
+    this.gainNode = null;
+    this.audioBuffers = null;
+
+    var me = this;
+    engine.onStart(function() {
+        if (!me.closed) me._build();
+    });
+}
+
+AudioChannel.prototype._build = function() {
+    var engine = this.engine;
+    this.gainNode = engine.audioContext.createGain();
+    this.gainNode.connect(engine.gainNode);
+    this._applyGain();
+
+    // follow whatever the engine ended up using
+    if (engine.audioNode && engine.audioNode.port) {
+        this.node = engine._buildWorkletNode();
+    } else {
+        this.audioBuffers = [];
+        this.node = engine._buildScriptProcessor(this.audioBuffers);
+    }
+    this.node.connect(this.gainNode);
+};
+
+AudioChannel.prototype.push = function(data, hd) {
+    if (!this.node) return;
+    var buffer;
+    if (this.engine.compression === "adpcm") {
+        buffer = this.codec.decodeWithSync(new Uint8Array(data));
+    } else {
+        buffer = new Int16Array(data);
+    }
+    buffer = (hd ? this.hdResampler : this.resampler).process(buffer);
+    if (this.node.port) {
+        this.node.port.postMessage(buffer);
+    } else if (getQueuedSamples(this.audioBuffers) + buffer.length <= this.engine.maxBufferSize) {
+        // silently drop excess samples
+        this.audioBuffers.push(buffer);
+    }
+};
+
+AudioChannel.prototype._applyGain = function() {
+    if (this.gainNode) this.gainNode.gain.value = this.muted ? 0 : this.volume;
+};
+
+// volume as a factor, 1 = unchanged
+AudioChannel.prototype.setVolume = function(volume) {
+    this.volume = volume;
+    this._applyGain();
+};
+
+AudioChannel.prototype.setMuted = function(muted) {
+    this.muted = muted;
+    this._applyGain();
+};
+
+AudioChannel.prototype.isMuted = function() {
+    return this.muted;
+};
+
+AudioChannel.prototype.close = function() {
+    this.closed = true;
+    if (this.node) {
+        this.node.disconnect();
+        if (this.node.port) this.node.port.close();
+        this.node.onaudioprocess = null;
+        this.node = null;
+    }
+    if (this.gainNode) {
+        this.gainNode.disconnect();
+        this.gainNode = null;
+    }
+    this.audioBuffers = null;
 };
 
 AudioEngine.prototype.startRecording = function() {

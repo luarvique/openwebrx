@@ -143,6 +143,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         "audio_compression",
         "fft_compression",
         "max_clients",
+        "max_demodulators_per_client",
         "tuning_precision",
         "allow_center_freq_changes",
         "allow_audio_recording",

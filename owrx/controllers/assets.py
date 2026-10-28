@@ -126,6 +126,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/Header.js",
             "lib/Demodulator.js",
             "lib/DemodulatorPanel.js",
+            "lib/ExtraDemodulators.js",
             "lib/BookmarkLocalStorage.js",
             "lib/BookmarkBar.js",
             "lib/BookmarkDialog.js",

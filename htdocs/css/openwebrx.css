@@ -709,6 +709,15 @@ img.openwebrx-mirror-img
     flex-grow: 1;
 }
 
+#openwebrx-panel-receiver .openwebrx-add-demod-button {
+    width: 27px;
+    height: 27px;
+    line-height: 27px;
+    text-align: center;
+    font-size: 16pt;
+    padding: 0;
+}
+
 #openwebrx-panel-receiver .openwebrx-bookmark-button {
     width: 27px;
     height: 27px;
@@ -2306,4 +2315,68 @@ img.openwebrx-mirror-img
 #openwebrx-dialog-search-bookmarks .search-results tr:nth-child(even) {
     background-color: #ffffff;
     color: #000000;
+}
+
+/* additional demodulators */
+
+.openwebrx-extra-demod {
+    border-left: 4px solid transparent;
+    padding-left: 6px;
+}
+
+.openwebrx-extra-demod + .openwebrx-extra-demod {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 1px solid #373737;
+}
+
+.openwebrx-extra-demod-header {
+    align-items: center;
+    gap: 5px;
+}
+
+.openwebrx-extra-demod-label {
+    font-weight: bold;
+    flex: 0 0 auto;
+}
+
+.openwebrx-extra-demod .webrx-actual-freq {
+    flex: 1 1 auto;
+    font-size: 12pt;
+}
+
+.openwebrx-extra-demod .webrx-actual-freq .input-group input,
+.openwebrx-extra-demod .webrx-actual-freq .input-group select {
+    font-size: 12pt;
+}
+
+.openwebrx-extra-demod-close {
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    padding: 0;
+    flex: 0 0 auto;
+}
+
+.openwebrx-extra-demod-mode {
+    flex: 1 1 auto;
+}
+
+.openwebrx-extra-demod-level {
+    flex: 0 0 60px;
+    text-align: right;
+    align-self: center;
+}
+
+.openwebrx-extra-demod-mute svg.muted {
+    display: none;
+}
+
+.openwebrx-extra-demod-mute.muted svg.muted {
+    display: initial;
+}
+
+.openwebrx-extra-demod-mute.muted svg.unmuted {
+    display: none;
 }
