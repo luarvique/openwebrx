@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio, \
-    FixedAudioRateChain, DeemphasisTauChain, MetaProvider, RdsChain
+    HdStereo, FixedAudioRateChain, DeemphasisTauChain, MetaProvider, RdsChain
 from pycsdr.modules import AmDemod, DcBlock, FmDemod, Limit, NfmDeemphasis, Agc, Afc, \
     WfmDeemphasis, FractionalDecimator, RealPart, Writer, Buffer
 from pycsdr.types import Format, AgcProfile
@@ -148,6 +148,18 @@ class SsbDigital(BaseDemodulatorChain, FixedAudioRateChain, HdAudio):
         workers = [
             RealPart(),
             Agc(Format.FLOAT),
+        ]
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+
+class IqStream(BaseDemodulatorChain, FixedAudioRateChain, HdStereo):
+    def __init__(self, sampleRate: int = 48000):
+        self.sampleRate = sampleRate
+        workers = [
+            Agc(Format.COMPLEX_FLOAT),
         ]
         super().__init__(workers)
 
