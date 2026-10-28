@@ -354,8 +354,8 @@ AudioEngine.prototype.createChannel = function() {
 };
 
 // Separate audio output for an additional demodulator. Each channel needs its own ADPCM codec and resamplers,
-// since their state belongs to a single stream. Output goes through the engine's gain node, so the main
-// volume and mute apply to all channels.
+// since their state belongs to a single stream. Output goes straight to the destination, so the main
+// volume and mute only affect the main demodulator; each channel has its own volume and mute.
 function AudioChannel(engine) {
     this.engine = engine;
     this.codec = new ImaAdpcmCodec();
@@ -377,7 +377,7 @@ function AudioChannel(engine) {
 AudioChannel.prototype._build = function() {
     var engine = this.engine;
     this.gainNode = engine.audioContext.createGain();
-    this.gainNode.connect(engine.gainNode);
+    this.gainNode.connect(engine.audioContext.destination);
     this._applyGain();
 
     // follow whatever the engine ended up using
