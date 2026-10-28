@@ -392,6 +392,8 @@ AudioChannel.prototype._build = function() {
 
 AudioChannel.prototype.push = function(data, hd) {
     if (!this.node) return;
+    // the audio stream rate covers all demodulators
+    this.engine.audioBytes.add(data.byteLength);
     var buffer;
     if (this.engine.compression === "adpcm") {
         buffer = this.codec.decodeWithSync(new Uint8Array(data));
