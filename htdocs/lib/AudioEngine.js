@@ -151,17 +151,17 @@ AudioEngine.prototype._start = function() {
             while (me.audioBuffers.length) {
                 var b = me.audioBuffers.shift();
                 // not enough space to fit all data, so splice and put back in the queue
-                if (total + b.length > bufferSize) {
+                if (total + b[0].length > bufferSize) {
                     var spaceLeft  = bufferSize - total;
-                    var tokeep = b.subarray(0, spaceLeft);
+                    var tokeep = b[0].subarray(0, spaceLeft);
                     out.set(tokeep, total);
-                    var tobuffer = b.subarray(spaceLeft, b.length);
+                    var tobuffer = b[0].subarray(spaceLeft, b[0].length);
                     me.audioBuffers.unshift(tobuffer);
                     total += spaceLeft;
                     break;
                 } else {
-                    out.set(b, total);
-                    total += b.length;
+                    out.set(b[0], total);
+                    total += b[0].length;
                 }
             }
 
@@ -296,7 +296,7 @@ AudioEngine.prototype.processAudio = function(data, resampler, recorder) {
     var buffer = [];
     for (var j = 0 ; j < data.length ; j++) {
         // allocate space
-        this.audioBytes[j].add(data[j].byteLength);
+        this.audioBytes.add(data[j].byteLength);
         // decompress
         if (this.compression === "adpcm") {
             buffer[j] = this.audioCodec.decodeWithSync(new Uint8Array(data[j]));
