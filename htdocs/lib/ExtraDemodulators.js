@@ -27,6 +27,9 @@ function ExtraDemodulator(id, offset_frequency, modulation) {
     this.el.on('change', '.openwebrx-extra-demod-mode', function() {
         self.setModulation($(this).val());
     });
+    this.el.on('click', '.openwebrx-extra-demod-squelch-icon', function() {
+        self.autoSquelch();
+    });
     this.el.on('input change', '.openwebrx-squelch-slider', function() {
         self.demodulator.setSquelch(parseInt($(this).val()));
     });
@@ -72,7 +75,7 @@ ExtraDemodulator.prototype.render = function() {
                 '<input title="Volume" class="openwebrx-panel-slider openwebrx-extra-demod-volume" type="range" min="0" max="150" value="100" step="1">' +
             '</div>' +
             '<div class="openwebrx-panel-line openwebrx-panel-flex-line">' +
-                '<div title="Squelch" class="openwebrx-button openwebrx-slider-button openwebrx-extra-demod-squelch-icon">' +
+                '<div title="Auto-set squelch level" class="openwebrx-button openwebrx-slider-button openwebrx-extra-demod-squelch-icon">' +
                     '<svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#squelch"></use></svg>' +
                 '</div>' +
                 '<input title="Squelch" class="openwebrx-squelch-slider openwebrx-panel-slider" type="range" min="-150" max="0" value="' + this.demodulator.getSquelch() + '" step="1">' +
@@ -113,14 +116,30 @@ ExtraDemodulator.prototype.setModulation = function(modulation) {
 };
 
 ExtraDemodulator.prototype.updateModeControls = function() {
-    var mode = Modes.findByModulation(this.demodulator.get_modulation());
-    var squelch = !!(mode && mode.squelch);
+    var squelch = this.squelchAvailable();
     this.el.find('.openwebrx-squelch-slider').prop('disabled', !squelch);
     this.el.find('.openwebrx-extra-demod-squelch-icon')[squelch ? 'removeClass' : 'addClass']('disabled');
 };
 
+ExtraDemodulator.prototype.squelchAvailable = function() {
+    var mode = Modes.findByModulation(this.demodulator.get_modulation());
+    return !!(mode && mode.squelch);
+};
+
+// same as the main panel: put the squelch just above the current signal level
+ExtraDemodulator.prototype.autoSquelch = function() {
+    if (!this.squelchAvailable() || this.levelDb === undefined) return;
+    var $slider = this.el.find('.openwebrx-squelch-slider');
+    var level = Math.round(this.levelDb + UI.getDemodulatorPanel().getSquelchMargin());
+    level = Math.min(Math.max(level, Number($slider.attr('min'))), Number($slider.attr('max')));
+    $slider.val(level);
+    this.demodulator.setSquelch(level);
+    setSquelchSliderBackground(this.levelDb, $slider);
+};
+
 ExtraDemodulator.prototype.setLevel = function(level) {
     var db = getLogSmeterValue(level);
+    if (isFinite(db)) this.levelDb = db;
     this.el.find('.openwebrx-extra-demod-level').text(isFinite(db) ? Math.round(db) + ' dB' : '');
     if (isFinite(db)) setSquelchSliderBackground(db, this.el.find('.openwebrx-squelch-slider'));
 };
