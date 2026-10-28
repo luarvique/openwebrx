@@ -440,7 +440,7 @@ class ModulationValidator(OrValidator):
 
 
 class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient):
-    def __init__(self, handler, sdrSource):
+    def __init__(self, handler, sdrSource, primary: bool = True):
         self.handler = handler
         self.sdrSource = sdrSource
 
@@ -591,7 +591,8 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
 
         self.sdrSource.addClient(self)
 
-        self.rigControl = RigControl(self.props)
+        # only the primary demodulator may control the rig, otherwise multiple demodulators would fight over it
+        self.rigControl = RigControl(self.props) if primary else None
 
 
     def setSecondaryFftSize(self, size):
@@ -946,7 +947,8 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         for sub in self.subscriptions:
             sub.cancel()
         self.subscriptions = []
-        self.rigControl.stop()
+        if self.rigControl is not None:
+            self.rigControl.stop()
 
     def setProperties(self, props):
         for k, v in props.items():
