@@ -80,12 +80,12 @@ class Worker(threading.Thread):
 
                 # Deduplicate frames if possible
                 if "serial" not in spot or "frame" not in spot:
-                    buffer.append(spot)
+                    buffer.add(spot)
                 else:
                     key = (spot["serial"], spot["frame"])
                     if key not in seen:
-                        buffer.append(spot)
-                        seen.append(key)
+                        buffer.add(spot)
+                        seen.add(key)
 
                 # Flush accumulated spots periodically
                 now = time.monotonic()
