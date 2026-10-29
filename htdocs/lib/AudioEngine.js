@@ -296,25 +296,21 @@ AudioEngine.prototype.processAudio = function(data, resampler, recorder) {
     // make sure that data is an array of channels
     if (!Array.isArray(data)) data = [ data ];
 
-    var buffer = [];
-    for (var j = 0 ; j < data.length ; j++) {
+    var buffer = data.map((x) => {
         // allocate space
-        this.audioBytes.add(data[j].byteLength);
+        this.audioBytes.add(x.byteLength);
         // decompress
-        if (this.compression === "adpcm") {
-            buffer[j] = this.audioCodec.decodeWithSync(new Uint8Array(data[j]));
-        } else {
-            buffer[j] = new Int16Array(data[j]);
-        }
-    }
+        if (this.compression === "adpcm")
+            return this.audioCodec.decodeWithSync(new Uint8Array(x));
+        else
+            return new Int16Array(x);
+    });
 
     // record to MP3
     if (this.recording) recorder.record(buffer);
 
     // resample
-    for (var j = 0 ; j < data.length ; j++) {
-        buffer[j] = resampler.process(buffer[j]);
-    }
+    buffer = buffer.map((x) => { return resampler.process(x); });
 
     if (this.audioNode.port) {
         // AudioWorklets supported
