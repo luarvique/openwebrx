@@ -146,29 +146,32 @@ AudioEngine.prototype._start = function() {
 
 
         function audio_onprocess(e) {
-            var total = 0;
-            var out = new Float32Array(bufferSize);
+            var total = [0, 0];
+            var out = [new Float32Array(bufferSize), new Float32Array(bufferSize)];
             while (me.audioBuffers.length) {
                 var b = me.audioBuffers.shift();
                 // not enough space to fit all data, so splice and put back in the queue
-                if (total + b[0].length > bufferSize) {
-                    var spaceLeft  = bufferSize - total;
-                    var tokeep = b[0].subarray(0, spaceLeft);
-                    out.set(tokeep, total);
-                    var tobuffer = b[0].subarray(spaceLeft, b[0].length);
-                    me.audioBuffers.unshift(tobuffer);
-                    total += spaceLeft;
+                if (total[0] + b[0].length > bufferSize) {
+                    var spaceLeft  = bufferSize - total[0];
+                    b.forEach((x, i) => {
+                        out[i].set(x.subarray(0, spaceLeft), total[i])
+                        total[i] += spaceLeft;
+                    });
+                    me.audioBuffers.unshift(b.map((x) => {
+                        return x.subarray(spaceLeft, x.length);
+                    }));
                     break;
                 } else {
-                    out.set(b[0], total);
-                    total += b[0].length;
+                    b.forEach((x, i) => {
+                        out[i].set(x, total[i]);
+                        total[i] += x.length;
+                    });
                 }
             }
 
-            e.outputBuffer.copyToChannel(out, 0);
-            e.outputBuffer.copyToChannel(out, 1);
-            me.audioSamples.add(total);
-
+            e.outputBuffer.copyToChannel(out[0], 0);
+            e.outputBuffer.copyToChannel(out[total[1] > 0? 1 : 0], 1);
+            me.audioSamples.add(total[0]);
         }
 
         //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
@@ -348,7 +351,7 @@ AudioEngine.prototype.setVolume = function(volume) {
 AudioEngine.prototype.getBuffersize = function() {
     // only available when using ScriptProcessorNode
     if (!this.audioBuffers) return 0;
-    return this.audioBuffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
+    return this.audioBuffers.map((b) => { return b[0].length; }).reduce((a, b) => { return a + b; }, 0);
 };
 
 AudioEngine.prototype.startRecording = function() {
