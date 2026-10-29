@@ -238,7 +238,7 @@ class SondehubReporter(FilteredReporter):
                 self.selfErrorCounter.inc()
 
     # Check field value for validity
-    def isValidValue(field, value):
+    def isValidValue(self, field, value):
         # Convert value to floating point
         try:
             value = float(value)
