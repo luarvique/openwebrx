@@ -6,16 +6,22 @@ from pycsdr.types import Format
 class Converter(Chain):
     def __init__(self, format: Format, inputRate: int, clientRate: int, nrEnabled: bool, nrThreshold: int):
         workers = []
-        # we only have an audio resampler and noise filter for float ATM,
-        # so if we need to resample or remove noise, we need to convert
-        if (inputRate != clientRate or nrEnabled) and format != Format.FLOAT:
-            workers += [Convert(format, Format.FLOAT)]
-        if nrEnabled:
-            workers += [NoiseFilter(nrThreshold)]
-        if inputRate != clientRate:
-            workers += [AudioResampler(inputRate, clientRate), Limit(), Convert(Format.FLOAT, Format.SHORT)]
-        elif format != Format.SHORT:
-            workers += [Convert(format, Format.SHORT)]
+        # pass IQ or stereo streams through
+        if format == Format.COMPLEX_SHORT:
+            pass
+        elif format == Format.COMPLEX_FLOAT:
+            workers += [Convert(format, Format.COMPLEX_SHORT)]
+        else:
+            # we only have an audio resampler and noise filter for float ATM,
+            # so if we need to resample or remove noise, we need to convert
+            if (inputRate != clientRate or nrEnabled) and format != Format.FLOAT:
+                workers += [Convert(format, Format.FLOAT)]
+            if nrEnabled:
+                workers += [NoiseFilter(nrThreshold)]
+            if inputRate != clientRate:
+                workers += [AudioResampler(inputRate, clientRate), Limit(), Convert(Format.FLOAT, Format.SHORT)]
+            elif format != Format.SHORT:
+                workers += [Convert(format, Format.SHORT)]
         super().__init__(workers)
 
 
@@ -30,7 +36,7 @@ class ClientAudioChain(Chain):
         converter = self._buildConverter()
         if not converter.empty():
             workers += [converter]
-        if compression == "adpcm":
+        if compression == "adpcm" and format != Format.COMPLEX_FLOAT and format != Format.COMPLEX_SHORT:
             workers += [AdpcmEncoder(sync=True)]
         super().__init__(workers)
 
