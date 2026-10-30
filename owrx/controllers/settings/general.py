@@ -105,6 +105,11 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="Number of people who can connect from the same IP address.",
                 ),
                 NumberInput(
+                    "max_demodulators_per_client",
+                    "Number of concurrent demodulators",
+                    infotext="Number of demodulators that can be spawned for each client.",
+                ),
+                NumberInput(
                     "keep_files",
                     "Maximum number of files",
                     infotext="Number of received images and other files to keep.",
