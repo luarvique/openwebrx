@@ -34,7 +34,7 @@ class ClientAudioChain(Chain):
         converter = self._buildConverter()
         if not converter.empty():
             workers += [converter]
-        if compression == "adpcm":
+        if compression == "adpcm" and format != Format.COMPLEX_FLOAT and format != Format.COMPLEX_SHORT:
             workers += [AdpcmEncoder(sync=True)]
         super().__init__(workers)
 
