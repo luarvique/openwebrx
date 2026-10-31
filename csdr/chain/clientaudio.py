@@ -6,10 +6,11 @@ from pycsdr.types import Format
 class Converter(Chain):
     def __init__(self, format: Format, inputRate: int, clientRate: int, nrEnabled: bool, nrThreshold: int):
         workers = []
-        # pass IQ or stereo streams through
         if format == Format.COMPLEX_SHORT:
+            # pass S16 IQ / stereo streams through
             pass
         elif format == Format.COMPLEX_FLOAT:
+            # convert F32 IQ / stereo streams, do not apply anything else
             workers += [Convert(format, Format.COMPLEX_SHORT)]
         else:
             # we only have an audio resampler and noise filter for float ATM,
