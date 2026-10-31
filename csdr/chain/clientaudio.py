@@ -65,6 +65,7 @@ class ClientAudioChain(Chain):
         if isStereo(format) != isStereo(self.format):
             self.writer = None
         self.format = format
+        self.writer = None
         self._updateConverter()
 
     def setInputRate(self, inputRate: int) -> None:
