@@ -137,12 +137,12 @@ class Modes(object):
     mappings = [
         AnalogMode("nfm", "FM", bandpass=Bandpass(-4000, 4000)),
         AnalogMode("wfm", "WFM", bandpass=Bandpass(-75000, 75000)),
-        AnalogMode("bcfm", "BCFM", bandpass=None, ifRate=192000),
         AnalogMode("am", "AM", bandpass=Bandpass(-4000, 4000)),
         AnalogMode("lsb", "LSB", bandpass=Bandpass(-2750, -150)),
         AnalogMode("usb", "USB", bandpass=Bandpass(150, 2750)),
         AnalogMode("cw", "CW", bandpass=Bandpass(700, 900)),
         AnalogMode("sam", "SAM", bandpass=Bandpass(-4000, 4000)),
+        AnalogMode("bcfm", "BCFM", bandpass=None, ifRate=192000),
         AnalogMode("iq", "IQ", bandpass=Bandpass(0, 48000)),
         AnalogMode("dmr", "DMR", bandpass=Bandpass(-6250, 6250), requirements=["digital_voice_digiham"], squelch=False),
         AnalogMode(
