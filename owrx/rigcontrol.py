@@ -305,7 +305,6 @@ class RigControl():
         "nfm"  : "FM",     "wfm"  : "WFM",
         "am"   : "AM",     "sam"  : "SAM",
         "lsb"  : "LSB",    "usb"  : "USB",
-        "lsbd" : "PKTLSB", "usbd" : "PKTUSB",
         "cw"   : "CWR",
     }
 

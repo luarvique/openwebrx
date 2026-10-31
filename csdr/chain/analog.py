@@ -142,19 +142,6 @@ class SAm(BaseDemodulatorChain):
         super().__init__(workers)
 
 
-class SsbDigital(BaseDemodulatorChain, FixedAudioRateChain, HdAudio):
-    def __init__(self, sampleRate: int = 48000):
-        self.sampleRate = sampleRate
-        workers = [
-            RealPart(),
-            Agc(Format.FLOAT),
-        ]
-        super().__init__(workers)
-
-    def getFixedAudioRate(self) -> int:
-        return self.sampleRate
-
-
 class IqStream(BaseDemodulatorChain, FixedAudioRateChain, HdStereo):
     def __init__(self, sampleRate: int = 48000):
         self.sampleRate = sampleRate
