@@ -608,6 +608,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "wfm":
             from csdr.chain.analog import WFm
             return WFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"], self.props["wfm_rds_rbds"])
+        elif demod == "bcfm":
+            from csdr.chain.analog import BCFm
+            return BCFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"], self.props["wfm_rds_rbds"])
         elif demod == "am":
             from csdr.chain.analog import Am
             return Am(AgcProfile(self.props["am_agc_profile"]))
