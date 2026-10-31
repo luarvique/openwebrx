@@ -58,8 +58,10 @@ class ClientAudioChain(Chain):
     def setFormat(self, format: Format) -> None:
         if format == self.format:
             return
-        self.format = format
+        # is it safe to remove writer here? hopefully gets
+        # reattached in dsp.py
         self.writer = None
+        self.format = format
         self._updateConverter()
 
     def setInputRate(self, inputRate: int) -> None:

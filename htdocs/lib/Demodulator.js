@@ -10,8 +10,8 @@ function Filter(demodulator) {
         case 'dmr': case 'dstar': case 'nxdn': case 'ysf': case 'm17':
             max_bw = 6250;
             break;
-        case 'lsbd': case 'usbd':
-            max_bw = 24000;
+        case 'iq':
+            max_bw = 48000;
             break;
         case 'wfm':
             max_bw = 100000;

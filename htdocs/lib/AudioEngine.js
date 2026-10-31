@@ -289,22 +289,28 @@ AudioEngine.prototype.getSampleRate = function() {
     return this.audioContext.sampleRate;
 };
 
-AudioEngine.prototype.processAudio = function(data, resampler, recorder) {
+AudioEngine.prototype.processAudio = function(data, resampler, recorder, stereo = false) {
     // audio must be initialized
     if (!this.audioNode) return;
 
-    // make sure that data is an array of channels
-    if (!Array.isArray(data)) data = [ data ];
+    // allocate space
+    this.audioBytes.add(data.byteLength);
+    var buffer;
 
-    var buffer = data.map((x) => {
-        // allocate space
-        this.audioBytes.add(x.byteLength);
+    if (stereo) {
+        // deinterleave 16bit stereo
+        data = new Int16Array(data);
+        buffer = [
+            data.filter((x, i) => { return !(i&1); }),
+            data.filter((x, i) => { return (i&1); })
+        ];
+    } else if (this.compression === "adpcm") {
         // decompress
-        if (this.compression === "adpcm")
-            return this.audioCodec.decodeWithSync(new Uint8Array(x));
-        else
-            return new Int16Array(x);
-    });
+        buffer = [ this.audioCodec.decodeWithSync(new Uint8Array(data)) ];
+    } else {
+        // assume mono 16bit audio
+        buffer = [ new Int16Array(data) ];
+    }
 
     // record to MP3
     if (this.recording) recorder.record(buffer);
@@ -332,7 +338,7 @@ AudioEngine.prototype.pushHdAudio = function(data) {
 }
 
 AudioEngine.prototype.pushHdStereo = function(data) {
-    this.processAudio(data.filter((e, i) => { return !(i&1); }), this.hdResampler, this.hdRecorder);
+    this.processAudio(data, this.hdResampler, this.hdRecorder, true);
     this.lastHd = true;
 }
 
