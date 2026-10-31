@@ -656,9 +656,6 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "empty":
             from csdr.chain.analog import Empty
             return Empty()
-        elif demod in ["usbd", "lsbd"]:
-            from csdr.chain.analog import SsbDigital
-            return SsbDigital()
         elif demod == "iq":
             from csdr.chain.analog import IqStream
             return IqStream()
