@@ -66,6 +66,7 @@ class ClientAudioChain(Chain):
             self.writer = None
         self.format = format
         self.writer = None
+        self.format = format
         self._updateConverter()
 
     def setInputRate(self, inputRate: int) -> None:
