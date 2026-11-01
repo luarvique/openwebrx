@@ -316,7 +316,7 @@ AudioEngine.prototype.processAudio = function(data, resampler, recorder, stereo 
     if (this.recording) recorder.record(buffer);
 
     // resample
-    buffer = buffer.map((x) => { return resampler.process(x); });
+    buffer = resampler.process(buffer);
 
     if (this.audioNode.port) {
         // AudioWorklets supported
@@ -532,15 +532,17 @@ ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {
 
 function Interpolator(factor) {
     this.factor = factor;
-    this.lowpass = new Lowpass(factor)
+    this.lowpass = [ new Lowpass(factor), new Lowpass(factor) ];
 }
 
 Interpolator.prototype.process = function(data) {
-    var output = new Float32Array(data.length * this.factor);
-    for (var i = 0; i < data.length; i++) {
-        output[i * this.factor] = (data[i] + 0.5) / 32768;
-    }
-    return this.lowpass.process(output);
+    return data.map((x, j) => {
+        var output = new Float32Array(x.length * this.factor);
+        for (var i = 0; i < x.length; i++) {
+            output[i * this.factor] = (x[i] + 0.5) / 32768;
+        }
+        return this.lowpass[j].process(output);
+    });
 };
 
 function Lowpass(interpolation) {
@@ -587,7 +589,6 @@ Lowpass.prototype.normalizeCoefficients = function(input) {
 };
 
 Lowpass.prototype.process = function(input) {
-    output = new Float32Array(input.length);
     for (var oi = 0; oi < input.length; oi++) {
         this.delay[this.delayIndex] = input[oi];
         this.delayIndex = (this.delayIndex + 1) % this.numtaps;
@@ -600,7 +601,7 @@ Lowpass.prototype.process = function(input) {
             if (isNaN(acc)) debugger;
         }
         // gain by interpolation
-        output[oi] = this.interpolation * acc;
+        input[oi] = this.interpolation * acc;
     }
-    return output;
+    return input;
 };
