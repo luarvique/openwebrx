@@ -3,6 +3,10 @@ from pycsdr.modules import AudioResampler, Convert, AdpcmEncoder, Limit, NoiseFi
 from pycsdr.types import Format
 
 
+def isStereo(format: Format):
+    return format == Format.COMPLEX_FLOAT or format == Format.COMPLEX_SHORT
+
+
 class Converter(Chain):
     def __init__(self, format: Format, inputRate: int, clientRate: int, nrEnabled: bool, nrThreshold: int):
         workers = []
@@ -37,7 +41,7 @@ class ClientAudioChain(Chain):
         converter = self._buildConverter()
         if not converter.empty():
             workers += [converter]
-        if compression == "adpcm" and format != Format.COMPLEX_FLOAT and format != Format.COMPLEX_SHORT:
+        if compression == "adpcm" and not isStereo(format):
             workers += [AdpcmEncoder(sync=True)]
         super().__init__(workers)
 
@@ -61,7 +65,8 @@ class ClientAudioChain(Chain):
             return
         # is it safe to remove writer here? hopefully gets
         # reattached in dsp.py
-        self.writer = None
+        if isStereo(format) != isStereo(self.format):
+            self.writer = None
         self.format = format
         self._updateConverter()
 
