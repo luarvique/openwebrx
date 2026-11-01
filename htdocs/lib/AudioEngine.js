@@ -30,8 +30,9 @@ function AudioEngine(maxBufferLength, audioReporter) {
 
     this.maxBufferSize = maxBufferLength * this.getSampleRate();
 
+    // Normal recorder is mono, but HD recorder may have to record stereo
     this.recorder = new AudioRecorder(this.getOutputRate(), 128);
-    this.hdRecorder = new AudioRecorder(this.getHdOutputRate(), 128);
+    this.hdRecorder = new AudioRecorder(this.getHdOutputRate(), 128, 2);
     this.recording = false;
     this.lastHd = false;
 }
@@ -383,17 +384,17 @@ AudioEngine.prototype.stopRecording = function() {
     }
 };
 
-function AudioRecorder(sampleRate, kbps) {
-    // Mono (1 channel), with given sample rate and bitrate
-    this.mp3encoder = new lamejs.Mp3Encoder(1, sampleRate, kbps);
+function AudioRecorder(sampleRate, kbps, channels = 1) {
+    // Mono (unless asked otherwise) with given sample rate and bitrate
+    this.mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
     this.blockSize  = 1152; // better be a multiple of 576
     this.mp3Data    = [];
 }
 
 AudioRecorder.prototype.record = function(samples) {
-    for (var i = 0; i < samples.length; i += this.blockSize) {
-        var chunk  = samples.subarray(i, i + this.blockSize);
-        var mp3buf = this.mp3encoder.encodeBuffer(chunk);
+    for (var i = 0; i < samples[0].length; i += this.blockSize) {
+        var chunk  = samples.map((x) => { return x.subarray(i, i + this.blockSize); });
+        var mp3buf = this.mp3encoder.encodeBuffer(chunk[0], chunk[chunk.length > 1? 1 : 0]);
         if (mp3buf.length > 0) this.mp3Data.push(mp3buf);
     }
 };
