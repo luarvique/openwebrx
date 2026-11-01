@@ -1069,6 +1069,7 @@ MetaPanel.types = {
     nxdn: NxdnMetaPanel,
     m17: M17MetaPanel,
     wfm: WfmMetaPanel,
+    bcfm: WfmMetaPanel,
     dab: DabMetaPanel,
     hdr: HdrMetaPanel,
     drm: DrmMetaPanel,
