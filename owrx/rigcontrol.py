@@ -305,7 +305,7 @@ class RigControl():
         "nfm"  : "FM",     "wfm"  : "WFM",
         "am"   : "AM",     "sam"  : "SAM",
         "lsb"  : "LSB",    "usb"  : "USB",
-        "cw"   : "CWR",
+        "cw"   : "CWR",    "bcfm" : "WFM"
     }
 
     def __init__(self, props: PropertyStack):
