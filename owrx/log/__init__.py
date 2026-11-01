@@ -12,7 +12,9 @@ class LogPipe(threading.Thread):
         self.logger = logger
         self.prefix = prefix
         self.fdRead, self.fdWrite = os.pipe()
-        self.pipeReader = os.fdopen(self.fdRead)
+        # External SDR tools occasionally emit bytes that are not valid UTF-8.
+        # Keep their diagnostics visible without terminating the logging thread.
+        self.pipeReader = os.fdopen(self.fdRead, encoding="utf-8", errors="replace")
         self.start()
 
     def fileno(self):

@@ -3,3 +3,5 @@
 tags
 .idea
 packages
+containerization/.env
+containerization/runtime/

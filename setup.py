@@ -28,4 +28,5 @@ setup(
     maintainer_email="luarvique@gmail.com",
     license="GAGPL",
     python_requires=">=3.5",
+    install_requires=["packaging"],
 )

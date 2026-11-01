@@ -2,7 +2,8 @@ import subprocess
 from functools import reduce
 from operator import and_
 import re
-from distutils.version import LooseVersion, StrictVersion
+from packaging.version import parse as LooseVersion
+from packaging.version import parse as StrictVersion
 import inspect
 from owrx.config.core import CoreConfig
 from owrx.config import Config
@@ -843,7 +844,10 @@ class FeatureDetector(object):
             return False
 
     def _has_acarsdec_version(self, required_version):
-        acarsdec_version_regex = re.compile(r"^Acarsdec\S*\s+v?(\S+)\s+Copyright")
+        # Development builds append Debian/Git metadata (for example,
+        # 4.3.1-1-21-gdfd62e2) that is not a valid PEP 440 version. Only the
+        # numeric upstream component is relevant to the minimum-version check.
+        acarsdec_version_regex = re.compile(r"^Acarsdec\S*\s+v?([0-9]+(?:\.[0-9]+)*)\S*\s+Copyright")
         try:
             process = subprocess.Popen(["acarsdec"], stderr=subprocess.PIPE)
             matches = None

@@ -63,6 +63,70 @@ The following methods of setting up a receiver are currently available:
 Please checkout the [setup guide on the wiki](https://github.com/jketterl/openwebrx/wiki/Setup-Guide) for more details
 on the respective methods.
 
+### Docker Compose
+
+Build and start OpenWebRX+ from this checkout:
+
+```sh
+cd containerization
+cp .env.example .env
+# Edit .env and choose a strong initial administrator password. Keep the
+# project name unique if this host runs other Compose applications.
+docker compose up -d --build
+```
+
+The default sparse image provides the OpenWebRX core, SDR connectors, SoapySDR
+drivers, and ordinary audio demodulation. To build the larger full image with
+the optional decoder packages from Debian Trixie and the signed OpenWebRX+
+Trixie repository, use its standalone Compose file instead:
+
+```sh
+docker compose -f docker-compose.full.yaml up -d --build
+```
+
+Both Compose files contain the complete runtime configuration and can be used
+independently. For direct image builds, the Dockerfile also defaults to sparse;
+set `OPENWEBRX_FULL=1` to build the full package set. Run these commands from
+the repository root:
+
+```sh
+docker build -f containerization/Dockerfile -t openwebrx-plus:sparse .
+docker build -f containerization/Dockerfile --build-arg OPENWEBRX_FULL=1 -t openwebrx-plus:full .
+```
+
+Legacy Compose installations can use `docker-compose up -d --build` from the
+same directory. The Compose file uses the explicit Compose 3.8 schema; older
+installations may require a local version adjustment before starting the
+service.
+
+Both images are based on Debian 13 (Trixie). The OpenWebRX Python/web
+application is installed from this checkout, while CSDR, its Python bindings,
+`nmux`, and the SDR connectors come from the signed OpenWebRX+ Trixie
+repository.
+
+The full image installs every compatible decoder available from those signed
+repositories. A small number of specialized features still require
+proprietary hardware, an external service, or software that is not packaged
+for Trixie.
+
+The web interface is available at `http://localhost:8073`. Configuration is
+persisted in `containerization/runtime/config`, and settings, users, recordings,
+and decoded data are persisted in `containerization/runtime/data`. Both directories are
+created and initialized automatically on first start.
+
+The Compose service bind-mounts `/dev` and runs privileged as root so USB and
+other SDR devices work regardless of host udev group IDs. This grants the
+container broad access to host hardware. For a more restricted deployment,
+remove `privileged: true` and the `/dev:/dev` mount, then add only the required
+device (for example `/dev/bus/usb:/dev/bus/usb`) under `devices:`.
+
+Useful commands:
+
+```sh
+docker compose logs -f openwebrx
+docker compose down
+```
+
 ## Community
 
 If you have trouble setting up or configuring your receiver, you have some great idea you want to see implemented, or

@@ -85,7 +85,7 @@ class Worker(threading.Thread):
                     key = (spot["serial"], spot["frame"])
                     if key not in seen:
                         buffer.append(spot)
-                        seen.append(key)
+                        seen.add(key)
 
                 # Flush accumulated spots periodically
                 now = time.monotonic()

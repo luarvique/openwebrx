@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  openwebrx:
+    build:
+      context: ..
+      dockerfile: containerization/Dockerfile
+      args:
+        OPENWEBRX_FULL: "0"
+    image: openwebrx-plus:sparse
+    container_name: openwebrx
+    restart: unless-stopped
+    ports:
+      - "8073:8073"
+    environment:
+      # Set both values before the first start to create an administrator.
+      OPENWEBRX_ADMIN_USER: "${OPENWEBRX_ADMIN_USER}"
+      OPENWEBRX_ADMIN_PASSWORD: "${OPENWEBRX_ADMIN_PASSWORD}"
+    volumes:
+      - ./runtime/config:/etc/openwebrx
+      - ./runtime/data:/var/lib/openwebrx
+      # SDRs may expose USB and other character devices. This intentionally
+      # passes the complete host device tree through to the container.
+      - /dev:/dev
+    privileged: true
+

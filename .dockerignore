@@ -1,7 +1,0 @@
-.git
-.gitignore
-.idea
-**/*.pyc
-**/*.swp
-black-env
-debian
