@@ -1926,6 +1926,12 @@ img.openwebrx-mirror-img
 	padding: 10px 10px 10px 10px;
 }
 
+#openwebrx-panel-metadata-bcfm {
+	width: 350px;
+	max-height: 300px;
+	padding: 10px 10px 10px 10px;
+}
+
 .rds-container {
 	width: 100%;
 	text-align: center;
