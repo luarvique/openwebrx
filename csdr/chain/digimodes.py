@@ -179,11 +179,13 @@ class MFRttyDemodulator(SecondaryDemodulator, SecondarySelectorChain):
 
 class SstvDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self, service: bool = False):
-        self.parser = SstvParser(service=service)
+        pm = Config.get()
+        self.parser     = SstvParser(service=service)
         self.sampleRate = 24000
-        self.dbgTime = 300000
+        self.dbgTime    = 300000
+        self.preferSDX  = pm["sstv_prefer_scottie_dx"]
         workers = [
-            SstvDecoder(self.sampleRate, self.dbgTime),
+            SstvDecoder(self.sampleRate, self.dbgTime, self.preferSDX),
             self.parser
         ]
         super().__init__(workers)

@@ -77,6 +77,10 @@ class DecodingSettingsController(SettingsFormController):
                     "ism_report_levels",
                     "Report ISM signal levels (RSSI/SNR)",
                 ),
+                CheckboxInput(
+                    "sstv_prefer_scottie_dx",
+                    "Treat SSTV mode 63 as ScottieDX, not SC2-120",
+                ),
             ),
             Section(
                 "Digital voice",
