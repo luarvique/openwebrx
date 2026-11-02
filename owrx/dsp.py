@@ -723,6 +723,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "zvei":
             from csdr.chain.toolbox import ZveiDemodulator
             return ZveiDemodulator()
+        elif mod == "modbus":
+            from csdr.chain.toolbox import ModbusDemodulator
+            return ModbusDemodulator()
         elif mod == "bpsk31":
             from csdr.chain.digimodes import PskDemodulator
             return PskDemodulator(31.25)

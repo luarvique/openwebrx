@@ -378,6 +378,66 @@ $.fn.pageMessagePanel = function() {
     return this.data('panel');
 };
 
+ModbusMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+ModbusMessagePanel.prototype = Object.create(MessagePanel.prototype);
+
+ModbusMessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'Modbus';
+};
+
+ModbusMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="timestamp">Time</th>' +
+                '<th class="address">Addr</th>' +
+                '<th class="function">Function</th>' +
+                '<th class="type">Type</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+ModbusMessagePanel.prototype.pushMessage = function(msg) {
+    // Get color from the message, default to white
+    var color = msg.hasOwnProperty('color')? msg.color : '#FFF';
+
+    // Append frame header (time, server address, function, type)
+    var $b = $(this.el).find('tbody');
+    $b.append($(
+        '<tr>' +
+            '<td class="timestamp">' + Utils.HHMMSS(msg.timestamp) + '</td>' +
+            '<td class="address">' + msg.address + '</td>' +
+            '<td class="function">' + msg['function'] + ' ' + Utils.htmlEscape(msg.name) + '</td>' +
+            '<td class="type">' + Utils.htmlEscape(msg.type) + '</td>' +
+        '</tr>'
+    ).css('background-color', color).css('color', '#000'));
+
+    // Append decoded frame contents
+    if (msg.message) {
+        $b.append($(
+            '<tr><td class="message" colspan="4">' +
+            Utils.htmlEscape(msg.message) +
+            '</td></tr>'
+        ));
+    }
+
+    // Jump list to the last received message
+    this.scrollToBottom();
+};
+
+$.fn.modbusMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new ModbusMessagePanel(this));
+    }
+    return this.data('panel');
+};
+
 HfdlMessagePanel = function(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
