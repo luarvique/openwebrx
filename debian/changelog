@@ -1,6 +1,7 @@
 openwebrx (1.2.128) bullseye jammy; urgency=low
 
   * Added option to treat VIS=63 as ScottieDX not SC2-120.
+  * Fixed precision loss in FractionalDecimator [Isaac Evans].
   * Fixed Sondehub reporting [MidwestTechnologies].
   * Fixed UrlValidator [Wiktor Starzak].
 
