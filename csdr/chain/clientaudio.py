@@ -13,7 +13,11 @@ class Converter(Chain):
         if nrEnabled:
             workers += [NoiseFilter(nrThreshold)]
         if inputRate != clientRate:
-            workers += [AudioResampler(inputRate, clientRate), Limit(), Convert(Format.FLOAT, Format.SHORT)]
+            workers += [
+                AudioResampler(Format.FLOAT, inputRate, clientRate),
+                Limit(),
+                Convert(Format.FLOAT, Format.SHORT)
+            ]
         elif format != Format.SHORT:
             workers += [Convert(format, Format.SHORT)]
         super().__init__(workers)
