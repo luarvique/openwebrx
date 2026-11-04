@@ -18,7 +18,7 @@ class Converter(Chain):
             if inputRate != clientRate:
                 workers += [
                     AudioResampler(Format.COMPLEX_FLOAT, inputRate, clientRate),
-                    Limit(),
+                    Limit(Format.COMPLEX_FLOAT),
                     Convert(Format.COMPLEX_FLOAT, Format.COMPLEX_SHORT)
                 ]
             elif format != Format.COMPLEX_SHORT:
@@ -33,7 +33,7 @@ class Converter(Chain):
             if inputRate != clientRate:
                 workers += [
                     AudioResampler(Format.FLOAT, inputRate, clientRate),
-                    Limit(),
+                    Limit(Format.FLOAT),
                     Convert(Format.FLOAT, Format.SHORT)
                 ]
             elif format != Format.SHORT:

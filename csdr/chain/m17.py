@@ -10,7 +10,7 @@ class M17(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, Met
         workers = [
             FmDemod(),
             DcBlock(),
-            Limit(),
+            Limit(Format.FLOAT),
             Convert(Format.FLOAT, Format.SHORT),
             self.module,
         ]

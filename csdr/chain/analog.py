@@ -30,7 +30,7 @@ class NFm(BaseDemodulatorChain):
         agc.setMaxGain(3)
         workers = [
             FmDemod(),
-            Limit(),
+            Limit(Format.FLOAT),
             NfmDeemphasis(sampleRate),
             agc,
         ]
@@ -48,7 +48,7 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
         self.sampleRate = sampleRate
         self.tau = tau
         self.rdsRbds = rdsRbds
-        self.limit = Limit()
+        self.limit = Limit(Format.FLOAT)
         # this buffer is used to tap into the raw audio stream for redsea RDS decoding
         self.metaTapBuffer = Buffer(Format.FLOAT)
         workers = [
@@ -116,7 +116,7 @@ class BCFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdS
         self.DecimPolyPoints = 12
         self.tau = tau
         self.rdsRbds = rdsRbds
-        self.limit = Limit()
+        self.limit = Limit(Format.FLOAT)
         # this buffer is used to tap into the raw audio stream for redsea RDS decoding
         self.metaTapBuffer = Buffer(Format.FLOAT)
         workers = [
