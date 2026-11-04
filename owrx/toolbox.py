@@ -88,9 +88,9 @@ class TextParser(LineBasedModule, DataRecorder):
 class RdsParser(TextParser):
     def __init__(self, service: bool = False):
         # Data will be accumulated here
-        self.rds = { "mode": "WFM" }
+        self.rds = { "mode": "RDS" }
         # Construct parent object
-        super().__init__(filePrefix="WFM", service=service)
+        super().__init__(filePrefix="RDS", service=service)
 
     def parse(self, msg: bytes):
         # Do not parse in service mode
@@ -103,9 +103,9 @@ class RdsParser(TextParser):
         # Clear data when PI changes
         if data.get("pi") != self.rds.get("pi"):
             if "frequency" in self.rds:
-                self.rds = { "mode": "WFM", "frequency": self.rds["frequency"] }
+                self.rds = { "mode": "RDS", "frequency": self.rds["frequency"] }
             else:
-                self.rds = { "mode": "WFM" }
+                self.rds = { "mode": "RDS" }
         # Only update if there is new data
         if data.items() <= self.rds.items():
             return None
@@ -116,7 +116,7 @@ class RdsParser(TextParser):
     def setDialFrequency(self, frequency: int) -> None:
         super().setDialFrequency(frequency)
         # Clear RDS data when frequency changed
-        self.rds = { "mode": "WFM", "frequency": frequency }
+        self.rds = { "mode": "RDS", "frequency": frequency }
 
 
 class IsmParser(TextParser):

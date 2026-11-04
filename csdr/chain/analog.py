@@ -43,31 +43,63 @@ class NFm(BaseDemodulatorChain):
         self.replace(2, NfmDeemphasis(sampleRate))
 
 
-class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAudio, MetaProvider, RdsChain):
+class BaseWFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, MetaProvider, RdsChain):
+    def __init__(self, rdsRbds: bool, workers):
+        self.rdsRbds = rdsRbds
+        # this buffer is used to tap into the raw audio stream for redsea RDS decoding
+        self.metaTapBuffer = Buffer(Format.FLOAT)
+        self.metaChain = None
+        self.metaWriter = None
+        super().__init__(workers)
+
+    def getFixedIfSampleRate(self):
+        return self.getFixedAudioRate()
+
+    def getFixedAudioRate(self) -> int:
+        return 192000
+
+    def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
+        if w1 is self.limit:
+            buffer = self.metaTapBuffer
+        super()._connect(w1, w2, buffer)
+
+    def setMetaWriter(self, writer: Writer) -> None:
+        if not FeatureDetector().is_available("rds"):
+            return
+        if self.metaChain is None:
+            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
+            self.metaChain.setReader(self.metaTapBuffer.getReader())
+        self.metaWriter = writer
+        self.metaChain.setWriter(self.metaWriter)
+
+    def stop(self):
+        super().stop()
+        if self.metaChain is not None:
+            self.metaChain.stop()
+            self.metaChain = None
+            self.metaWriter = None
+
+    def setRdsRbds(self, rdsRbds: bool) -> None:
+        self.rdsRbds = rdsRbds
+        if self.metaChain is not None:
+            self.metaChain.stop()
+            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
+            self.metaChain.setReader(self.metaTapBuffer.getReader())
+            self.metaChain.setWriter(self.metaWriter)
+
+
+class WFm(BaseWFm, HdAudio):
     def __init__(self, sampleRate: int, tau: float, rdsRbds: bool):
         self.sampleRate = sampleRate
         self.tau = tau
-        self.rdsRbds = rdsRbds
         self.limit = Limit(Format.FLOAT)
-        # this buffer is used to tap into the raw audio stream for redsea RDS decoding
-        self.metaTapBuffer = Buffer(Format.FLOAT)
         workers = [
             FmDemod(),
             self.limit,
-            FractionalDecimator(Format.FLOAT, 200000.0 / self.sampleRate, prefilter=True),
+            self._createDecimator(),
             WfmDeemphasis(self.sampleRate, self.tau),
         ]
-        self.metaChain = None
-        self.metaWriter = None
-        super().__init__(workers)
-
-    def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
-        if w1 is self.limit:
-            buffer = self.metaTapBuffer
-        super()._connect(w1, w2, buffer)
-
-    def getFixedIfSampleRate(self):
-        return 200000
+        super().__init__(rdsRbds, workers)
 
     def setDeemphasisTau(self, tau: float) -> None:
         if tau == self.tau:
@@ -79,125 +111,51 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
         if sampleRate == self.sampleRate:
             return
         self.sampleRate = sampleRate
-        self.replace(2, FractionalDecimator(Format.FLOAT, 200000.0 / self.sampleRate, prefilter=True))
+        self.replace(2, self._createDecimator())
         self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
 
-    def setMetaWriter(self, writer: Writer) -> None:
-        if not FeatureDetector().is_available("rds"):
-            return
-        if self.metaChain is None:
-            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
-            self.metaChain.setReader(self.metaTapBuffer.getReader())
-        self.metaWriter = writer
-        self.metaChain.setWriter(self.metaWriter)
-
-    def stop(self):
-        super().stop()
-        if self.metaChain is not None:
-            self.metaChain.stop()
-            self.metaChain = None
-            self.metaWriter = None
-
-    def setRdsRbds(self, rdsRbds: bool) -> None:
-        self.rdsRbds = rdsRbds
-        if self.metaChain is not None:
-            self.metaChain.stop()
-            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
-            self.metaChain.setReader(self.metaTapBuffer.getReader())
-            self.metaChain.setWriter(self.metaWriter)
+    def _createDecimator(self):
+        return FractionalDecimator(
+            Format.FLOAT,
+            self.getFixedIfSampleRate() / self.sampleRate,
+            prefilter=True
+        )
 
 
-class BCFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdStereo, MetaProvider, RdsChain):
-#class BCFm(BaseDemodulatorChain, FixedIfSampleRateChain, HdStereo, MetaProvider):
+class BCFm(BaseWFm, HdStereo):
     def __init__(self, sampleRate: int, tau: float, rdsRbds: bool):
         self.sampleRate = sampleRate
-        self.StereoMPXRate = 192000
-        self.outputRate = self.StereoMPXRate
-        self.DecimPolyPoints = 12
         self.tau = tau
-        self.rdsRbds = rdsRbds
         self.limit = Limit(Format.FLOAT)
-        # this buffer is used to tap into the raw audio stream for redsea RDS decoding
-        self.metaTapBuffer = Buffer(Format.FLOAT)
         workers = [
             BCFmDemod(),
             self.limit,
-            StereoFractionalDecimator(
-                Format.FLOAT,
-                self.StereoMPXRate,
-                self.StereoMPXRate / self.sampleRate,
-                self.tau,
-                numPolyPoints=self.DecimPolyPoints,
-                prefilter=False
-            ),
+            self._createDecimator(),
         ]
-        self.metaChain = None
-        self.metaWriter = None
-        super().__init__(workers)
-
-    def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
-        if w1 is self.limit:
-            buffer = self.metaTapBuffer
-        super()._connect(w1, w2, buffer)
-
-    def getFixedIfSampleRate(self):
-        return self.StereoMPXRate
-
-    def getOutputSampleRate(self):
-        return self.sampleRate
-
-    def getFixedAudioRate(self) -> int:
-        return self.outputRate
+        super().__init__(rdsRbds, workers)
 
     def setDeemphasisTau(self, tau: float) -> None:
         if tau == self.tau:
             return
         self.tau = tau
-        self.replace(2, StereoFractionalDecimator(
-            Format.FLOAT,
-            self.StereoMPXRate,
-            self.StereoMPXRate / self.sampleRate,
-            self.tau,
-            numPolyPoints=self.DecimPolyPoints,
-            prefilter=False
-        ))
+        self.replace(2, self._createDecimator())
 
     def setSampleRate(self, sampleRate: int) -> None:
         if sampleRate == self.sampleRate:
             return
         self.sampleRate = sampleRate
-        self.replace(2, StereoFractionalDecimator(
+        self.replace(2, self._createDecimator())
+
+    def _createDecimator(self):
+        mpxRate = self.getFixedIfSampleRate()
+        return StereoFractionalDecimator(
             Format.FLOAT,
-            self.StereoMPXRate,
-            self.StereoMPXRate / self.sampleRate,
+            mpxRate,
+            mpxRate / self.sampleRate,
             self.tau,
-            numPolyPoints=self.DecimPolyPoints,
+            numPolyPoints=12,
             prefilter=False
-        ))
-
-    def setMetaWriter(self, writer: Writer) -> None:
-        if not FeatureDetector().is_available("rds"):
-            return
-        if self.metaChain is None:
-            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
-            self.metaChain.setReader(self.metaTapBuffer.getReader())
-        self.metaWriter = writer
-        self.metaChain.setWriter(self.metaWriter)
-
-    def stop(self):
-        super().stop()
-        if self.metaChain is not None:
-            self.metaChain.stop()
-            self.metaChain = None
-            self.metaWriter = None
-
-    def setRdsRbds(self, rdsRbds: bool) -> None:
-        self.rdsRbds = rdsRbds
-        if self.metaChain is not None:
-            self.metaChain.stop()
-            self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
-            self.metaChain.setReader(self.metaTapBuffer.getReader())
-            self.metaChain.setWriter(self.metaWriter)
+        )
 
 
 class Ssb(BaseDemodulatorChain):
