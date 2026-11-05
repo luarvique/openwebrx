@@ -1,4 +1,4 @@
-from csdr.chain.demodulator import FixedIfSampleRateChain, BaseDemodulatorChain, FixedAudioRateChain, DialFrequencyReceiver, HdAudio, MetaProvider, AudioServiceSelector
+from csdr.chain.demodulator import FixedIfSampleRateChain, BaseDemodulatorChain, FixedAudioRateChain, DialFrequencyReceiver, HdStereo, MetaProvider, AudioServiceSelector
 from csdr.module.hdradio import HdRadioModule
 from pycsdr.modules import Convert, Agc, Downmix, Writer, Buffer, Throttle
 from pycsdr.types import Format
@@ -9,15 +9,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class HdRadio(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, DialFrequencyReceiver, AudioServiceSelector):
+class HdRadio(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdStereo, MetaProvider, DialFrequencyReceiver, AudioServiceSelector):
     def __init__(self, program: int = 0):
         self.hdradio = HdRadioModule(program = program)
         workers = [
             Agc(Format.COMPLEX_FLOAT),
             Convert(Format.COMPLEX_FLOAT, Format.COMPLEX_SHORT),
             self.hdradio,
-            Throttle(Format.SHORT, 44100 * 2),
-            Downmix(Format.SHORT),
+            Throttle(Format.COMPLEX_SHORT, 44100),
         ]
         super().__init__(workers)
 
@@ -45,5 +44,5 @@ class HdRadio(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain,
         if isinstance(w2, Throttle):
             # Audio data comes in in bursts, so we use a throttle
             # and 10x the default buffer size here
-            buffer = Buffer(Format.SHORT, 2621440)
+            buffer = Buffer(Format.COMPLEX_SHORT, 1310720)
         return super()._connect(w1, w2, buffer)
