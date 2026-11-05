@@ -1,5 +1,6 @@
 **1.2.128**
 - Added option to treat VIS=63 as ScottieDX not SC2-120.
+- Fixed empty "antenna" value breaking soapy_connector.
 - Fixed precision loss in FractionalDecimator [Isaac Evans].
 - Fixed Sondehub reporting [MidwestTechnologies].
 - Fixed UrlValidator [Wiktor Starzak].

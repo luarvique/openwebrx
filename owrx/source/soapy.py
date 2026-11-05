@@ -61,12 +61,17 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
 
     def getCommandValues(self):
         values = super().getCommandValues()
+        # compose device name
         if "device" in values and values["device"] is not None:
             parsed = SoapySettings.parse(values["device"])
         else:
             parsed = []
         modified = self.buildSoapyDeviceParameters(parsed, values)
         values["device"] = SoapySettings.encode(modified)
+        # ignore empty antenna type
+        if "antenna" in values and not values["antenna"]:
+            del values["antenna"]
+        # compose Soapy settings line
         settings = ",".join(["{0}={1}".format(k, v) for k, v in self.buildSoapySettings(values).items()])
         if len(settings):
             values["soapy_settings"] = settings
@@ -104,7 +109,10 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                 gain_stages=self.getGainStages(),
                 has_agc=self.hasAgc(),
             ),
-            TextInput("antenna", "Antenna"),
+            TextInput(
+                "antenna",
+                "Antenna",
+            ),
         ]
         if self.getNumberOfChannels() > 1:
             inputs += [
