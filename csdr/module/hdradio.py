@@ -59,7 +59,7 @@ class HdRadioModule(ThreadModule):
         return Format.COMPLEX_SHORT
 
     def getOutputFormat(self) -> Format:
-        return Format.SHORT
+        return Format.COMPLEX_SHORT
 
     def getFixedAudioRate(self) -> int:
         return 744188 # 744187.5
