@@ -204,15 +204,3 @@ class IqStream(BaseDemodulatorChain, FixedAudioRateChain, HdStereo):
 
     def getFixedAudioRate(self) -> int:
         return self.sampleRate
-
-
-class IqStream(BaseDemodulatorChain, FixedAudioRateChain, HdStereo):
-    def __init__(self, sampleRate: int = 48000):
-        self.sampleRate = sampleRate
-        workers = [
-            Agc(Format.COMPLEX_FLOAT),
-        ]
-        super().__init__(workers)
-
-    def getFixedAudioRate(self) -> int:
-        return self.sampleRate
