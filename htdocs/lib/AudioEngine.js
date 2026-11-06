@@ -551,7 +551,7 @@ ImaAdpcmCodec.prototype.decodeStereoWithSync = function(data) {
                     this.predictor = syncData[1];
                     this.stepIndex = syncData[2];
                     this.predictor = syncData[3];
-                    this.syncCounter = 500;
+                    this.syncCounter = 1000;
                     this.phase = 2;
                 }
                 break;
