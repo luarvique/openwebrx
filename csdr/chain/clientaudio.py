@@ -35,7 +35,7 @@ class ClientAudioChain(Chain):
         if not converter.empty():
             workers += [converter]
         if compression == "adpcm":
-            workers += [AdpcmEncoder(sync=True)]
+            workers += [AdpcmEncoder(Format.SHORT, sync=True)]
         super().__init__(workers)
 
     def _buildConverter(self):
@@ -75,7 +75,7 @@ class ClientAudioChain(Chain):
         index = self.indexOf(lambda x: isinstance(x, AdpcmEncoder))
         if compression == "adpcm":
             if index < 0:
-                self.append(AdpcmEncoder(sync=True))
+                self.append(AdpcmEncoder(Format.SHORT, sync=True))
         else:
             if index >= 0:
                 self.remove(index)
