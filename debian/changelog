@@ -9,7 +9,7 @@ openwebrx (1.2.129) bullseye jammy; urgency=low
   * Fixed precision loss in FractionalDecimator [Isaac Evans].
   * Fixed Sondehub reporting [MidwestTechnologies].
 
- -- Marat Fayzullin <luarvique@gmail.com>  Fri, 6 Nov 2026 16:12:00 +0000
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 9 Nov 2026 16:12:00 +0000
 
 openwebrx (1.2.128) bullseye jammy; urgency=low
 
