@@ -30,8 +30,9 @@ function AudioEngine(maxBufferLength, audioReporter) {
 
     this.maxBufferSize = maxBufferLength * this.getSampleRate();
 
+    // Normal recorder is mono, but HD recorder may have to record stereo
     this.recorder = new AudioRecorder(this.getOutputRate(), 128);
-    this.hdRecorder = new AudioRecorder(this.getHdOutputRate(), 128);
+    this.hdRecorder = new AudioRecorder(this.getHdOutputRate(), 128, 2);
     this.recording = false;
     this.lastHd = false;
 }
@@ -105,7 +106,7 @@ AudioEngine.prototype._start = function() {
             me.audioNode = new AudioWorkletNode(me.audioContext, 'openwebrx-audio-processor', {
                 numberOfInputs: 0,
                 numberOfOutputs: 1,
-                outputChannelCount: [1],
+                outputChannelCount: [2],
                 processorOptions: {
                     maxBufferSize: me.maxBufferSize
                 }
@@ -146,28 +147,32 @@ AudioEngine.prototype._start = function() {
 
 
         function audio_onprocess(e) {
-            var total = 0;
-            var out = new Float32Array(bufferSize);
+            var total = [0, 0];
+            var out = [new Float32Array(bufferSize), new Float32Array(bufferSize)];
             while (me.audioBuffers.length) {
                 var b = me.audioBuffers.shift();
                 // not enough space to fit all data, so splice and put back in the queue
-                if (total + b.length > bufferSize) {
-                    var spaceLeft  = bufferSize - total;
-                    var tokeep = b.subarray(0, spaceLeft);
-                    out.set(tokeep, total);
-                    var tobuffer = b.subarray(spaceLeft, b.length);
-                    me.audioBuffers.unshift(tobuffer);
-                    total += spaceLeft;
+                if (total[0] + b[0].length > bufferSize) {
+                    var spaceLeft  = bufferSize - total[0];
+                    b.forEach((x, i) => {
+                        out[i].set(x.subarray(0, spaceLeft), total[i])
+                        total[i] += spaceLeft;
+                    });
+                    me.audioBuffers.unshift(b.map((x) => {
+                        return x.subarray(spaceLeft, x.length);
+                    }));
                     break;
                 } else {
-                    out.set(b, total);
-                    total += b.length;
+                    b.forEach((x, i) => {
+                        out[i].set(x, total[i]);
+                        total[i] += x.length;
+                    });
                 }
             }
 
-            e.outputBuffer.copyToChannel(out, 0);
-            me.audioSamples.add(total);
-
+            e.outputBuffer.copyToChannel(out[0], 0);
+            e.outputBuffer.copyToChannel(out[total[1] > 0? 1 : 0], 1);
+            me.audioSamples.add(total[0]);
         }
 
         //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
@@ -175,7 +180,7 @@ AudioEngine.prototype._start = function() {
         if (me.audioContext.createJavaScriptNode) {
             method = 'createJavaScriptNode';
         }
-        me.audioNode = me.audioContext[method](bufferSize, 0, 1);
+        me.audioNode = me.audioContext[method](bufferSize, 0, 2);
         me.audioNode.onaudioprocess = audio_onprocess;
         me.audioNode.connect(me.gainNode);
         runCallbacks('ScriptProcessorNode')
@@ -285,28 +290,48 @@ AudioEngine.prototype.getSampleRate = function() {
     return this.audioContext.sampleRate;
 };
 
-AudioEngine.prototype.processAudio = function(data, resampler, recorder) {
+AudioEngine.prototype.processAudio = function(data, resampler, recorder, stereo = false) {
+    // audio must be initialized
     if (!this.audioNode) return;
+
+    // allocate space
     this.audioBytes.add(data.byteLength);
     var buffer;
+
     if (this.compression === "adpcm") {
-        //resampling & ADPCM
-        buffer = this.audioCodec.decodeWithSync(new Uint8Array(data));
+        // decompress
+        data = new Uint8Array(data);
+        if (stereo) {
+            buffer = this.audioCodec.decodeStereoWithSync(data);
+        } else {
+            buffer = [ this.audioCodec.decodeWithSync(data) ];
+        }
     } else {
-        buffer = new Int16Array(data);
+        if (stereo) {
+            // deinterleave 16bit stereo
+            data = new Int16Array(data);
+            buffer = [
+                data.filter((x, i) => { return !(i&1); }),
+                data.filter((x, i) => { return (i&1); })
+            ];
+        } else {
+            // assume mono 16bit audio
+            buffer = [ new Int16Array(data) ];
+        }
     }
-    if(this.recording) {
-        recorder.record(buffer);
-    }
+
+    // record to MP3
+    if (this.recording) recorder.record(buffer);
+
+    // resample
     buffer = resampler.process(buffer);
+
     if (this.audioNode.port) {
         // AudioWorklets supported
         this.audioNode.port.postMessage(buffer);
-    } else {
+    } else if (this.getBuffersize() + buffer[0].length <= this.maxBufferSize) {
         // silently drop excess samples
-        if (this.getBuffersize() + buffer.length <= this.maxBufferSize) {
-            this.audioBuffers.push(buffer);
-        }
+        this.audioBuffers.push(buffer);
     }
 }
 
@@ -317,6 +342,11 @@ AudioEngine.prototype.pushAudio = function(data) {
 
 AudioEngine.prototype.pushHdAudio = function(data) {
     this.processAudio(data, this.hdResampler, this.hdRecorder);
+    this.lastHd = true;
+}
+
+AudioEngine.prototype.pushHdStereo = function(data) {
+    this.processAudio(data, this.hdResampler, this.hdRecorder, true);
     this.lastHd = true;
 }
 
@@ -331,7 +361,7 @@ AudioEngine.prototype.setVolume = function(volume) {
 AudioEngine.prototype.getBuffersize = function() {
     // only available when using ScriptProcessorNode
     if (!this.audioBuffers) return 0;
-    return this.audioBuffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
+    return this.audioBuffers.map((b) => { return b[0].length; }).reduce((a, b) => { return a + b; }, 0);
 };
 
 AudioEngine.prototype.startRecording = function() {
@@ -361,17 +391,17 @@ AudioEngine.prototype.stopRecording = function() {
     }
 };
 
-function AudioRecorder(sampleRate, kbps) {
-    // Mono (1 channel), with given sample rate and bitrate
-    this.mp3encoder = new lamejs.Mp3Encoder(1, sampleRate, kbps);
+function AudioRecorder(sampleRate, kbps, channels = 1) {
+    // Mono (unless asked otherwise) with given sample rate and bitrate
+    this.mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
     this.blockSize  = 1152; // better be a multiple of 576
     this.mp3Data    = [];
 }
 
 AudioRecorder.prototype.record = function(samples) {
-    for (var i = 0; i < samples.length; i += this.blockSize) {
-        var chunk  = samples.subarray(i, i + this.blockSize);
-        var mp3buf = this.mp3encoder.encodeBuffer(chunk);
+    for (var i = 0; i < samples[0].length; i += this.blockSize) {
+        var chunk  = samples.map((x) => { return x.subarray(i, i + this.blockSize); });
+        var mp3buf = this.mp3encoder.encodeBuffer(chunk[0], chunk[chunk.length > 1? 1 : 0]);
         if (mp3buf.length > 0) this.mp3Data.push(mp3buf);
     }
 };
@@ -415,11 +445,12 @@ ImaAdpcmCodec.prototype.reset = function() {
     this.stepIndex = 0;
     this.predictor = 0;
     this.step = 0;
+    this.ch2 = { stepIndex: 0, predictor: 0, step: 0 };
     this.synchronized = 0;
     this.syncWord = "SYNC";
     this.syncCounter = 0;
     this.phase = 0;
-    this.syncBuffer = new Uint8Array(4);
+    this.syncBuffer = new Uint8Array(8);
     this.syncBufferIndex = 0;
 };
 
@@ -449,6 +480,7 @@ ImaAdpcmCodec.prototype.decode = function(data) {
 ImaAdpcmCodec.prototype.decodeWithSync = function(data) {
     var output = new Int16Array(data.length * 2);
     var oi = 0;
+
     for (var index = 0; index < data.length; index++) {
         switch (this.phase) {
             case 0:
@@ -487,38 +519,96 @@ ImaAdpcmCodec.prototype.decodeWithSync = function(data) {
                 break;
         }
     }
+
     return output.slice(0, oi);
 };
 
-ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {
-    this.stepIndex += ImaAdpcmCodec.imaIndexTable[nibble];
-    this.stepIndex = Math.min(Math.max(this.stepIndex, 0), 88);
+ImaAdpcmCodec.prototype.decodeStereoWithSync = function(data) {
+    var output = [ new Int16Array(data.length * 2), new Int16Array(data.length * 2) ];
+    var oi = 0;
 
-    var diff = this.step >> 3;
-    if (nibble & 1) diff += this.step >> 2;
-    if (nibble & 2) diff += this.step >> 1;
-    if (nibble & 4) diff += this.step;
+    for (var index = 0; index < data.length; index++) {
+        switch (this.phase) {
+            case 0:
+                // search for sync word
+                if (data[index] !== this.syncWord.charCodeAt(this.synchronized++)) {
+                    // reset if data is unexpected
+                    this.synchronized = 0;
+                }
+                // if sync word has been found pass on to next phase
+                if (this.synchronized === 4) {
+                    this.syncBufferIndex = 0;
+                    this.phase = 1;
+                }
+                break;
+            case 1:
+                // read stereo runtime data from stream
+                this.syncBuffer[this.syncBufferIndex++] = data[index];
+                // if data is complete, apply and pass on to next phase
+                if (this.syncBufferIndex === 8) {
+                    var syncData = new Int16Array(this.syncBuffer.buffer);
+                    // @@@ FIXME!!!
+                    this.stepIndex = syncData[0];
+                    this.predictor = syncData[1];
+                    this.stepIndex = syncData[2];
+                    this.predictor = syncData[3];
+                    this.syncCounter = 1000;
+                    this.phase = 2;
+                }
+                break;
+            case 2:
+                // decode stereo audio data
+                output[0][oi]   = this.decodeNibble(data[index] & 0x0F);
+                output[0][oi+1] = this.decodeNibble(data[index] >> 4);
+                index += 1;
+                output[1][oi]   = this.decodeNibble(data[index] & 0x0F, this.ch2);
+                output[1][oi+1] = this.decodeNibble(data[index] >> 4, this.ch2);
+                oi += 2;
+                // if the next sync keyword is due, reset and return to phase 0
+                if (this.syncCounter-- === 0) {
+                    this.synchronized = 0;
+                    this.phase = 0;
+                }
+                break;
+        }
+    }
+
+    return [ output[0].slice(0, oi), output[1].slice(0, oi) ];
+};
+
+ImaAdpcmCodec.prototype.decodeNibble = function(nibble, state = null) {
+    if (state == null) state = this;
+
+    state.stepIndex += ImaAdpcmCodec.imaIndexTable[nibble];
+    state.stepIndex = Math.min(Math.max(state.stepIndex, 0), 88);
+
+    var diff = state.step >> 3;
+    if (nibble & 1) diff += state.step >> 2;
+    if (nibble & 2) diff += state.step >> 1;
+    if (nibble & 4) diff += state.step;
     if (nibble & 8) diff = -diff;
 
-    this.predictor += diff;
-    this.predictor = Math.min(Math.max(this.predictor, -32768), 32767);
+    state.predictor += diff;
+    state.predictor = Math.min(Math.max(state.predictor, -32768), 32767);
 
-    this.step = ImaAdpcmCodec.imaStepTable[this.stepIndex];
+    state.step = ImaAdpcmCodec.imaStepTable[state.stepIndex];
 
-    return this.predictor;
+    return state.predictor;
 };
 
 function Interpolator(factor) {
     this.factor = factor;
-    this.lowpass = new Lowpass(factor)
+    this.lowpass = [ new Lowpass(factor), new Lowpass(factor) ];
 }
 
 Interpolator.prototype.process = function(data) {
-    var output = new Float32Array(data.length * this.factor);
-    for (var i = 0; i < data.length; i++) {
-        output[i * this.factor] = (data[i] + 0.5) / 32768;
-    }
-    return this.lowpass.process(output);
+    return data.map((x, j) => {
+        var output = new Float32Array(x.length * this.factor);
+        for (var i = 0; i < x.length; i++) {
+            output[i * this.factor] = (x[i] + 0.5) / 32768;
+        }
+        return this.lowpass[j].process(output);
+    });
 };
 
 function Lowpass(interpolation) {
@@ -565,7 +655,6 @@ Lowpass.prototype.normalizeCoefficients = function(input) {
 };
 
 Lowpass.prototype.process = function(input) {
-    output = new Float32Array(input.length);
     for (var oi = 0; oi < input.length; oi++) {
         this.delay[this.delayIndex] = input[oi];
         this.delayIndex = (this.delayIndex + 1) % this.numtaps;
@@ -578,7 +667,7 @@ Lowpass.prototype.process = function(input) {
             if (isNaN(acc)) debugger;
         }
         // gain by interpolation
-        output[oi] = this.interpolation * acc;
+        input[oi] = this.interpolation * acc;
     }
-    return output;
+    return input;
 };

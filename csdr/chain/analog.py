@@ -1,7 +1,8 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio, \
-    FixedAudioRateChain, DeemphasisTauChain, MetaProvider, RdsChain
-from pycsdr.modules import AmDemod, DcBlock, FmDemod, Limit, NfmDeemphasis, Agc, Afc, \
-    WfmDeemphasis, FractionalDecimator, RealPart, Writer, Buffer
+    HdStereo, FixedAudioRateChain, DeemphasisTauChain, MetaProvider, RdsChain
+from pycsdr.modules import AmDemod, DcBlock, FmDemod, BCFmDemod, Limit, NfmDeemphasis, \
+    Agc, Afc, WfmDeemphasis, FractionalDecimator, StereoFractionalDecimator, RealPart, \
+    Writer, Buffer
 from pycsdr.types import Format, AgcProfile
 from csdr.chain.toolbox import RdsDemodulator
 from typing import Optional
@@ -42,44 +43,25 @@ class NFm(BaseDemodulatorChain):
         self.replace(2, NfmDeemphasis(sampleRate))
 
 
-class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAudio, MetaProvider, RdsChain):
-    def __init__(self, sampleRate: int, tau: float, rdsRbds: bool):
-        self.sampleRate = sampleRate
-        self.tau = tau
+class BaseWFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, MetaProvider, RdsChain):
+    def __init__(self, rdsRbds: bool, workers):
         self.rdsRbds = rdsRbds
-        self.limit = Limit(Format.FLOAT)
         # this buffer is used to tap into the raw audio stream for redsea RDS decoding
         self.metaTapBuffer = Buffer(Format.FLOAT)
-        workers = [
-            FmDemod(),
-            self.limit,
-            FractionalDecimator(Format.FLOAT, 200000.0 / self.sampleRate, prefilter=True),
-            WfmDeemphasis(self.sampleRate, self.tau),
-        ]
         self.metaChain = None
         self.metaWriter = None
         super().__init__(workers)
+
+    def getFixedIfSampleRate(self):
+        return self.getFixedAudioRate()
+
+    def getFixedAudioRate(self) -> int:
+        return 192000
 
     def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
         if w1 is self.limit:
             buffer = self.metaTapBuffer
         super()._connect(w1, w2, buffer)
-
-    def getFixedIfSampleRate(self):
-        return 200000
-
-    def setDeemphasisTau(self, tau: float) -> None:
-        if tau == self.tau:
-            return
-        self.tau = tau
-        self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
-
-    def setSampleRate(self, sampleRate: int) -> None:
-        if sampleRate == self.sampleRate:
-            return
-        self.sampleRate = sampleRate
-        self.replace(2, FractionalDecimator(Format.FLOAT, 200000.0 / self.sampleRate, prefilter=True))
-        self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
 
     def setMetaWriter(self, writer: Writer) -> None:
         if not FeatureDetector().is_available("rds"):
@@ -104,6 +86,76 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
             self.metaChain = RdsDemodulator(self.getFixedIfSampleRate(), self.rdsRbds)
             self.metaChain.setReader(self.metaTapBuffer.getReader())
             self.metaChain.setWriter(self.metaWriter)
+
+
+class WFm(BaseWFm, HdAudio):
+    def __init__(self, sampleRate: int, tau: float, rdsRbds: bool):
+        self.sampleRate = sampleRate
+        self.tau = tau
+        self.limit = Limit(Format.FLOAT)
+        workers = [
+            FmDemod(),
+            self.limit,
+            self._createDecimator(),
+            WfmDeemphasis(self.sampleRate, self.tau),
+        ]
+        super().__init__(rdsRbds, workers)
+
+    def setDeemphasisTau(self, tau: float) -> None:
+        if tau == self.tau:
+            return
+        self.tau = tau
+        self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.replace(2, self._createDecimator())
+        self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
+
+    def _createDecimator(self):
+        return FractionalDecimator(
+            Format.FLOAT,
+            self.getFixedIfSampleRate() / self.sampleRate,
+            prefilter=True
+        )
+
+
+class BCFm(BaseWFm, HdStereo):
+    def __init__(self, sampleRate: int, tau: float, rdsRbds: bool):
+        self.sampleRate = sampleRate
+        self.tau = tau
+        self.limit = Limit(Format.FLOAT)
+        workers = [
+            BCFmDemod(),
+            self.limit,
+            self._createDecimator(),
+        ]
+        super().__init__(rdsRbds, workers)
+
+    def setDeemphasisTau(self, tau: float) -> None:
+        if tau == self.tau:
+            return
+        self.tau = tau
+        self.replace(2, self._createDecimator())
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.replace(2, self._createDecimator())
+
+    def _createDecimator(self):
+        mpxRate = self.getFixedIfSampleRate()
+        return StereoFractionalDecimator(
+            Format.FLOAT,
+            mpxRate,
+            mpxRate / self.sampleRate,
+            self.tau,
+            numPolyPoints=12,
+            prefilter=False
+        )
 
 
 class Ssb(BaseDemodulatorChain):
@@ -142,12 +194,11 @@ class SAm(BaseDemodulatorChain):
         super().__init__(workers)
 
 
-class SsbDigital(BaseDemodulatorChain, FixedAudioRateChain, HdAudio):
+class IqStream(BaseDemodulatorChain, FixedAudioRateChain, HdStereo):
     def __init__(self, sampleRate: int = 48000):
         self.sampleRate = sampleRate
         workers = [
-            RealPart(),
-            Agc(Format.FLOAT),
+            Agc(Format.COMPLEX_FLOAT),
         ]
         super().__init__(workers)
 

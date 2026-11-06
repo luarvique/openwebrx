@@ -1066,6 +1066,9 @@ function on_ws_recv(evt) {
                         $('#openwebrx-panel-metadata-wfm').metaPanel().each(function() {
                             this.setEnabled(!!json.value.rds);
                         });
+                        $('#openwebrx-panel-metadata-bcfm').metaPanel().each(function() {
+                            this.setEnabled(!!json.value.rds);
+                        });
                         break;
                     case "metadata":
                         $('.openwebrx-meta-panel').metaPanel().each(function(){
@@ -1187,6 +1190,10 @@ function on_ws_recv(evt) {
             case 4:
                 // hd audio data
                 audioEngine.pushHdAudio(data);
+                break;
+            case 6:
+                // hd stereo data
+                audioEngine.pushHdStereo(data);
                 break;
             default:
                 console.warn('unknown type of binary message: ' + type)

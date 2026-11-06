@@ -359,17 +359,17 @@ M17MetaPanel.prototype.clear = function() {
     this.setDestination();
 };
 
-function WfmMetaPanel(el) {
+function RdsMetaPanel(el) {
     MetaPanel.call(this, el);
-    this.modes = ['WFM'];
+    this.modes = ['RDS'];
     this.enabled = false;
     this.timeout = false;
     this.clear();
 }
 
-WfmMetaPanel.prototype = new MetaPanel();
+RdsMetaPanel.prototype = new MetaPanel();
 
-WfmMetaPanel.prototype.update = function(data) {
+RdsMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
     var me = this;
 
@@ -511,11 +511,11 @@ WfmMetaPanel.prototype.update = function(data) {
     $el.find('.rds-identifier').text('PI:' + this.pi);
 };
 
-WfmMetaPanel.prototype.isSupported = function(data) {
+RdsMetaPanel.prototype.isSupported = function(data) {
     return this.modes.includes(data.mode);
 };
 
-WfmMetaPanel.prototype.setEnabled = function(enabled) {
+RdsMetaPanel.prototype.setEnabled = function(enabled) {
     if (enabled === this.enabled) return;
     this.enabled = enabled;
     if (enabled) {
@@ -545,7 +545,7 @@ WfmMetaPanel.prototype.setEnabled = function(enabled) {
     }
 };
 
-WfmMetaPanel.prototype.clear = function() {
+RdsMetaPanel.prototype.clear = function() {
     $(this.el).find('.rds-autoclear').empty();
     this.pi = '';
     this.ps = '';
@@ -1068,7 +1068,8 @@ MetaPanel.types = {
     dstar: DStarMetaPanel,
     nxdn: NxdnMetaPanel,
     m17: M17MetaPanel,
-    wfm: WfmMetaPanel,
+    wfm: RdsMetaPanel,
+    bcfm: RdsMetaPanel,
     dab: DabMetaPanel,
     hdr: HdrMetaPanel,
     drm: DrmMetaPanel,

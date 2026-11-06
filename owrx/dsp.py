@@ -4,7 +4,7 @@ from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes, DigitalMode
 from owrx.rigcontrol import RigControl
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, \
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, HdStereo, \
     SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain, \
     DeemphasisTauChain, DemodulatorError, RdsChain, AudioServiceSelector
 from csdr.chain.selector import Selector, SecondarySelector
@@ -446,7 +446,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
 
         self.props = PropertyStack()
 
-        # current audio mode. should be "audio" or "hd_audio" depending on what demodulatur is in use.
+        # current audio mode. should be "audio" or "hd_audio" depending on what demodulator is in use.
         self.audioOutput = None
 
         # local demodulator properties not forwarded to the sdr
@@ -608,6 +608,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "wfm":
             from csdr.chain.analog import WFm
             return WFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"], self.props["wfm_rds_rbds"])
+        elif demod == "bcfm":
+            from csdr.chain.analog import BCFm
+            return BCFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"], self.props["wfm_rds_rbds"])
         elif demod == "am":
             from csdr.chain.analog import Am
             return Am(AgcProfile(self.props["am_agc_profile"]))
@@ -656,9 +659,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "empty":
             from csdr.chain.analog import Empty
             return Empty()
-        elif demod in ["usbd", "lsbd"]:
-            from csdr.chain.analog import SsbDigital
-            return SsbDigital()
+        elif demod == "iq":
+            from csdr.chain.analog import IqStream
+            return IqStream()
 
     def setDemodulator(self, mod):
         # this kills both primary and secondary demodulators
@@ -670,7 +673,12 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
                 raise ValueError("unsupported demodulator: {}".format(mod))
             self.chain.setDemodulator(demodulator)
 
-            output = "hd_audio" if isinstance(demodulator, HdAudio) else "audio"
+            if isinstance(demodulator, HdStereo):
+                output = "hd_stereo"
+            elif isinstance(demodulator, HdAudio):
+                output = "hd_audio"
+            else:
+                output = "audio"
 
             if output != self.audioOutput:
                 self.audioOutput = output
@@ -899,6 +907,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         writers = {
             "audio": self.handler.write_dsp_data,
             "hd_audio": self.handler.write_hd_audio,
+            "hd_stereo": self.handler.write_hd_stereo,
             "smeter": self.handler.write_s_meter_level,
             "secondary_fft": self.handler.write_secondary_fft,
             "secondary_demod": self._unpickle(self.handler.write_secondary_demod),
