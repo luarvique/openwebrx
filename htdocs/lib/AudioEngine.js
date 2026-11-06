@@ -298,19 +298,26 @@ AudioEngine.prototype.processAudio = function(data, resampler, recorder, stereo 
     this.audioBytes.add(data.byteLength);
     var buffer;
 
-    if (stereo) {
-        // deinterleave 16bit stereo
-        data = new Int16Array(data);
-        buffer = [
-            data.filter((x, i) => { return !(i&1); }),
-            data.filter((x, i) => { return (i&1); })
-        ];
-    } else if (this.compression === "adpcm") {
+    if (this.compression === "adpcm") {
         // decompress
-        buffer = [ this.audioCodec.decodeWithSync(new Uint8Array(data)) ];
+        data = new Uint8Array(data);
+        if (stereo) {
+            buffer = this.audioCodec.decodeStereoWithSync(data);
+        } else {
+            buffer = [ this.audioCodec.decodeWithSync(data) ];
+        }
     } else {
-        // assume mono 16bit audio
-        buffer = [ new Int16Array(data) ];
+        if (stereo) {
+            // deinterleave 16bit stereo
+            data = new Int16Array(data);
+            buffer = [
+                data.filter((x, i) => { return !(i&1); }),
+                data.filter((x, i) => { return (i&1); })
+            ];
+        } else {
+            // assume mono 16bit audio
+            buffer = [ new Int16Array(data) ];
+        }
     }
 
     // record to MP3
@@ -442,7 +449,7 @@ ImaAdpcmCodec.prototype.reset = function() {
     this.syncWord = "SYNC";
     this.syncCounter = 0;
     this.phase = 0;
-    this.syncBuffer = new Uint8Array(4);
+    this.syncBuffer = new Uint8Array(8);
     this.syncBufferIndex = 0;
 };
 
@@ -472,6 +479,7 @@ ImaAdpcmCodec.prototype.decode = function(data) {
 ImaAdpcmCodec.prototype.decodeWithSync = function(data) {
     var output = new Int16Array(data.length * 2);
     var oi = 0;
+
     for (var index = 0; index < data.length; index++) {
         switch (this.phase) {
             case 0:
@@ -510,7 +518,61 @@ ImaAdpcmCodec.prototype.decodeWithSync = function(data) {
                 break;
         }
     }
+
     return output.slice(0, oi);
+};
+
+ImaAdpcmCodec.prototype.decodeStereoWithSync = function(data) {
+    var output = [ new Int16Array(data.length * 2), new Int16Array(data.length * 2) ];
+    var oi = 0;
+
+    for (var index = 0; index < data.length; index++) {
+        switch (this.phase) {
+            case 0:
+                // search for sync word
+                if (data[index] !== this.syncWord.charCodeAt(this.synchronized++)) {
+                    // reset if data is unexpected
+                    this.synchronized = 0;
+                }
+                // if sync word has been found pass on to next phase
+                if (this.synchronized === 4) {
+                    this.syncBufferIndex = 0;
+                    this.phase = 1;
+                }
+                break;
+            case 1:
+                // read stereo runtime data from stream
+                this.syncBuffer[this.syncBufferIndex++] = data[index];
+                // if data is complete, apply and pass on to next phase
+                if (this.syncBufferIndex === 8) {
+                    var syncData = new Int16Array(this.syncBuffer.buffer);
+                    // @@@ FIXME!!!
+                    this.stepIndex = syncData[0];
+                    this.predictor = syncData[1];
+                    this.stepIndex = syncData[2];
+                    this.predictor = syncData[3];
+                    this.syncCounter = 500;
+                    this.phase = 2;
+                }
+                break;
+            case 2:
+                // decode stereo audio data
+                output[0][oi]   = this.decodeNibble(data[index] & 0x0F);
+                output[0][oi+1] = this.decodeNibble(data[index] >> 4);
+                index += 1;
+                output[1][oi]   = this.decodeNibble(data[index] & 0x0F);
+                output[1][oi+1] = this.decodeNibble(data[index] >> 4);
+                oi += 2;
+                // if the next sync keyword is due, reset and return to phase 0
+                if (this.syncCounter-- === 0) {
+                    this.synchronized = 0;
+                    this.phase = 0;
+                }
+                break;
+        }
+    }
+
+    return [ output[0].slice(0, oi), output[1].slice(0, oi) ];
 };
 
 ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {
