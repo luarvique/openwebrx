@@ -154,8 +154,9 @@ function setSmeterRelativeValue(value) {
     }
 }
 
-function setSquelchSliderBackground(val) {
-    var $slider = $('#openwebrx-panel-receiver .openwebrx-squelch-slider');
+// $slider defaults to the main demodulator's squelch slider
+function setSquelchSliderBackground(val, $slider) {
+    $slider = $slider || $('#openwebrx-panel-receiver .openwebrx-squelch-slider');
     var min = Number($slider.attr('min'));
     var max = Number($slider.attr('max'));
     var sliderPosition = $slider.val();
@@ -197,8 +198,10 @@ function typeInAnimation(element, timeout, what, onFinish) {
 // ================  DEMODULATOR ROUTINES  ================
 // ========================================================
 
+// the main demodulator always comes first
 function getDemodulators() {
-    return [ UI.getDemodulator() ].filter(function(d) { return !!d; });
+    return [ UI.getDemodulator() ].filter(function(d) { return !!d; })
+        .concat(ExtraDemodulators.getDemodulators());
 }
 
 function mkenvelopes(visible_range) //called from mkscale
@@ -274,8 +277,9 @@ function scale_canvas_mousemove(evt) {
     //we can use the main drag_min_delta thing of the main canvas
     {
         scale_canvas_drag_params.drag = true;
-        //call the drag_start for all demodulators (and they will decide if they're dragged, based on X coordinate)
-        for (i = 0; i < demodulators.length; i++) event_handled |= demodulators[i].envelope.drag_start(evt.pageX, scale_canvas_drag_params.key_modifiers);
+        //call the drag_start for the demodulators (and they will decide if they're dragged, based on X coordinate).
+        //envelopes drawn last are on top, so they get the first chance, and only one is dragged at a time.
+        for (i = demodulators.length - 1; i >= 0 && !event_handled; i--) event_handled |= demodulators[i].envelope.drag_start(evt.pageX, scale_canvas_drag_params.key_modifiers);
         scale_canvas.style.cursor = "move";
     }
     else if (scale_canvas_drag_params.drag) {
@@ -316,7 +320,7 @@ function scale_canvas_mousewheel(evt) {
     var adjustWidth = scale_canvas_drag_params.mouse2_down || evt.shiftKey;
     var demodulators = getDemodulators();
     var event_handled = false;
-    for (var i = 0; i < demodulators.length; i++) event_handled |= demodulators[i].envelope.wheel(evt.pageX, dir, adjustWidth);
+    for (var i = demodulators.length - 1; i >= 0 && !event_handled; i--) event_handled |= demodulators[i].envelope.wheel(evt.pageX, dir, adjustWidth);
     // If not handled by demodulators, default to tuning or zooming
     if (!event_handled) canvas_mousewheel(evt);
 }
@@ -884,7 +888,10 @@ function on_ws_recv(evt) {
         } else {
             try {
                 var json = JSON.parse(evt.data);
-                switch (json.type) {
+                // messages tagged with a demodulator id belong to one of the additional demodulators
+                if (json.demod) {
+                    ExtraDemodulators.handleMessage(json);
+                } else switch (json.type) {
                     case "config":
                         var config = json['value'];
 
@@ -942,6 +949,9 @@ function on_ws_recv(evt) {
                         demodulatorPanel.setCenterFrequency(center_freq);
                         demodulatorPanel.setInitialParams(initial_demodulator_params);
 
+                        ExtraDemodulators.configure(config);
+                        ExtraDemodulators.setCenterFrequency(center_freq);
+
                         if ('squelch_auto_margin' in config)
                             demodulatorPanel.setSquelchMargin(config['squelch_auto_margin']);
 
@@ -951,6 +961,9 @@ function on_ws_recv(evt) {
                             currentprofile['sdr_id'] = config['sdr_id'] || currentprofile['sdr_id'];
                             currentprofile['profile_id'] = config['profile_id'] || currentprofile['profile_id'];
                             $('#openwebrx-sdr-profiles-listbox').val(currentprofile.toString());
+
+                            // the band has changed, the additional demodulators are of no use anymore
+                            ExtraDemodulators.removeAll();
 
                             UI.toggleScanner(false);
                             tuning_step_reset();
@@ -1092,6 +1105,7 @@ function on_ws_recv(evt) {
                         $overlay.find('.errormessage').text(json['value']);
                         $overlay.show();
                         UI.getDemodulatorPanel().stopDemodulator();
+                        ExtraDemodulators.removeAll(false);
                         break;
                     case "demodulator_error":
                         divlog(json['value'], true);
@@ -1188,6 +1202,14 @@ function on_ws_recv(evt) {
                 // hd audio data
                 audioEngine.pushHdAudio(data);
                 break;
+            case 0x12:
+            case 0x14:
+                // audio / hd audio of an additional demodulator: [type][demodulator id][payload]
+                ExtraDemodulators.pushAudio(new Uint8Array(evt.data, 1, 1)[0], evt.data.slice(2), type === 0x14);
+                break;
+            case 0x13:
+                // secondary FFT of an additional demodulator, not supported yet
+                break;
             default:
                 console.warn('unknown type of binary message: ' + type)
         }
@@ -1259,6 +1281,8 @@ var reconnect_timeout = false;
 function on_ws_closed() {
     var demodulatorPanel = UI.getDemodulatorPanel();
     demodulatorPanel.stopDemodulator();
+    // the server drops all demodulators with the connection
+    ExtraDemodulators.removeAll(false);
     demodulatorPanel.resetInitialParams();
     if (reconnect_timeout) {
         // max value: roundabout 8 and a half minutes
