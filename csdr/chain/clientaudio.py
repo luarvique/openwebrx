@@ -52,12 +52,16 @@ class ClientAudioChain(Chain):
         converter = self._buildConverter()
         if not converter.empty():
             workers += [converter]
-        if compression == "adpcm" and not isStereo(format):
-            workers += [AdpcmEncoder(sync=True)]
+        if compression == "adpcm":
+            workers += [self._buildEncoder()]
         super().__init__(workers)
 
     def _buildConverter(self):
         return Converter(self.format, self.inputRate, self.clientRate, self.nrEnabled, self.nrThreshold)
+
+    def _buildEncoder(self):
+        format = Format.COMPLEX_SHORT if isStereo(self.format) else Format.SHORT
+        return AdpcmEncoder(format, sync=True)
 
     def _updateConverter(self):
         converter = self._buildConverter()
@@ -74,12 +78,21 @@ class ClientAudioChain(Chain):
     def setFormat(self, format: Format) -> None:
         if format == self.format:
             return
-        # is it safe to remove writer here? hopefully gets
-        # reattached in dsp.py
         if isStereo(format) != isStereo(self.format):
+            # is it safe to remove writer here? hopefully gets
+            # reattached in dsp.py
             self.writer = None
+            # will have to recreate encoder later
+            index = self.indexOf(lambda x: isinstance(x, AdpcmEncoder))
+            if index >= 0:
+                self.remove(index)
+        else:
+            index = -1
         self.format = format
         self._updateConverter()
+        # recreate encoder if needed
+        if index >= 0:
+            self.append(self._buildEncoder())
 
     def setInputRate(self, inputRate: int) -> None:
         if inputRate == self.inputRate:
@@ -97,7 +110,7 @@ class ClientAudioChain(Chain):
         index = self.indexOf(lambda x: isinstance(x, AdpcmEncoder))
         if compression == "adpcm":
             if index < 0:
-                self.append(AdpcmEncoder(sync=True))
+                self.append(self._buildEncoder())
         else:
             if index >= 0:
                 self.remove(index)
