@@ -442,9 +442,18 @@ function ImaAdpcmCodec() {
 }
 
 ImaAdpcmCodec.prototype.reset = function() {
-    this.stepIndex = 0;
-    this.predictor = 0;
-    this.step = 0;
+    this.state = [
+        {
+            stepIndex : 0,
+            predictor : 0,
+            step : 0
+        },
+        {
+            stepIndex : 0,
+            predictor : 0,
+            step : 0
+        }
+    ];
     this.synchronized = 0;
     this.syncWord = "SYNC";
     this.syncCounter = 0;
@@ -470,8 +479,8 @@ ImaAdpcmCodec.imaStepTable = [
 ImaAdpcmCodec.prototype.decode = function(data) {
     var output = new Int16Array(data.length * 2);
     for (var i = 0; i < data.length; i++) {
-        output[i * 2] = this.decodeNibble(data[i] & 0x0F);
-        output[i * 2 + 1] = this.decodeNibble((data[i] >> 4) & 0x0F);
+        output[i * 2] = this.decodeNibble(data[i] & 0x0F, this.state[0]);
+        output[i * 2 + 1] = this.decodeNibble((data[i] >> 4) & 0x0F, this.state[0]);
     }
     return output;
 };
@@ -508,8 +517,8 @@ ImaAdpcmCodec.prototype.decodeWithSync = function(data) {
                 break;
             case 2:
                 // decode actual audio data
-                output[oi++] = this.decodeNibble(data[index] & 0x0F);
-                output[oi++] = this.decodeNibble(data[index] >> 4);
+                output[oi++] = this.decodeNibble(data[index] & 0x0F, this.state[0]);
+                output[oi++] = this.decodeNibble(data[index] >> 4, this.state[0]);
                 // if the next sync keyword is due, reset and return to phase 0
                 if (this.syncCounter-- === 0) {
                     this.synchronized = 0;
@@ -557,11 +566,11 @@ ImaAdpcmCodec.prototype.decodeStereoWithSync = function(data) {
                 break;
             case 2:
                 // decode stereo audio data
-                output[0][oi]   = this.decodeNibble(data[index] & 0x0F);
-                output[0][oi+1] = this.decodeNibble(data[index] >> 4);
+                output[0][oi]   = this.decodeNibble(data[index] & 0x0F, this.state[0]);
+                output[0][oi+1] = this.decodeNibble(data[index] >> 4, this.state[0]);
                 index += 1;
-                output[1][oi]   = this.decodeNibble(data[index] & 0x0F);
-                output[1][oi+1] = this.decodeNibble(data[index] >> 4);
+                output[1][oi]   = this.decodeNibble(data[index] & 0x0F, this.state[1]);
+                output[1][oi+1] = this.decodeNibble(data[index] >> 4, this.state[1]);
                 oi += 2;
                 // if the next sync keyword is due, reset and return to phase 0
                 if (this.syncCounter-- === 0) {
@@ -575,22 +584,22 @@ ImaAdpcmCodec.prototype.decodeStereoWithSync = function(data) {
     return [ output[0].slice(0, oi), output[1].slice(0, oi) ];
 };
 
-ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {
-    this.stepIndex += ImaAdpcmCodec.imaIndexTable[nibble];
-    this.stepIndex = Math.min(Math.max(this.stepIndex, 0), 88);
+ImaAdpcmCodec.prototype.decodeNibble = function(nibble, state) {
+    state.stepIndex += ImaAdpcmCodec.imaIndexTable[nibble];
+    state.stepIndex = Math.min(Math.max(state.stepIndex, 0), 88);
 
-    var diff = this.step >> 3;
-    if (nibble & 1) diff += this.step >> 2;
-    if (nibble & 2) diff += this.step >> 1;
-    if (nibble & 4) diff += this.step;
+    var diff = state.step >> 3;
+    if (nibble & 1) diff += state.step >> 2;
+    if (nibble & 2) diff += state.step >> 1;
+    if (nibble & 4) diff += state.step;
     if (nibble & 8) diff = -diff;
 
-    this.predictor += diff;
-    this.predictor = Math.min(Math.max(this.predictor, -32768), 32767);
+    state.predictor += diff;
+    state.predictor = Math.min(Math.max(state.predictor, -32768), 32767);
 
-    this.step = ImaAdpcmCodec.imaStepTable[this.stepIndex];
+    state.step = ImaAdpcmCodec.imaStepTable[state.stepIndex];
 
-    return this.predictor;
+    return state.predictor;
 };
 
 function Interpolator(factor) {
