@@ -78,20 +78,20 @@ class ClientAudioChain(Chain):
     def setFormat(self, format: Format) -> None:
         if format == self.format:
             return
+        adpcmIndex = -1
         if isStereo(format) != isStereo(self.format):
-            # is it safe to remove writer here? hopefully gets
-            # reattached in dsp.py
+            # is it safe to remove reader and writer here?
+            # hopefully they get reattached in dsp.py
             self.writer = None
+            self.reader = None
             # will have to recreate encoder later
-            index = self.indexOf(lambda x: isinstance(x, AdpcmEncoder))
-            if index >= 0:
-                self.remove(index)
-        else:
-            index = -1
+            adpcmIndex = self.indexOf(lambda x: isinstance(x, AdpcmEncoder))
+            if adpcmIndex >= 0:
+                self.remove(adpcmIndex)
         self.format = format
         self._updateConverter()
         # recreate encoder if needed
-        if index >= 0:
+        if adpcmIndex >= 0:
             self.append(self._buildEncoder())
 
     def setInputRate(self, inputRate: int) -> None:
