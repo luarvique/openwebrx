@@ -1,3 +1,7 @@
+**1.2.130**
+- Fixed https:// playback issues via AudioProcessor.
+- Fixed ADPCM decoding second channel.
+
 **1.2.129**
 - Added stereo audio path for the client audio.
 - Added option to treat VIS=63 as ScottieDX not SC2-120.
