@@ -547,11 +547,10 @@ ImaAdpcmCodec.prototype.decodeStereoWithSync = function(data) {
                 // if data is complete, apply and pass on to next phase
                 if (this.syncBufferIndex === 8) {
                     var syncData = new Int16Array(this.syncBuffer.buffer);
-                    // @@@ FIXME!!!
                     this.stepIndex = syncData[0];
                     this.predictor = syncData[1];
-                    this.stepIndex = syncData[2];
-                    this.predictor = syncData[3];
+                    this.ch2.stepIndex = syncData[2];
+                    this.ch2.predictor = syncData[3];
                     this.syncCounter = 1000;
                     this.phase = 2;
                 }
