@@ -9,5 +9,10 @@ ExecStart=/usr/bin/openwebrx
 Restart=always
 Environment="HOME=/tmp"
 
+# Prevent USB lock by killing hung demodulators on restart
+KillMode=mixed
+TimeoutStopSec=5s
+SendSIGKILL=yes
+
 [Install]
 WantedBy=multi-user.target
