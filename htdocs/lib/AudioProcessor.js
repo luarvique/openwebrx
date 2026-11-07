@@ -3,10 +3,11 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
         super(options);
         // initialize ringbuffer, make sure it aligns with the expected buffer size of 128
         this.bufferSize = Math.round(options.processorOptions.maxBufferSize / 128) * 128;
-        this.audioBuffer = new Float32Array(this.bufferSize);
+        this.audioBuffer = [ new Float32Array(this.bufferSize), new Float32Array(this.bufferSize) ];
         this.inPos = 0;
         this.outPos = 0;
         this.samplesProcessed = 0;
+        this.stereo = false;
         this.port.addEventListener('message', (m) => {
             if (typeof(m.data) === 'string') {
                 const json = JSON.parse(m.data);
@@ -17,16 +18,19 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
                 // the ringbuffer size is aligned to the output buffer size, which means that the input buffers might
                 // need to wrap around the end of the ringbuffer, back to the start.
                 // it is better to have this processing here instead of in the time-critical process function.
-                if (this.inPos + m.data.length <= this.bufferSize) {
-                    // we have enough space, so just copy data over.
-                    this.audioBuffer.set(m.data, this.inPos);
-                } else {
-                    // we don't have enough space, so we need to split the data.
-                    const remaining = this.bufferSize - this.inPos;
-                    this.audioBuffer.set(m.data.subarray(0, remaining), this.inPos);
-                    this.audioBuffer.set(m.data.subarray(remaining));
-                }
-                this.inPos = (this.inPos + m.data.length) % this.bufferSize;
+                m.data.forEach((x, i) => {
+                    if (this.inPos + x.length <= this.bufferSize) {
+                        // we have enough space, so just copy data over.
+                        this.audioBuffer[i].set(x, this.inPos);
+                    } else {
+                        // we don't have enough space, so we need to split the data.
+                        const remaining = this.bufferSize - this.inPos;
+                        this.audioBuffer[i].set(x.subarray(0, remaining), this.inPos);
+                        this.audioBuffer[i].set(x.subarray(remaining));
+                    }
+                });
+                this.inPos = (this.inPos + m.data[0].length) % this.bufferSize;
+                this.stereo = m.data.length > 1;
             }
         });
         this.port.addEventListener('messageerror', console.error);
@@ -35,10 +39,14 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
     process(inputs, outputs) {
         if (this.remaining() < 128) {
             outputs[0].forEach(output => output.fill(0));
+            outputs[1].forEach(output => output.fill(0));
             return true;
         }
         outputs[0].forEach((output) => {
-            output.set(this.audioBuffer.subarray(this.outPos, this.outPos + 128));
+            output.set(this.audioBuffer[0].subarray(this.outPos, this.outPos + 128));
+        });
+        outputs[1].forEach((output) => {
+            output.set(this.audioBuffer[this.stereo? 1:0].subarray(this.outPos, this.outPos + 128));
         });
         this.outPos = (this.outPos + 128) % this.bufferSize;
         this.samplesProcessed += 128;
