@@ -1,3 +1,10 @@
+openwebrx (1.2.130) bullseye jammy; urgency=low
+
+  * Fixed https:// playback issues via AudioProcessor.
+  * Fixed ADPCM decoding second channel.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Mon, 9 Nov 2026 16:12:00 +0000
+
 openwebrx (1.2.129) bullseye jammy; urgency=low
 
   * Added stereo audio path for the client audio.
