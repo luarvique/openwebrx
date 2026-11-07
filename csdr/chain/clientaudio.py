@@ -10,6 +10,7 @@ def isStereo(format: Format):
 class Converter(Chain):
     def __init__(self, format: Format, inputRate: int, clientRate: int, nrEnabled: bool, nrThreshold: int):
         workers = []
+        self.nr = None
         if isStereo(format):
             # we only have an audio resampler for complex float ATM,
             # so if we need to resample, we need to convert
@@ -29,7 +30,8 @@ class Converter(Chain):
             if (inputRate != clientRate or nrEnabled) and format != Format.FLOAT:
                 workers += [Convert(format, Format.FLOAT)]
             if nrEnabled:
-                workers += [NoiseFilter(nrThreshold)]
+                self.nr = NoiseFilter(nrThreshold)
+                workers += [ self.nr ]
             if inputRate != clientRate:
                 workers += [
                     AudioResampler(Format.FLOAT, inputRate, clientRate),
@@ -40,6 +42,10 @@ class Converter(Chain):
                 workers += [Convert(format, Format.SHORT)]
         super().__init__(workers)
 
+    def setNrThreshold(self, nrThreshold: int) -> None:
+        if self.nr is not None:
+            self.nr.setThreshold(nrThreshold)
+
 
 class ClientAudioChain(Chain):
     def __init__(self, format: Format, inputRate: int, clientRate: int, compression: str, nrEnabled: bool, nrThreshold: int):
@@ -49,9 +55,9 @@ class ClientAudioChain(Chain):
         self.nrEnabled = nrEnabled
         self.nrThreshold = nrThreshold
         workers = []
-        converter = self._buildConverter()
-        if not converter.empty():
-            workers += [converter]
+        self.converter = self._buildConverter()
+        if not self.converter.empty():
+            workers += [self.converter]
         if compression == "adpcm":
             workers += [self._buildEncoder()]
         super().__init__(workers)
@@ -64,16 +70,16 @@ class ClientAudioChain(Chain):
         return AdpcmEncoder(format, sync=True)
 
     def _updateConverter(self):
-        converter = self._buildConverter()
+        self.converter = self._buildConverter()
         index = self.indexOf(lambda x: isinstance(x, Converter))
-        if converter.empty():
+        if self.converter.empty():
             if index >= 0:
                 self.remove(index)
         else:
             if index >= 0:
-                self.replace(index, converter)
+                self.replace(index, self.converter)
             else:
-                self.insert(0, converter)
+                self.insert(0, self.converter)
 
     def setFormat(self, format: Format) -> None:
         if format == self.format:
@@ -122,7 +128,5 @@ class ClientAudioChain(Chain):
         self._updateConverter()
 
     def setNrThreshold(self, nrThreshold: int) -> None:
-        if nrThreshold == self.nrThreshold:
-            return
-        self.nrThreshold = nrThreshold
-        self._updateConverter()
+        if self.converter is not None:
+            self.converter.setNrThreshold(nrThreshold)
