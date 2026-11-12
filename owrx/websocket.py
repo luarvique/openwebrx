@@ -132,7 +132,7 @@ class WebSocketConnection(object):
             header = self.get_header(len(data), OPCODE_BINARY_MESSAGE)
             data_to_send = header + data
 
-        self._sendBytes(data_to_send)
+        return self._sendBytes(data_to_send)
 
     def _sendBytes(self, data_to_send):
         def chunks(input, n):
@@ -164,6 +164,9 @@ class WebSocketConnection(object):
                 except ValueError:
                     logger.exception("ValueError while writing data")
                     self.close(socketError=True)
+
+        # if socked closed, we failed to send
+        return self.open
 
     def interrupt(self):
         if self.interruptPipeSend is None:
