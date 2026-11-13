@@ -1472,6 +1472,9 @@ function openwebrx_init() {
 
     // Create and run clock
     clock = new Clock($('#openwebrx-clock-utc'));
+
+    // Request screen wake lock
+    WakeLock.enable();
 }
 
 function initSliders() {

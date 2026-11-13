@@ -141,6 +141,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/Shortcuts.js",
             "lib/Bandplan.js",
             "lib/Spectrum.js",
+            "lib/WakeLock.js",
             "lib/Scanner.js",
             "lib/Plugins.js",
             "lib/Lookup.js",
