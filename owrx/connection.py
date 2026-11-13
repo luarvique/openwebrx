@@ -57,10 +57,13 @@ class Client(Handler, metaclass=ABCMeta):
 
     def send(self, data):
         try:
-            self.conn.send(data)
+            if self.conn.send(data):
+                return
         except IOError:
             logger.exception("error in Client::send()")
-            self.close(error=True)
+        # either exception happened or connection closed
+        logger.warning("other side must have closed connection")
+        self.close(error=True)
 
     def close(self, error: bool = False):
         if self.multithreadingQueue is not None:
