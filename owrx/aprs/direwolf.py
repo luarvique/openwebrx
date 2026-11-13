@@ -1,7 +1,7 @@
 from csdr.module import AutoStartModule
 from pycsdr.types import Format
 from pycsdr.modules import Writer, TcpSource
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, DEVNULL
 from owrx.config.core import CoreConfig
 from owrx.config import Config
 from abc import ABC, abstractmethod
@@ -186,7 +186,7 @@ class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
             cmdLine += ["-B", "AIS", "-A"]
 
         # launch Direwolf
-        self.process = Popen(cmdLine, start_new_session=True, stdin=PIPE)
+        self.process = Popen(cmdLine, start_new_session=True, stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL)
 
         # resume in case the reader has been stop()ed before
         self.reader.resume()
