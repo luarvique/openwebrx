@@ -862,8 +862,24 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         demodulator = self._getSecondaryDemodulator(mod)
         if not demodulator:
             self.chain.setSecondaryDemodulator(None)
-        else:
-            self.chain.setSecondaryDemodulator(demodulator)
+            return
+        # A secondary demodulator with a fixed required sample rate (e.g.
+        # AdsbDemodulator, 2.4Msps) was previously started regardless of the
+        # active profile's actual samp_rate. csdr.chain.selector already
+        # guards against a crash in that case (clamps the output rate down,
+        # see its "Avoid exceptions..." comment) but still logs an ERROR and
+        # starts/kills the external decoder process (e.g. dump1090-fa)
+        # pointlessly on every such request. Reject it here instead, before
+        # it is ever wired into the chain.
+        if isinstance(demodulator, FixedAudioRateChain) and demodulator.getFixedAudioRate() > self.chain.sampleRate:
+            logger.info(
+                "secondary demodulator %s requires %dsps but the active profile only provides %dsps: ignoring",
+                type(demodulator).__name__, demodulator.getFixedAudioRate(), self.chain.sampleRate,
+            )
+            demodulator.stop()
+            self.chain.setSecondaryDemodulator(None)
+            return
+        self.chain.setSecondaryDemodulator(demodulator)
 
     def setAudioCompression(self, comp):
         try:
