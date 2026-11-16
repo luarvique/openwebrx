@@ -322,6 +322,19 @@ class ClientDemodulatorChain(Chain):
         if sampleRate == self.sampleRate:
             return
         self.sampleRate = sampleRate
+        # The active profile's samp_rate can change (e.g. the shared SDR
+        # source switches profile) while a FixedAudioRateChain secondary
+        # demodulator (e.g. ADS-B, 2.4Msps) is already wired and was
+        # compatible with the PREVIOUS rate. Nothing here re-checked that
+        # invariant, so self.selector kept its old fixed outputRate
+        # (2.4Msps) while its inputRate dropped below it - same
+        # csdr.chain.selector ERROR and useless dump1090-fa start/exit
+        # cycle as the DspManager.setSecondaryDemodulator() case fixed
+        # below, just reached from a different direction. Tear the
+        # secondary chain down first (existing, already-correct teardown
+        # path) before applying the new, incompatible input rate.
+        if isinstance(self.secondaryDemodulator, FixedAudioRateChain) and self.secondaryDemodulator.getFixedAudioRate() > sampleRate:
+            self.setSecondaryDemodulator(None)
         self.selector.setInputRate(sampleRate)
 
     def setPowerWriter(self, writer: Writer) -> None:
