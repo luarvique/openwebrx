@@ -1,3 +1,13 @@
+openwebrx (1.2.131) bullseye jammy; urgency=low
+
+  * Added screen wake lock (only HTTPS).
+  * Optimized NR threshold changes.
+  * Fixed vulnerability in /imageupload.
+  * Protected TX functionality with magic key.
+  * Now closing connection when send() fails.
+  * Now expiring cookies on /logout.
+  * Strenghtened cookies security.
+
 openwebrx (1.2.130) bullseye jammy; urgency=low
 
   * Fixed https:// playback issues via AudioProcessor.

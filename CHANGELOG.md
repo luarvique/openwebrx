@@ -1,3 +1,12 @@
+**1.2.131**
+- Added screen wake lock (only HTTPS).
+- Optimized NR threshold changes.
+- Fixed vulnerability in /imageupload.
+- Protected TX functionality with magic key.
+- Now closing connection when send() fails.
+- Now expiring cookies on /logout.
+- Strenghtened cookies security.
+
 **1.2.130**
 - Fixed https:// playback issues via AudioProcessor.
 - Fixed ADPCM decoding second channel.
