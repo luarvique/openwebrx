@@ -6,7 +6,6 @@ from owrx.form.input.gfx import AvatarInput, TopPhotoInput
 import uuid
 import json
 
-
 class ImageUploadController(AuthorizationMixin, AssetsController):
     # max upload filesizes
     max_sizes = {
@@ -22,6 +21,8 @@ class ImageUploadController(AuthorizationMixin, AssetsController):
     def getFilePath(self, file=None):
         if self.file is None:
             raise FileNotFoundError("missing filename")
+        elif "../" in self.file:
+            raise FileNotFoundError("bad filename")
         return "{tmp}/{file}".format(
             tmp=CoreConfig().get_temporary_directory(),
             file=self.file
