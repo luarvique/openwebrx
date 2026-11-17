@@ -561,7 +561,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             self.props.wireProperty("fft_voverlap_factor", self.chain.setSecondaryFftOverlapFactor),
             self.props.wireProperty("fft_fps", self.chain.setSecondaryFftFps),
             self.props.wireProperty("digimodes_fft_size", self.setSecondaryFftSize),
-            self.props.wireProperty("samp_rate", self.chain.setSampleRate),
+            self.props.wireProperty("samp_rate", self.setSampleRate),
             self.props.wireProperty("output_rate", self.chain.setOutputRate),
             self.props.wireProperty("hd_output_rate", self.chain.setHdOutputRate),
             self.props.wireProperty("offset_freq", self.chain.setFrequencyOffset),
@@ -870,6 +870,23 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             # this should only run as a service though
             from csdr.chain.satellite import ElektroLritDemodulator
             return ElektroLritDemodulator()
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        # Raised by @luarvique on PR #139: forcing the secondary chain
+        # down from ClientDemodulatorChain.setSampleRate() bypasses this
+        # props dict, so "secondary_mod" is left stuck at its old value.
+        # PropertyLayer.__setitem__ is a no-op when a property is set to
+        # the same value it already holds, so a client that re-selects
+        # the very same secondary mode after this forced teardown would
+        # get no reaction at all (no real change seen) until it picked a
+        # different mode first. Clear the property through the normal
+        # "turn it off" path (not a direct chain call) before applying
+        # the incompatible rate, so a later identical request is seen as
+        # a real change and reactivates correctly.
+        if isinstance(self.chain.secondaryDemodulator, FixedAudioRateChain) and self.chain.secondaryDemodulator.getFixedAudioRate() > sampleRate:
+            if "secondary_mod" in self.props:
+                del self.props["secondary_mod"]
+        self.chain.setSampleRate(sampleRate)
 
     def setSecondaryDemodulator(self, mod):
         demodulator = self._getSecondaryDemodulator(mod)
