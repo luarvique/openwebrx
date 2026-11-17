@@ -51,6 +51,10 @@ class SessionStorage(object):
             raise KeyError("Invalid session key")
         self.updateSession(key, data)
 
+    def dropSession(self, key):
+        if key in self.sessions:
+            del self.sessions[key]
+
 
 class SessionController(WebpageController):
     def loginAction(self):
@@ -74,6 +78,8 @@ class SessionController(WebpageController):
                     key = SessionStorage.getSharedInstance().startSession({"user": user.name})
                     cookie = SimpleCookie()
                     cookie["owrx-session"] = key
+                    cookie["owrx-session"]["httponly"] = True
+                    cookie["owrx-session"]["samesite"] = "Lax"
                     target = self.request.query["ref"][0] if "ref" in self.request.query else "/settings"
                     if user.must_change_password:
                         # force password change
@@ -88,7 +94,18 @@ class SessionController(WebpageController):
         self.send_redirect(target)
 
     def logoutAction(self):
-        if self.request.local or Config.get()["allow_remote_config"]:
-            self.send_redirect("logout happening here")
-        else:
+        if not self.request.local and not Config.get()["allow_remote_config"]:
             self.send_response("access forbidden", code=403)
+            return
+        # invalidate the session on the server side
+        if "owrx-session" in self.request.cookies:
+            key = self.request.cookies["owrx-session"].value
+            SessionStorage.getSharedInstance().dropSession(key)
+        # expire the session cookie in the browser
+        cookie = SimpleCookie()
+        cookie["owrx-session"] = ""
+        cookie["owrx-session"]["expires"] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        cookie["owrx-session"]["max-age"] = 0
+        self.set_response_cookies(cookie)
+        # redirect back to login page
+        self.send_redirect("/login")
