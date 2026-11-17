@@ -319,6 +319,12 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         profiles = [{"id": pid, "name": name} for pid, name in SdrService.getAvailableProfileNames().items()]
         self.write_profiles(profiles)
 
+    def _allowed(self, params = None):
+        # if the magic key is set in the settings, it must match received key
+        magic = self.stack["magic_key"]
+        key   = params["key"] if params and "key" in params else None
+        return magic == "" or key == magic
+
     def handleTextMessage(self, conn, message):
         try:
             message = json.loads(message)
@@ -342,8 +348,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                     if "params" in message and "profile" in message["params"]:
                         params  = message["params"]
                         profile = params["profile"].split("|")
-                        key     = params["key"] if "key" in params else None
-                        self.setProfile(profile[0], profile[1], key)
+                        self.setProfile(profile[0], profile[1], self._allowed(params))
 
                 elif message["type"] == "setfrequency":
                     # If the magic key is set in the settings, only allow
@@ -351,11 +356,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                     if "params" in message and "frequency" in message["params"]:
                         params = message["params"]
                         freq   = params["frequency"]
-                        if freq >= 0 and self.stack["allow_center_freq_changes"]:
-                            magic = self.stack["magic_key"]
-                            key   = params["key"] if "key" in params else None
-                            if magic == "" or key == magic:
-                                self.sdr.setCenterFreq(freq)
+                        if self.stack["allow_center_freq_changes"] and self._allowed(params) and freq >= 0:
+                            self.sdr.setCenterFreq(freq)
 
                 elif message["type"] == "connectionproperties":
                     if "params" in message:
@@ -372,10 +374,11 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                         )
 
                 elif message["type"] == "txcontrol":
+                    params = message["params"] if "params" in message else None
                     dsp = self.getDsp()
                     if dsp is None:
                         logger.warning("DSP not available; discarding client txcontrol message")
-                    else:
+                    elif self.stack["rig_enabled"] and self.stack["rig_tx_enabled"] and self._allowed(params):
                         dsp.setProperty("rig_transmit",
                             "action" in message and message["action"] == "start"
                         )
@@ -386,13 +389,12 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         except json.JSONDecodeError:
             logger.warning("message is not json: {0}".format(message))
 
-    def setProfile(self, sdr: str, profile: str, key: str = None):
+    def setProfile(self, sdr: str, profile: str, allowed: bool = False):
         # Set new SDR source
         self.setSdr(sdr)
 
         # Locked source's profile can only be changed with a key
-        magic = self.stack["magic_key"]
-        if self.sdr.isLocked(profile) and magic != "" and key != magic:
+        if self.sdr.isLocked(profile) and not allowed:
             # Tell client of locked profile
             self.write_log_message("This profile is locked, keeping current profile.")
             # Force update back to the current profile

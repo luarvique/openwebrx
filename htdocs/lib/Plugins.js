@@ -249,7 +249,11 @@ RigPlugin.start = function() {
         RigPlugin.ptt.style.background = 'red';
         RigPlugin.ptt.style.color = 'white';
         RigPlugin.tx = true;
-        ws.send(JSON.stringify({ 'type': 'txcontrol', 'action': 'start' }));
+        ws.send(JSON.stringify({
+            'type'   : 'txcontrol',
+            'action' : 'start',
+            'params' : { 'key': UI.getDemodulatorPanel().getMagicKey() }
+        }));
     }
 };
 
@@ -258,7 +262,11 @@ RigPlugin.stop = function() {
         RigPlugin.ptt.style.background = 'white';
         RigPlugin.ptt.style.color = 'red';
         RigPlugin.tx = false;
-        ws.send(JSON.stringify({ 'type': 'txcontrol', 'action': 'stop' }));
+        ws.send(JSON.stringify({
+            'type'   : 'txcontrol',
+            'action' : 'stop',
+            'params' : { 'key': UI.getDemodulatorPanel().getMagicKey() }
+        }));
     }
 };
 
