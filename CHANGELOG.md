@@ -1,7 +1,9 @@
 **1.2.131**
+- Greatly improved SSTV synchronization.
+- Fixed SSTV memory corruption after decoding PD290.
+- Fixed vulnerability in /imageupload.
 - Added screen wake lock (only HTTPS).
 - Optimized NR threshold changes.
-- Fixed vulnerability in /imageupload.
 - Protected TX functionality with magic key.
 - Now closing connection when send() fails.
 - Now expiring cookies on /logout.
