@@ -1,5 +1,7 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider, DialFrequencyReceiver
-from pycsdr.modules import Convert, Downmix, Writer
+from csdr.chain.demodulator import \
+    BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, \
+    HdStereo, MetaProvider, DialFrequencyReceiver
+from pycsdr.modules import Convert, Writer
 from pycsdr.types import Format
 from csdr.module.drm import DrmModule
 from owrx.monitor import SocketMonitor
@@ -10,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider, DialFrequencyReceiver):
+class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdStereo, MetaProvider, DialFrequencyReceiver):
     def __init__(self):
         self.metaWriter = None
         self.frequency = 0
@@ -30,7 +32,6 @@ class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, Met
         workers = [
             Convert(Format.COMPLEX_FLOAT, Format.COMPLEX_SHORT),
             self.drmModule,
-            Downmix(Format.SHORT),
         ]
         super().__init__(workers)
 
