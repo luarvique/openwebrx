@@ -93,7 +93,7 @@ class GeneralSettingsController(SettingsFormController):
                 ),
             ),
             Section(
-                "Receiver limits",
+                "Receiver policies",
                 NumberInput(
                     "max_clients",
                     "Maximum number of clients",
@@ -144,8 +144,9 @@ class GeneralSettingsController(SettingsFormController):
                 TextInput(
                     "magic_key",
                     "Magic key",
-                    infotext="Enter the key users have to supply to change center frequency."
-                    + " Leave empty if you do not want to protect frequency changes with a key."
+                    infotext="Enter the key users have to supply to change center frequency,"
+                    + " access locked devices and profiles, and use other restricted features."
+                    + " Leave empty if you do not want to protect these features with a key."
                     + " When enabled, the key has to be added to receiver's URL after the hash"
                     + " sign: http://my.receiver.com/#key=keyvalue.",
                 ),

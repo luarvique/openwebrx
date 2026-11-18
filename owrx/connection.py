@@ -374,14 +374,10 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                         )
 
                 elif message["type"] == "txcontrol":
-                    params = message["params"] if "params" in message else None
-                    dsp = self.getDsp()
-                    if dsp is None:
-                        logger.warning("DSP not available; discarding client txcontrol message")
-                    elif self.stack["rig_enabled"] and self.stack["rig_tx_enabled"] and self._allowed(params):
-                        dsp.setProperty("rig_transmit",
-                            "action" in message and message["action"] == "start"
-                        )
+                    if "action" in message and "params" in message:
+                        dsp = self.getDsp()
+                        if dsp is not None and self._allowed(message["params"]):
+                            dsp.setProperty("rig_transmit", message["action"] == "start")
 
             else:
                 logger.warning("received message without type: {0}".format(message))

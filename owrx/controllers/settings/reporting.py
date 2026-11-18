@@ -218,7 +218,7 @@ class ReportingController(SettingsFormController):
                 ),
                 CheckboxInput(
                     "rig_tx_enabled",
-                    "Enable sending PTT status to the transceiver",
+                    "Enable sending PTT to the transceiver (needs magic key)",
                 ),
                 DropdownInput(
                     "rig_model",
