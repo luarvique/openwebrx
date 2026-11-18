@@ -2,7 +2,7 @@ from csdr.chain.demodulator import ServiceDemodulator, DialFrequencyReceiver
 from csdr.module.toolbox import Rtl433Module, MultimonModule, RedseaModule, CwSkimmerModule, RttySkimmerModule, LameModule
 from pycsdr.modules import Convert, Agc, FmDemod, RealPart, SnrSquelch
 from pycsdr.types import Format
-from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder
+from owrx.toolbox import TextParser, PageParser, SelCallParser, EasParser, IsmParser, RdsParser, Mp3Recorder, ModbusParser
 from owrx.skimmer import CwSkimmerParser, RttySkimmerParser
 from owrx.transcribe import WhisperTranscriber
 from owrx.config import Config
@@ -99,6 +99,36 @@ class ZveiDemodulator(MultimonDemodulator):
             ["ZVEI1", "ZVEI2", "ZVEI3", "DZVEI", "PZVEI"],
             SelCallParser(service=service)
         )
+
+
+class ModbusDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    """
+    Modbus RTU over 1200 baud audio FSK on an FM channel, as used by SCADA
+    and telemetry radio modems. The default tones are ITU-T V.23
+    (1300/2100 Hz); Bell 202 (1200/2200 Hz) is decoded by the same tone
+    detector. Both 8N1 and 8-bit-with-parity character formats are tried.
+    """
+    def __init__(self, service: bool = False):
+        # Optional native module: older PyCSDR must still import other modes.
+        from pycsdr.modules import FskUartDecoder
+
+        self.sampleRate = 12000
+        self.parser = ModbusParser(service=service)
+        workers = [
+            FmDemod(),
+            FskUartDecoder(self.sampleRate, 1200, 1300, 2100),
+            self.parser,
+        ]
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return self.sampleRate
+
+    def supportsSquelch(self) -> bool:
+        return True
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
 
 
 class RdsDemodulator(ServiceDemodulator, DialFrequencyReceiver):

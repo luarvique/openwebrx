@@ -109,6 +109,7 @@ class FeatureDetector(object):
         "rds": ["redsea"],
         "dab": ["csdreti", "dablin"],
         "mqtt": ["paho_mqtt"],
+        "modbus": ["csdr_fsk_uart"],
         "hdradio": ["nrsc5"],
         "rigcontrol": ["hamlib"],
         "skimmer": ["csdr_skimmer"],
@@ -231,6 +232,20 @@ class FeatureDetector(object):
                 LooseVersion(csdr_version) >= required_version and
                 LooseVersion(pycsdr_version) >= required_version
             )
+        except ImportError:
+            return False
+
+    def has_csdr_fsk_uart(self):
+        """
+        Modbus requires the native FSK/UART decoder from
+        [CSDR](https://github.com/luarvique/csdr) and its
+        [PyCSDR](https://github.com/luarvique/pycsdr) binding.
+        Update both libraries to versions providing `FskUartDecoder`, then
+        restart OpenWebRX.
+        """
+        try:
+            from pycsdr.modules import FskUartDecoder
+            return True
         except ImportError:
             return False
 
