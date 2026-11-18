@@ -178,15 +178,15 @@ class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
         file.write(self.direwolfConfig.getConfig(self.service, self.ais))
         file.close()
 
-        # direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h 1>&2
-        cmdLine = ["direwolf", "-c", self.direwolfConfigPath, "-r", "48000", "-t", "0", "-q", "d", "-q", "h"]
+        # direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q dh >/dev/null
+        cmdLine = ["direwolf", "-c", self.direwolfConfigPath, "-r", "48000", "-t", "0", "-q", "dh"]
 
         # for AIS mode, add -B AIS -A
         if self.ais:
             cmdLine += ["-B", "AIS", "-A"]
 
         # launch Direwolf
-        self.process = Popen(cmdLine, start_new_session=True, stdin=PIPE, stdout=DEVNULL, stderr=DEVNULL)
+        self.process = Popen(cmdLine, start_new_session=True, stdin=PIPE, stdout=DEVNULL)
 
         # resume in case the reader has been stop()ed before
         self.reader.resume()

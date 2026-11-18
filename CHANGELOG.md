@@ -8,6 +8,7 @@
 - Now closing connection when send() fails.
 - Now expiring cookies on /logout.
 - Strenghtened cookies security.
+- Muted Direwolf STDOUT log output [sq2mo].
 
 **1.2.130**
 - Fixed https:// playback issues via AudioProcessor.
