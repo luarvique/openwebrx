@@ -9,6 +9,7 @@
 - Now expiring cookies on /logout.
 - Strenghtened cookies security.
 - Muted Direwolf STDOUT log output [sq2mo].
+- Removed dependency on python3-pkg-resources.
 
 **1.2.130**
 - Fixed https:// playback issues via AudioProcessor.
