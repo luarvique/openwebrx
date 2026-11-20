@@ -1,9 +1,10 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, \
-    MetaProvider, AudioServiceSelector, DialFrequencyReceiver
+from csdr.chain.demodulator import \
+    BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, \
+    HdStereo, MetaProvider, AudioServiceSelector, DialFrequencyReceiver
 from csdr.module import PickleModule
 from csdreti.modules import EtiDecoder
 from csdr.module.toolbox import DablinModule
-from pycsdr.modules import Downmix, Buffer, Shift, Writer
+from pycsdr.modules import Buffer, Shift, Writer
 from pycsdr.types import Format
 from typing import Optional
 from random import random
@@ -58,7 +59,7 @@ class MetaProcessor(PickleModule):
         self.shifter.setRate(0)
 
 
-class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, AudioServiceSelector, DialFrequencyReceiver):
+class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdStereo, MetaProvider, AudioServiceSelector, DialFrequencyReceiver):
     def __init__(self, outputRate: int = 48000):
         self.outputRate = outputRate
         shift = Shift(0)
@@ -78,7 +79,6 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
             shift,
             self.decoder,
             self.dablin,
-            Downmix(Format.FLOAT),
         ]
         super().__init__(workers)
 
