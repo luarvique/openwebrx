@@ -1,4 +1,5 @@
 **1.2.131**
+- Switched DRM and DAB decoders to stereo.
 - Greatly improved SSTV synchronization.
 - Fixed SSTV memory corruption after decoding PD290.
 - Fixed vulnerability in /imageupload.

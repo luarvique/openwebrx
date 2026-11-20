@@ -1,5 +1,6 @@
 openwebrx (1.2.131) bullseye jammy; urgency=low
 
+  * Switched DRM and DAB decoders to stereo.
   * Greatly improved SSTV synchronization.
   * Fixed SSTV memory corruption after decoding PD290.
   * Fixed vulnerability in /imageupload.
@@ -11,6 +12,8 @@ openwebrx (1.2.131) bullseye jammy; urgency=low
   * Strenghtened cookies security.
   * Muted Direwolf STDOUT log output [sq2mo].
   * Removed dependency on python3-pkg-resources.
+
+ -- Marat Fayzullin <luarvique@gmail.com>  Fri, 20 Nov 2026 16:12:00 +0000
 
 openwebrx (1.2.130) bullseye jammy; urgency=low
 
