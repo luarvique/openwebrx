@@ -4,6 +4,7 @@ from pycsdr.types import Format
 from typing import Union, Callable, Optional
 
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -135,9 +136,27 @@ class Chain(Module):
             self._connect(previousWorker, nextWorker)
 
     def stop(self):
+        def stop(self):
+        # stop every worker in its own thread: if one native module hangs in its
+        # join (Csdr::AsyncRunner::stop), the remaining workers must still be stopped
+        # instead of being left running forever (CPU leak)
+        stoppers = []
         for w in self.workers:
-            w.stop()
+            t = threading.Thread(target=self._stopWorker, args=(w,), name="chain_stop", daemon=True)
+            t.start()
+            stoppers.append((w, t))
+        for w, t in stoppers:
+            t.join(3.0)
+            if t.is_alive():
+                logger.warning("worker %s did not stop within 3 seconds, abandoning it", w)
         super().stop()
+ 
+    @staticmethod
+    def _stopWorker(w):
+        try:
+            w.stop()
+        except Exception:
+            logger.exception("exception while stopping worker %s", w)
 
     def getInputFormat(self) -> Format:
         if self.workers:
