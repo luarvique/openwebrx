@@ -120,7 +120,7 @@ class WeatherParser(object):
         WeatherMapping("r", "rain.hour", 3, lambda x: x / 100 * inchesToMilimeters),
         WeatherMapping("p", "rain.day", 3, lambda x: x / 100 * inchesToMilimeters),
         WeatherMapping("P", "rain.sincemidnight", 3, lambda x: x / 100 * inchesToMilimeters),
-        WeatherMapping("h", "humidity", 2),
+        WeatherMapping("h", "humidity", 2, lambda x: 100 if x == 0 else x),
         WeatherMapping("b", "barometricpressure", 5, lambda x: x / 10),
         WeatherMapping("s", "snowfall", 3, lambda x: x * 25.4),
     ]
