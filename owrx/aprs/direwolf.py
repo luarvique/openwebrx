@@ -216,6 +216,9 @@ class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
             os.unlink(self.direwolfConfigPath)
         except Exception:
             pass
+        if self.tcpSource is not None:
+            self.tcpSource.stop()
+            self.tcpSource = None
         self.direwolfConfig.unwire(self)
         self.direwolfConfig = None
         self.reader.stop()
