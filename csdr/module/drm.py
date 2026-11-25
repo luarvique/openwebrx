@@ -15,7 +15,7 @@ class DrmModule(ExecModule):
         if self.socketPath:
             cmd += [ "--status-socket", self.socketPath ]
 
-        super().__init__(Format.COMPLEX_SHORT, Format.SHORT, cmd)
+        super().__init__(Format.COMPLEX_SHORT, Format.COMPLEX_SHORT, cmd)
 
     def stop(self):
         # Stop execution
