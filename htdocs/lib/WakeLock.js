@@ -31,8 +31,8 @@ WakeLock.release = async function() {
 };
 
 WakeLock.onVisibility = function() {
-  if (this.lock !== null && document.visibilityState === 'visible') {
-      this.request();
+  if (WakeLock.lock !== null && document.visibilityState === 'visible') {
+      WakeLock.request();
   }
 };
 
