@@ -1,3 +1,11 @@
+**1.2.132**
+- Now requiring Dablin 1.15, since we need S16 output.
+- Now treating "h00" APRS value as 100% humidity.
+- Now stopping TcpSource when Direwolf stops.
+- Fixed minor JavaScript WakeLock issue.
+- Fixed Dream DRM stereo sound.
+- Fixed Dablin DAB stereo sound.
+
 **1.2.131**
 - Switched DRM and DAB decoders to stereo.
 - Greatly improved SSTV synchronization.
